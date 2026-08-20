@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from google import genai
+from datetime import datetime, time
 
 # Configuración de la página
 st.set_page_config(
