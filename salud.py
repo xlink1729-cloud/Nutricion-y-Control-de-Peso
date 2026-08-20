@@ -306,6 +306,7 @@ elif opcion == "📊 Control de Peso y Músculo":
 # ==========================================
 # MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
 # ==========================================
+elif opcion == "📉 Registro Diario de Peso":
     st.header("📉 Registro Diario y Análisis de Peso")
     st.write("Registra tu peso cada mañana y deja que la app interprete las tendencias por ti.")
 
