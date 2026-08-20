@@ -266,71 +266,109 @@ if opcion == "📊 Control de Peso y Músculo":
             )
 
 # ==========================================
-# MÓDULO 2: GENERADOR DE RECETAS POR PORCIONES
+# MÓDULO 2: GENERADOR DE RECETAS BASADO EN TU PLAN DE INTERVENCIÓN
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
-    st.header("🍳 Generador de Recetas según tu Hoja de Porciones")
+    st.header("🍳 Generador de Recetas según tu Plan Nutricional")
     st.write(
-        "Ingresa los equivalentes/porciones que te asignó tu nutrióloga para"
-        " crear una receta fácil y deliciosa."
+        "Genera recetas inteligentes que respetan las porciones de tu nutrióloga, tus gustos y el clima de Colima."
     )
 
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        p_prot = st.number_input("Porciones Proteína", min_value=0, value=2)
-    with c2:
-        p_carb = st.number_input("Porciones Carbohidratos", min_value=0, value=2)
-    with c3:
-        p_gras = st.number_input("Porciones Grasa", min_value=0, value=1)
-    with c4:
-        p_verd = st.number_input("Porciones Verdura", min_value=0, value=2)
+    # Matriz de porciones según tu tabla de Intervención Nutricional
+    PLAN_NUTRICIONAL = {
+        "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
+        "Desayuno": {"Verduras": 1, "Frutas": 1, "Cereales": 2, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
+        "Colación 1": {"Frutas": 1, "Grasas c/ Prot": 1},
+        "Comida": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 5, "Grasas s/ Prot": 2},
+        "Colación 2": {"Frutas": 1},
+        "Cena": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
+    }
 
-    ingredientes_disponibles = st.text_input(
-        "Ingredientes que tienes en casa (separados por coma):",
-        "Pollo, tortillas de maíz, aguacate, jitomate, cebolla",
-    )
-    tiempo_comida = st.selectbox(
-        "Tiempo de comida:", ["Desayuno", "Almuerzo", "Cena", "Snack"]
-    )
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        tiempo_comida = st.selectbox("Selecciona el tiempo de comida:", list(PLAN_NUTRICIONAL.keys()))
+    with col_t2:
+        modalidad_trabajo = st.selectbox(
+            "Modalidad de tu día:", 
+            ["Normal / En casa / Oficina", "🛠️ Día de Campo / Para llevar en Hielera/Tupper"]
+        )
 
-    if st.button("🍳 Crear Receta Personalizada"):
+    # Mostrar las porciones cargadas automáticamente desde la tabla
+    st.markdown(f"#### 📊 Porciones asignadas para **{tiempo_comida}**:")
+    porciones_actuales = PLAN_NUTRICIONAL[tiempo_comida]
+    
+    cols = st.columns(len(porciones_actuales))
+    for idx, (grupo, cant) in enumerate(porciones_actuales.items()):
+        cols[idx].metric(grupo, f"{cant} porc.")
+
+    st.markdown("---")
+    st.subheader("⚙️ Configuración de Gustos y Preferencias")
+
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        alimentos_favoritos = st.text_input(
+            "💚 Alimentos que te GUSTAN (separados por coma):",
+            "Pollo, aguacate, tortillas de maíz, queso panela, jitomate, atún",
+        )
+    with col_g2:
+        alimentos_no_gustan = st.text_input(
+            "❌ Alimentos que NO te gustan o evitas:",
+            "Cilantro, mayonesa, pescado, calabacita",
+        )
+
+    if st.button("🍳 Generar Receta Personalizada"):
         try:
+            # Construir resumen de porciones para la consulta
+            porciones_str = ", ".join([f"{cant} porción(es) de {grupo}" for grupo, cant in porciones_actuales.items()])
+
             prompt = f"""
-            Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa, sencilla de cocinar y práctica para el tiempo de comida '{tiempo_comida}'.
+            Actúa como un Chef y Nutriólogo Experto en comida mexicana. Crea una receta deliciosa, práctica y fácil de preparar.
+
+            ESPECIFICACIONES DEL TIEMPO DE COMIDA: '{tiempo_comida}'
+            PORCIONES STRICTAS DE LA NUTRIÓLOGA: {porciones_str}.
+
+            PREFERENCIAS PERSONALIZADAS:
+            - Alimentos preferidos / disponibles: {alimentos_favoritos}.
+            - Alimentos prohibidos / NO le gustan: {alimentos_no_gustan} (ESTRICTAMENTE NO INCLUIR NINGUNO DE ESTOS).
+            - Modalidad de consumo: '{modalidad_trabajo}' (Si es día de campo, debe ser algo resistente al clima cálido de Colima, transportable y práctico).
+
+            FORMATO DE RESPUESTA REQUERIDO (En Markdown exacto):
+            📌 **Nombre de la Receta**
             
-            ESPECIFICACIONES DE PORCIONES ESTRICTAS (Hoja de Nutrióloga):
-            - Proteína: {p_prot} porciones
-            - Carbohidratos: {p_carb} porciones
-            - Grasa: {p_gras} porciones
-            - Verduras: {p_verd} porciones
+            🥗 **Ingredientes y Cantidades Exactas para la Lista de Compras**:
+            - [Cantidad exacta] [Ingrediente 1]
+            - [Cantidad exacta] [Ingrediente 2]
             
-            Ingredientes disponibles preferentes: {ingredientes_disponibles}.
+            👩‍🍳 **Pasos de Preparación**:
+            1. Paso 1...
+            2. Paso 2...
             
-            Responde en formato Markdown claro con las siguientes secciones:
-            1. 📌 **Nombre del Platillo**
-            2. 🥗 **Desglose de Ingredientes con cantidades exactas para cumplir las porciones**
-            3. 👩‍🍳 **Pasos de Preparación rápidos (máximo 5 pasos)**
-            4. 💡 **Tip del Chef para mejor sabor sin añadir calorías extra**
+            💡 **Tip de Conservación / Sabor**:
+            [Tip específico para esta preparación]
             """
 
-            with st.spinner("Diseñando tu receta según tus porciones..."):
+            with st.spinner("Diseñando tu receta según tus porciones y gustos..."):
                 response = client.models.generate_content(
                     model="gemini-2.5-flash", contents=prompt
                 )
                 receta_texto = response.text
 
-            st.markdown("---")
-            st.markdown(receta_texto)
-
-            if st.button("➕ Agregar ingredientes a la Lista de Compras"):
-                st.session_state.lista_compras.append(
-                    f"Ingredientes para receta de {tiempo_comida} ({p_prot}"
-                    f" Prot, {p_carb} Carb, {p_gras} Gras)"
-                )
-                st.success("¡Agregado a tu lista de compras!")
+            st.session_state["ultima_receta"] = receta_texto
+            st.session_state["receta_tiempo"] = tiempo_comida
 
         except Exception as e:
             st.error(f"Error al conectar con Gemini: {e}")
+
+    # Desplegar la última receta generada y permitir agregar a la lista
+    if "ultima_receta" in st.session_state:
+        st.markdown("---")
+        st.markdown(st.session_state["ultima_receta"])
+
+        if st.button("🛒 Agregar Ingredientes de esta receta a la Lista de Compras"):
+            st.session_state.lista_compras.append(
+                f"Ingredientes para {st.session_state['receta_tiempo']} - {st.session_state['ultima_receta'].split('📌')[1].split('🥗')[0].strip()}"
+            )
+            st.success("¡Receta y sus ingredientes agregados a tu lista de supermercado!")
 
 # ==========================================
 # MÓDULO 3: LISTA DE COMPRAS
