@@ -30,6 +30,7 @@ opcion = st.sidebar.radio(
         "📊 Control de Peso y Músculo",
         "📉 Registro Diario de Peso",
         "🥤 Licuados 5:00 AM (L-J)",
+        "🥗 Registro de Alimentación"
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
     ],
@@ -485,7 +486,136 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
             st.success("¡Ingredientes añadidos a la lista de compras!")
 
 # ==========================================
-# MÓDULO 4: GENERADOR DE RECETAS SEGÚN PLAN NUTRICIONAL
+# MÓDULO 4: REGISTRO DE ALIMENTACIÓN Y MACROS
+# ==========================================
+elif opcion == "🥗 Registro de Alimentación":
+    st.header("🥗 Registro de Alimentación Diario")
+    st.write("Registra tus alimentos del día o selecciona tus **Comidas Frecuentes** para ahorrar tiempo.")
+
+    # Inicializar estado para comidas frecuentes y registro del día
+    if "comidas_frecuentes" not in st.session_state:
+        st.session_state.comidas_frecuentes = [
+            {
+                "Nombre": "Licuado de plátano + avena + leche",
+                "Tipo": "Desayuno",
+                "Kcal": 450,
+                "Proteína (g)": 22,
+                "Carbs (g)": 65,
+                "Grasa (g)": 8,
+            },
+            {
+                "Nombre": "Pechuga a la plancha con arroz y verdura",
+                "Tipo": "Comida",
+                "Kcal": 550,
+                "Proteína (g)": 45,
+                "Carbs (g)": 50,
+                "Grasa (g)": 10,
+            },
+        ]
+
+    if "diario_alimentos" not in st.session_state:
+        st.session_state.diario_alimentos = pd.DataFrame(
+            columns=["Hora/Comida", "Alimento", "Kcal", "Proteína (g)", "Carbs (g)", "Grasa (g)"]
+        )
+
+    # --- SECCIÓN: BOTÓN RÁPIDO "REPETIR COMIDA FRECUENTE" ---
+    st.subheader("⚡ Carga Rápida: Comidas Frecuentes")
+    st.caption("Toca 'Repetir' para añadir tus platos habituales al registro de hoy sin volver a escribir.")
+
+    cols_frec = st.columns(len(st.session_state.comidas_frecuentes))
+    for idx, item in enumerate(st.session_state.comidas_frecuentes):
+        with cols_frec[idx]:
+            st.markdown(f"**{item['Tipo']}:** {item['Nombre']}")
+            st.caption(f"🔥 {item['Kcal']} kcal | 🥗 {item['Proteína (g)']}g Prot")
+            if st.button(f"🔁 Repetir", key=f"frec_{idx}", use_container_width=True):
+                nueva_comida = pd.DataFrame([{
+                    "Hora/Comida": item['Tipo'],
+                    "Alimento": item['Nombre'],
+                    "Kcal": item['Kcal'],
+                    "Proteína (g)": item['Proteína (g)'],
+                    "Carbs (g)": item['Carbs (g)'],
+                    "Grasa (g)": item['Grasa (g)'],
+                }])
+                st.session_state.diario_alimentos = pd.concat(
+                    [st.session_state.diario_alimentos, nueva_comida], ignore_index=True
+                )
+                st.success(f"¡{item['Nombre']} añadido a hoy!")
+
+    st.markdown("---")
+
+    col_form, col_resumen = st.columns([1.1, 1.9])
+
+    # --- FORMULARIO DE REGISTRO MANUAL O CREACIÓN ---
+    with col_form:
+        st.subheader("📝 Registrar Nuevo Alimento")
+        categoria = st.selectbox("Comida", ["Desayuno", "Comida", "Cena", "Snack"])
+        nombre_alimento = st.text_input("Alimento / Platillo", placeholder="Ej. Licuado de plátano")
+        porcion = st.text_input("Porción", placeholder="Ej. 1 vaso / 200g")
+        
+        c_k, c_p = st.columns(2)
+        kcal = c_k.number_input("Calorías (kcal)", min_value=0, value=300)
+        prot = c_p.number_input("Proteína (g)", min_value=0, value=15)
+        
+        c_c, c_g = st.columns(2)
+        carbs = c_c.number_input("Carbohidratos (g)", min_value=0, value=40)
+        grasa = c_g.number_input("Grasas (g)", min_value=0, value=5)
+
+        guardar_frecuente = st.checkbox("⭐ Guardar en 'Comidas Frecuentes'")
+
+        if st.button("📌 Añadir a Hoy", use_container_width=True):
+            if nombre_alimento.strip() != "":
+                nuevo_item = pd.DataFrame([{
+                    "Hora/Comida": categoria,
+                    "Alimento": f"{nombre_alimento} ({porcion})" if porcion else nombre_alimento,
+                    "Kcal": kcal,
+                    "Proteína (g)": prot,
+                    "Carbs (g)": carbs,
+                    "Grasa (g)": grasa,
+                }])
+                st.session_state.diario_alimentos = pd.concat(
+                    [st.session_state.diario_alimentos, nuevo_item], ignore_index=True
+                )
+
+                if guardar_frecuente:
+                    st.session_state.comidas_frecuentes.append({
+                        "Nombre": nombre_alimento,
+                        "Tipo": categoria,
+                        "Kcal": kcal,
+                        "Proteína (g)": prot,
+                        "Carbs (g)": carbs,
+                        "Grasa (g)": grasa,
+                    })
+                st.success("¡Alimento registrado!")
+                st.rerun()
+
+    # --- RESUMEN Y MACRONUTRIENTES DEL DÍA ---
+    with col_resumen:
+        st.subheader("📊 Totales del Día")
+
+        tot_kcal = st.session_state.diario_alimentos["Kcal"].sum()
+        tot_prot = st.session_state.diario_alimentos["Proteína (g)"].sum()
+        tot_carbs = st.session_state.diario_alimentos["Carbs (g)"].sum()
+        tot_grasa = st.session_state.diario_alimentos["Grasa (g)"].sum()
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("🔥 Calorías", f"{tot_kcal} kcal")
+        m2.metric("🥗 Proteínas", f"{tot_prot} g")
+        m3.metric("🍞 Carbs", f"{tot_carbs} g")
+        m4.metric("🥑 Grasas", f"{tot_grasa} g")
+
+        st.markdown("##### 🍽️ Consumo Registrado Hoy")
+        if not st.session_state.diario_alimentos.empty:
+            st.dataframe(st.session_state.diario_alimentos, use_container_width=True)
+            if st.button("🗑️ Borrar Diario de Hoy"):
+                st.session_state.diario_alimentos = pd.DataFrame(
+                    columns=["Hora/Comida", "Alimento", "Kcal", "Proteína (g)", "Carbs (g)", "Grasa (g)"]
+                )
+                st.rerun()
+        else:
+            st.info("Aún no has registrado ningún alimento el día de hoy.")
+
+# ==========================================
+# MÓDULO 5: GENERADOR DE RECETAS SEGÚN PLAN NUTRICIONAL
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador de Recetas según tu Plan Nutricional")
@@ -632,7 +762,7 @@ elif opcion == "🍳 Generador de Recetas":
             st.success("¡Receta agregada a tu lista de supermercado!")
 
 # ==========================================
-# MÓDULO 5: LISTA DE COMPRAS
+# MÓDULO 6: LISTA DE COMPRAS
 # ==========================================
 elif opcion == "🛒 Lista de Compras":
     st.header("🛒 Tu Lista de Supermercado")
