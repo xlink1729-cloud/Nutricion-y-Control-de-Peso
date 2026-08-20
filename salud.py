@@ -710,8 +710,10 @@ elif opcion == "🍳 Generador de Recetas":
 
     col_t1, col_t2 = st.columns(2)
     with col_t1:
+        # Agregamos la opción de 'Menú Completo del Día'
+        opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
         tiempo_comida = st.selectbox(
-            "Selecciona el tiempo de comida:", list(plan_actual.keys())
+            "Selecciona el tiempo de comida:", opciones_tiempo
         )
     with col_t2:
         modalidad_trabajo = st.selectbox(
@@ -721,18 +723,6 @@ elif opcion == "🍳 Generador de Recetas":
                 "🛠️ Día de Campo / Para llevar en Hielera/Tupper (Resistente al calor)",
             ],
         )
-
-    datos_comida = plan_actual[tiempo_comida].copy()
-    sugerencia_h = datos_comida.pop("Sugerencia Horario")
-
-    st.markdown(
-        f"#### 📊 Porciones asignadas para **{tiempo_comida}** *(Horario"
-        f" habitual: {sugerencia_h})*:"
-    )
-
-    cols = st.columns(len(datos_comida))
-    for idx, (grupo, cant) in enumerate(datos_comida.items()):
-        cols[idx].metric(grupo, f"{cant} porc.")
 
     st.markdown("---")
     st.subheader("⚙️ Gustos y Restricciones")
@@ -749,42 +739,64 @@ elif opcion == "🍳 Generador de Recetas":
             "Cilantro, mayonesa, pescado, calabacita",
         )
 
-    if st.button("🍳 Generar Receta Personalizada"):
+    if st.button("🍳 Generar Recetas"):
         try:
-            porciones_str = ", ".join(
-                [f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()]
-            )
+            # Si elije todo el día, construimos el resumen de todos los tiempos de comida
+            if tiempo_comida == "📌 Menú Completo del Día":
+                resumen_plan = ""
+                for t_nombre, t_datos in plan_actual.items():
+                    datos_temp = t_datos.copy()
+                    horario = datos_temp.pop("Sugerencia Horario", "")
+                    porciones_t = ", ".join([f"{cant} {grp}" for grp, cant in datos_temp.items()])
+                    resumen_plan += f"- **{t_nombre}** ({horario}): {porciones_t}\n"
 
-            prompt = f"""
-            Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa y práctica.
+                prompt = f"""
+                Actúa como un Chef y Nutriólogo Experto. Crea un plan de alimentación COMPLETO para TODO EL DÍA.
 
-            CONTEXTO DEL USUARIO:
-            - Tiempo de comida: '{tiempo_comida}' (Horario sugerido: {sugerencia_h})
-            - Modalidad: '{modalidad_trabajo}'. Si es día de campo, priorizar alimentos transportables e ideales para el calor de Colima.
+                CONTEXTO DEL USUARIO:
+                - Modalidad: '{modalidad_trabajo}'. Si es día de campo, priorizar alimentos transportables.
 
-            PORCIONES EXACTAS DE LA NUTRIÓLOGA:
-            {porciones_str}.
+                PLAN Y PORCIONES EXACTAS PARA EL DÍA:
+                {resumen_plan}
 
-            PREFERENCIAS PERSONALIZADAS:
-            - Alimentos preferidos / disponibles: {alimentos_favoritos}.
-            - Alimentos prohibidos / NO le gustan: {alimentos_no_gustan} (ESTRICTAMENTE NO INCLUIR NINGUNO DE ESTOS).
+                PREFERENCIAS:
+                - Le gustan: {alimentos_favoritos}.
+                - NO le gustan (ESTRICTAMENTE EXCLUIR): {alimentos_no_gustan}.
 
-            FORMATO DE RESPUESTA REQUERIDO (En Markdown exacto):
-            📌 **Nombre de la Receta**
-            
-            🥗 **Ingredientes y Cantidades Exactas**:
-            - [Cantidad exacta] [Ingrediente 1]
-            - [Cantidad exacta] [Ingrediente 2]
-            
-            👩‍🍳 **Pasos de Preparación**:
-            1. Paso 1...
-            2. Paso 2...
-            
-            🧊 **Tip de Empaque / Conservación**:
-            [Tip específico de conservación térmica o empaque]
-            """
+                FORMATO DE RESPUESTA:
+                Por cada tiempo de comida asignado, entrega:
+                1. 📌 **Nombre de la Comida / Receta**
+                2. 🥗 **Ingredientes y Cantidades Exactas**
+                3. 👩‍🍳 **Preparación rápida**
+                4. 🧊 **Tip de Empaque/Conservación** (si aplica)
+                """
+            else:
+                # Generación para un solo tiempo de comida
+                datos_comida = plan_actual[tiempo_comida].copy()
+                sugerencia_h = datos_comida.pop("Sugerencia Horario", "")
+                porciones_str = ", ".join(
+                    [f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()]
+                )
 
-            with st.spinner("Diseñando tu receta según tus porciones y gustos..."):
+                prompt = f"""
+                Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa y práctica.
+
+                CONTEXTO:
+                - Tiempo de comida: '{tiempo_comida}' (Horario: {sugerencia_h})
+                - Modalidad: '{modalidad_trabajo}'
+
+                PORCIONES EXACTAS: {porciones_str}
+                GUSTOS: {alimentos_favoritos}
+                PROHIBIDOS: {alimentos_no_gustan}
+
+                FORMATO:
+                📌 **Nombre de la Receta**
+                🥗 **Ingredientes y Cantidades Exactas**
+                👩‍🍳 **Pasos de Preparación**
+                🧊 **Tip de Empaque**
+                """
+
+            with st.spinner("Diseñando tu plan nutricional con Gemini 3.6..."):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
