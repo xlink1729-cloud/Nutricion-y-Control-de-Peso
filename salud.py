@@ -725,19 +725,35 @@ elif opcion == "🍳 Generador de Recetas":
         )
 
     st.markdown("---")
-    st.subheader("⚙️ Gustos y Restricciones")
+    st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        alimentos_favoritos = st.text_input(
-            "💚 Alimentos que te GUSTAN (separados por coma):",
-            "Pollo, aguacate, tortillas de maíz, queso panela, jitomate, atún, plátano, avena",
-        )
-    with col_g2:
-        alimentos_no_gustan = st.text_input(
-            "❌ Alimentos que NO te gustan o evitas:",
-            "Cilantro, mayonesa, pescado, calabacita",
-        )
+    # Usamos tabs para organizar visualmente sin saturar la pantalla
+    tab_prot, tab_veg, tab_frutas = st.tabs(["🥩 Proteínas y Carnes", "🥦 Verduras y Acompañamientos", "🍎 Frutas"])
+
+    with tab_prot:
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            fav_prot = st.text_input("💚 Proteínas que te GUSTAN:", "Pollo, queso panela, atún, huevo", key="fav_p")
+        with col_p2:
+            no_prot = st.text_input("❌ Proteínas que NO te gustan / evitas:", "Pescado, cerdo, mariscos", key="no_p")
+
+    with tab_veg:
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            fav_veg = st.text_input("💚 Verduras / Carbohidratos que te GUSTAN:", "Jitomate, aguacate, tortillas de maíz, avena", key="fav_v")
+        with col_v2:
+            no_veg = st.text_input("❌ Verduras / Carbohidratos que NO te gustan:", "Cilantro, calabacita, mayonesa", key="no_v")
+
+    with tab_frutas:
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            fav_frutas = st.text_input("💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f")
+        with col_f2:
+            no_frutas = st.text_input("❌ Frutas que NO te gustan:", "Papaya, melón", key="no_f")
+
+    # Consolidamos las respuestas para el prompt de Gemini
+    alimentos_favoritos = f"Proteínas: {fav_prot} | Verduras/Cereales: {fav_veg} | Frutas: {fav_frutas}"
+    alimentos_no_gustan = f"Proteínas: {no_prot} | Verduras/Cereales: {no_veg} | Frutas: {no_frutas}"
 
     if st.button("🍳 Generar Recetas"):
         try:
