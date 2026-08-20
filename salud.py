@@ -33,6 +33,7 @@ opcion = st.sidebar.radio(
         "🥗 Registro de Alimentación",
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
+        "🔥 Seguimiento de Hábitos",
     ],
 )
 
@@ -807,3 +808,119 @@ elif opcion == "🛒 Lista de Compras":
             st.rerun()
     else:
         st.info("Tu lista de compras está vacía.")
+
+# ==========================================
+# MÓDULO: HÁBITOS Y CUMPLIMIENTO DIARIO
+# ==========================================
+elif opcion == "🔥 Seguimiento de Hábitos":
+    st.header("🔥 Registro de Hábitos Diarios")
+    st.write("Marca tus hábitos cumplidos hoy para mantener y aumentar tu racha.")
+
+    # Inicializar registro de hábitos en st.session_state
+    if "historial_habitos" not in st.session_state:
+        st.session_state.historial_habitos = pd.DataFrame(
+            columns=[
+                "Fecha",
+                "Agua",
+                "Objetivo_Nutricional",
+                "Actividad_Fisica",
+                "Sueno",
+                "Frutas_Verduras",
+                "Sin_Azucar",
+                "Cumplido_Total",
+            ]
+        )
+
+    # 1. FECHA Y FORMULARIO DE CHECKLIST DIARIO
+    col_check, col_racha = st.columns([1.2, 1.8])
+
+    with col_check:
+        st.subheader("📅 Checklist de Hoy")
+        f_habito = st.date_input("Fecha", key="f_habito_input")
+
+        # Lista de hábitos con checkboxes
+        h_agua = st.checkbox("💧 Tomé suficiente agua")
+        h_nutricion = st.checkbox("🥗 Comí de acuerdo con mi objetivo")
+        h_actividad = st.checkbox("🚶 Hice actividad física")
+        h_sueno = st.checkbox("😴 Dormí bien")
+        h_frutas = st.checkbox("🍎 Comí frutas / verduras")
+        h_azucar = st.checkbox("🚫 Evité bebidas azucaradas")
+
+        total_habitos = 6
+        completados = sum([h_agua, h_nutricion, h_actividad, h_sueno, h_frutas, h_azucar])
+
+        if st.button("💾 Guardar Hábitos de Hoy", use_container_width=True):
+            # Se considera "Día Cumplido" si realiza al menos 4 de los 6 hábitos
+            cumplio_dia = completados >= 4
+
+            nuevo_registro_h = pd.DataFrame(
+                [{
+                    "Fecha": pd.to_datetime(f_habito),
+                    "Agua": h_agua,
+                    "Objetivo_Nutricional": h_nutricion,
+                    "Actividad_Fisica": h_actividad,
+                    "Sueno": h_sueno,
+                    "Frutas_Verduras": h_frutas,
+                    "Sin_Azucar": h_azucar,
+                    "Cumplido_Total": cumplio_dia,
+                }]
+            )
+
+            # Evitar duplicados del mismo día guardando el último registro
+            st.session_state.historial_habitos = (
+                pd.concat([st.session_state.historial_habitos, nuevo_registro_h])
+                .drop_duplicates(subset=["Fecha"], keep="last")
+                .sort_values("Fecha")
+                .reset_index(drop=True)
+            )
+            st.success("¡Hábitos de hoy guardados!")
+            st.rerun()
+
+    # 2. CÁLCULO DE RACHA ACTUAL Y ESTADÍSTICAS
+    with col_racha:
+        st.subheader("🔥 Tu Racha Actual")
+
+        df_h = st.session_state.historial_habitos.copy()
+
+        if not df_h.empty:
+            df_h["Fecha"] = pd.to_datetime(df_h["Fecha"])
+            df_h = df_h.sort_values("Fecha", ascending=False)
+
+            # Algoritmo para calcular la racha de días consecutivos cumplidos
+            racha_actual = 0
+            for idx, fila in df_h.iterrows():
+                if fila["Cumplido_Total"]:
+                    racha_actual += 1
+                else:
+                    break
+
+            # Despliegue visual destacado de la racha
+            if racha_actual > 0:
+                st.markdown(
+                    f"""
+                    <div style="background-color: #1E293B; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #F59E0B;">
+                        <h1 style="color: #F59E0B; margin: 0; font-size: 3em;">🔥 {racha_actual} DÍAS</h1>
+                        <p style="color: #E2E8F0; margin: 5px 0 0 0; font-size: 1.2em;">¡Excelente constancia! Sigue así.</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.info("🔥 **Racha actual: 0 días.** ¡Completa al menos 4 hábitos hoy para comenzar tu racha!")
+
+            st.markdown("---")
+
+            # Métrica de porcentaje de efectividad mensual
+            dias_totales = len(df_h)
+            dias_exitosos = df_h["Cumplido_Total"].sum()
+            pct_efectividad = (dias_exitosos / dias_totales) * 100 if dias_totales > 0 else 0
+
+            m_h1, m_h2 = st.columns(2)
+            m_h1.metric("📊 Días Registrados", f"{dias_totales} días")
+            m_h2.metric("🎯 Efectividad Total", f"{pct_efectividad:.0f}%")
+
+            # Mostrar tabla detallada del historial
+            with st.expander("📋 Ver Historial Completo de Hábitos"):
+                st.dataframe(df_h, use_container_width=True)
+        else:
+            st.info("Aún no has registrado hábitos. Marca tus casillas a la izquierda y guarda tu día.")
