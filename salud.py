@@ -30,39 +30,65 @@ if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
 # ==========================================
-# MÓDULO 1: CONTROL DE PESO Y MÚSCULO
+# MÓDULO 1: CONTROL DE PESO Y MÚSCULO (CÁLCULO AUTOMÁTICO)
 # ==========================================
 if opcion == "📊 Control de Peso y Músculo":
-    st.header("📊 Registro de Peso y Masa Muscular")
+    st.header("📊 Registro de Peso y Composición Corporal")
+    st.write(
+        "Ingresa tus datos básicos y calcularemos automáticamente tu IMC,"
+        " % de grasa y masa magra según la fórmula antropométrica de"
+        " Deurenberg."
+    )
 
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.subheader("Añadir nuevo registro")
+        st.subheader("Ingresar Mediciones")
         fecha = st.date_input("Fecha")
+        genero = st.selectbox("Género", ["Hombre", "Mujer"])
+        edad = st.number_input("Edad", min_value=10, max_value=120, value=28)
+        estatura_cm = st.number_input(
+            "Estatura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=1.0
+        )
         peso = st.number_input(
             "Peso actual (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
-        musculo = st.number_input(
-            "Masa muscular (%)", min_value=5.0, max_value=70.0, value=30.0, step=0.1
-        )
-        grasa = st.number_input(
-            "Porcentaje de grasa (%)", min_value=5.0, max_value=60.0, value=20.0, step=0.1
-        )
 
-        if st.button("Guardar Registro"):
+        # CÁLCULOS AUTOMÁTICOS
+        estatura_m = estatura_cm / 100
+        imc = peso / (estatura_m ** 2)
+
+        # Valor numérico para la fórmula (1 = Hombre, 0 = Mujer)
+        val_genero = 1 if genero == "Hombre" else 0
+
+        # Fórmula de Deurenberg para Porcentaje de Grasa
+        pct_grasa = (1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4
+        pct_grasa = max(5.0, min(pct_grasa, 60.0))  # Limitar a rangos realistas
+
+        # Estimación de Masa Magra / Muscular (%)
+        pct_musculo = 100.0 - pct_grasa
+
+        # Mostrar métricas calculadas en tiempo real antes de guardar
+        st.markdown("---")
+        st.markdown("#### 📐 Resultados Estimados:")
+        c_m1, c_m2 = st.columns(2)
+        c_m1.metric("IMC", f"{imc:.1f} kg/m²")
+        c_m2.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
+        st.metric("% Masa Magra / Músculo", f"{pct_musculo:.1f}%")
+
+        if st.button("💾 Guardar Registro"):
             nuevo_registro = pd.DataFrame(
-                [[fecha, peso, musculo, grasa]],
-                columns=["Fecha", "Peso (kg)", "Músculo (%)", "Grasa (%)"],
+                [[fecha, peso, round(imc, 1), round(pct_grasa, 1), round(pct_musculo, 1)]],
+                columns=["Fecha", "Peso (kg)", "IMC", "Grasa (%)", "Músculo/Magra (%)"],
             )
             st.session_state.registro_progreso = pd.concat(
                 [st.session_state.registro_progreso, nuevo_registro],
                 ignore_index=True,
             )
-            st.success("¡Registro guardado con éxito!")
+            st.success("¡Registro calculado y guardado con éxito!")
 
     with col2:
-        st.subheader("Tu Histórico y Gráfica")
+        st.subheader("Tu Histórico y Evolución")
         if not st.session_state.registro_progreso.empty:
             st.dataframe(st.session_state.registro_progreso, use_container_width=True)
 
@@ -70,13 +96,15 @@ if opcion == "📊 Control de Peso y Músculo":
             fig = px.line(
                 st.session_state.registro_progreso,
                 x="Fecha",
-                y=["Peso (kg)", "Músculo (%)", "Grasa (%)"],
+                y=["Peso (kg)", "Grasa (%)", "Músculo/Magra (%)"],
                 markers=True,
-                title="Evolución Físico-Nutricional",
+                title="Evolución de Composición Corporal",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Aún no has añadido registros. Ingresa tus datos en el formulario de la izquierda.")
+            st.info(
+                "Aún no has añadido registros. Ingresa tus datos en el formulario de la izquierda."
+            )
 
 # ==========================================
 # MÓDULO 2: GENERADOR DE RECETAS POR PORCIONES
