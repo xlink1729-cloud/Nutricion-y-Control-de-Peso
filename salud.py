@@ -143,6 +143,11 @@ if opcion == "📊 Control de Peso y Músculo":
         tdee = tmb * mult_act[actividad]
         meta_deficit = tdee * 0.80  # Déficit moderado del 20%
 
+        # 5. CÁLCULO DE HIDRATACIÓN PERSONALIZADA (Ajuste Colima / Campo)
+        agua_base = (peso * 35) / 1000  # Litros base por peso
+        agua_oficina = agua_base + 0.5   # Litros para días de oficina en Colima
+        agua_campo = agua_base + 1.2     # Litros para días de campo/calor en Colima
+
         # DESPLEGAR RESULTADOS Y DIAGNÓSTICO
         st.markdown("---")
         st.markdown("#### 📐 Estado Actual:")
@@ -176,6 +181,20 @@ if opcion == "📊 Control de Peso y Músculo":
 
         st.info(
             f"🎯 **Meta Calórica Diaria (-20%):** {int(meta_deficit)} kcal/día"
+        )
+
+        # SECCIÓN DE HIDRATACIÓN Y ELECTROLI TOS EN COLIMA
+        st.markdown("---")
+        st.markdown("#### 💧 Meta de Hidratación (Ajustada a Colima):")
+        
+        c_h1, c_h2 = st.columns(2)
+        c_h1.metric("🏢 Día de Oficina", f"{agua_oficina:.1f} Litros/día")
+        c_h2.metric("🛠️ Día de Campo / Mantenimiento", f"{agua_campo:.1f} Litros/día")
+
+        st.warning(
+            "💡 **Tip para el calor de Colima:** En días de campo, lleva un termo térmico de 1.5L. "
+            "Si sudas mucho, añade a tu agua una pizca de sal marina y limón (o electrolitos sin azúcar) "
+            "para evitar calambres y fatiga sin romper tu déficit calórico."
         )
 
         if st.button("💾 Guardar Registro"):
