@@ -86,11 +86,11 @@ if opcion == "📊 Control de Peso y Músculo":
         )
 
         # ----------------------------------------------------
-        # CÁLCULOS AUTOMÁTICOS DE LA APP
+        # 🧮 CÁLCULOS AUTOMÁTICOS
         # ----------------------------------------------------
         estatura_m = estatura_cm / 100
         
-        # 1. IMC
+        # 1. IMC y Diagnóstico
         imc = peso / (estatura_m ** 2)
         if imc < 18.5:
             diagnostico_imc = "Bajo peso"
@@ -103,7 +103,7 @@ if opcion == "📊 Control de Peso y Músculo":
         else:
             diagnostico_imc = "Obesidad Clase II/III"
 
-        # 2. Peso Saludable Aproximado (Rango medio IMC 22.5)
+        # 2. Peso Saludable Aproximado (IMC ideal ~22.5)
         peso_saludable_aprox = 22.5 * (estatura_m ** 2)
 
         # 3. Metabolismo Basal (TMB - Mifflin-St Jeor)
@@ -122,26 +122,29 @@ if opcion == "📊 Control de Peso y Músculo":
         }
         tdee = tmb * mult_act[actividad]
 
-        # 5. Meta Calórica Orientativa (-20% de déficit para pérdida de peso)
+        # 5. Meta Calórica Orientativa (-20% déficit)
         meta_calorica = tdee * 0.80
 
-        # Kilos restantes y composición
+        # Composición corporal y diferencia
         kilos_faltantes = peso - peso_meta
         val_genero = 1 if genero == "Hombre" else 0
         pct_grasa = max(5.0, min((1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4, 60.0))
         pct_musculo = 100.0 - pct_grasa
 
         # ----------------------------------------------------
-        # DESPLIEGUE DE RESULTADOS EN PANTALLA
+        # 📊 DESPLIEGUE DE MÉTRICAS EN PANTALLA
         # ----------------------------------------------------
         st.markdown("---")
         st.markdown("### 🧮 Métricas Calculadas Automáticamente:")
         
-        st.metric("1. Índice de Masa Corporal (IMC)", f"{imc:.1f}", delta=diagnostico_imc, delta_color="off")
-        st.metric("2. Peso Saludable Aproximado", f"~{peso_saludable_aprox:.1f} kg")
-        st.metric("3. Metabolismo Basal (TMB)", f"{int(tmb)} kcal/día")
-        st.metric("4. Gasto Energético Diario (TDEE)", f"{int(tdee)} kcal/día")
-        st.metric("5. Meta Calórica Orientativa (-20%)", f"{int(meta_calorica)} kcal/día")
+        m_col1, m_col2 = st.columns(2)
+        with m_col1:
+            st.metric("1. IMC", f"{imc:.1f}", delta=diagnostico_imc, delta_color="off")
+            st.metric("3. Metabolismo Basal (TMB)", f"{int(tmb)} kcal/día")
+            st.metric("5. Meta Calórica (-20%)", f"{int(meta_calorica)} kcal/día")
+        with m_col2:
+            st.metric("2. Peso Saludable Aprox.", f"~{peso_saludable_aprox:.1f} kg")
+            st.metric("4. Gasto Diario (TDEE)", f"{int(tdee)} kcal/día")
 
         # Hidratación ajustada a Colima
         agua_base = (peso * 35) / 1000
@@ -184,6 +187,34 @@ if opcion == "📊 Control de Peso y Músculo":
                 ignore_index=True,
             )
             st.success("¡Registro guardado con éxito!")
+
+    with col2:
+        st.subheader("Tu Histórico y Progreso hacia la Meta")
+
+        if not st.session_state.registro_progreso.empty:
+            peso_inicial = float(st.session_state.registro_progreso.iloc[0]["Peso (kg)"])
+            peso_actual = float(st.session_state.registro_progreso.iloc[-1]["Peso (kg)"])
+
+            total_a_bajar = peso_inicial - peso_meta
+            bajado_hasta_ahora = peso_inicial - peso_actual
+
+            if total_a_bajar > 0:
+                porcentaje_avance = min(1.0, max(0.0, bajado_hasta_ahora / total_a_bajar))
+                st.write(f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%")
+                st.progress(porcentaje_avance)
+
+            st.dataframe(st.session_state.registro_progreso, use_container_width=True)
+
+            fig = px.line(
+                st.session_state.registro_progreso,
+                x="Fecha",
+                y=["Peso (kg)", "Meta (kg)"],
+                markers=True,
+                title="Evolución del Peso vs. Peso Meta",
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aún no has añadido registros. Ingresa tus datos en el formulario de la izquierda.")
 
 # ==========================================
 # MÓDULO 2: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
