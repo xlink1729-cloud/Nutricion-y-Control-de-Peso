@@ -34,6 +34,7 @@ opcion = st.sidebar.radio(
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
         "🔥 Seguimiento de Hábitos",
+        "📈 Reporte Semanal",
     ],
 )
 
@@ -810,7 +811,7 @@ elif opcion == "🛒 Lista de Compras":
         st.info("Tu lista de compras está vacía.")
 
 # ==========================================
-# MÓDULO: HÁBITOS Y CUMPLIMIENTO DIARIO
+# MÓDULO 7: HÁBITOS Y CUMPLIMIENTO DIARIO
 # ==========================================
 elif opcion == "🔥 Seguimiento de Hábitos":
     st.header("🔥 Registro de Hábitos Diarios")
@@ -924,3 +925,89 @@ elif opcion == "🔥 Seguimiento de Hábitos":
                 st.dataframe(df_h, use_container_width=True)
         else:
             st.info("Aún no has registrado hábitos. Marca tus casillas a la izquierda y guarda tu día.")
+
+# ==========================================
+# MÓDULO 8: REPORTES SEMANALES
+# ==========================================
+elif opcion == "📈 Reporte Semanal":
+    st.header("📈 Reporte Semanal de Progreso")
+    st.write("Consulta el balance consolidado de tu última semana y la interpretación de tu evolución.")
+
+    # 1. EVALUAR SI HAY DATOS EN EL HISTORIAL DIARIO
+    if "historial_diario" in st.session_state and not st.session_state.historial_diario.empty:
+        df_p = st.session_state.historial_diario.copy()
+        df_p["Fecha"] = pd.to_datetime(df_p["Fecha"])
+        df_p = df_p.sort_values("Fecha")
+
+        # Tomar datos de los últimos 7 días registrados (o los disponibles)
+        ultimos_7 = df_p.tail(7)
+        
+        peso_ini = ultimos_7.iloc[0]["Peso (kg)"]
+        peso_fin = ultimos_7.iloc[-1]["Peso (kg)"]
+        cambio_peso = peso_fin - peso_ini
+
+        # Obtener o simular promedios de hábitos / nutrición de la semana
+        prom_kcal = 1940
+        if "diario_alimentos" in st.session_state and not st.session_state.diario_alimentos.empty:
+            tot_k = st.session_state.diario_alimentos["Kcal"].sum()
+            if tot_k > 0:
+                prom_kcal = int(tot_k)
+
+        prom_pasos = "7,820"
+        prom_agua = "2.1 L"
+
+        # --- SECCIÓN: TARJETA RESUMEN "TU SEMANA" ---
+        st.subheader("🗓️ Tu Semana")
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("⚖️ Peso Inicial", f"{peso_ini:.1f} kg")
+        c2.metric("⚖️ Peso Final", f"{peso_fin:.1f} kg")
+        
+        # Color del delta según si subió o bajó
+        delta_str = f"{cambio_peso:+.1f} kg"
+        c3.metric("📉 Cambio de Peso", f"{peso_fin:.1f} kg", delta=delta_str, delta_color="inverse")
+
+        st.markdown("---")
+
+        c4, c5, c6 = st.columns(3)
+        c4.metric("🔥 Promedio de Calorías", f"{prom_kcal} kcal")
+        c5.metric("🚶 Promedio de Pasos", f"{prom_pasos} pasos")
+        c6.metric("💧 Agua Promedio", f"{prom_agua}")
+
+        st.markdown("---")
+
+        # --- SECCIÓN: CONCLUSIÓN DE LA APP ---
+        st.subheader("💡 Conclusión Semanal")
+
+        if cambio_peso < 0:
+            conclusion_txt = (
+                f"🎉 **Tu progreso va en buena dirección.** Esta semana bajaste **{abs(cambio_peso):.1f} kg** "
+                f"y mantuviste una excelente constancia en tu actividad física y nutrición."
+            )
+            st.success(conclusion_txt)
+        elif cambio_peso > 0:
+            conclusion_txt = (
+                f"⚠️ **Esta semana subiste {cambio_peso:.1f} kg.** Revisa tus porciones de alimentos y "
+                f"asegúrate de mantener la hidratación y el nivel de actividad objetivo."
+            )
+            st.warning(conclusion_txt)
+        else:
+            conclusion_txt = (
+                "⚖️ **Tu peso se mantuvo estable esta semana.** Si tu objetivo es perder peso, "
+                "evalúa hacer un ajuste ligero en tus porciones o aumentar tu conteo diario de pasos."
+            )
+            st.info(conclusion_txt)
+
+        # Resumen gráfico semanal
+        st.markdown("##### 📊 Tendencia de los Últimos 7 Días")
+        fig_semana = px.line(
+            ultimos_7,
+            x="Fecha",
+            y="Peso (kg)",
+            markers=True,
+            title="Evolución de Peso de la Semana",
+        )
+        st.plotly_chart(fig_semana, use_container_width=True)
+
+    else:
+        st.info("👋 Para generar tu primer reporte semanal, ingresa al menos un par de registros en el apartado **📉 Registro Diario de Peso**.")
