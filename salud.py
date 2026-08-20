@@ -1,29 +1,46 @@
-from google import genai
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from google import genai
 
 # Configuración de la página
 st.set_page_config(
     page_title="NutriTrack & Recetas", page_icon="🥗", layout="wide"
 )
 
-st.title("🥗 NutriTrack & Generador de Recetas")
-st.write("Lleva el control de tu progreso físico y transforma tus porciones en recetas reales.")
-
-# Inicializar cliente de Gemini usando el Secret de Streamlit
+# Inicializar cliente de Gemini utilizando el Secret de Streamlit Cloud
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+st.title("🥗 NutriTrack & Generador de Recetas")
+st.write(
+    "Lleva el control de tu progreso físico y transforma tus porciones en"
+    " recetas reales."
+)
 
 # --- MENÚ PRINCIPAL DE NAVEGACIÓN ---
 opcion = st.sidebar.radio(
     "Selecciona una sección:",
-    ["📊 Control de Peso y Músculo", "🍳 Generador de Recetas", "🛒 Lista de Compras"],
+    [
+        "📊 Control de Peso y Músculo",
+        "🍳 Generador de Recetas",
+        "🛒 Lista de Compras",
+    ],
 )
 
 # Inicializar bases de datos simples en la sesión de Streamlit
 if "registro_progreso" not in st.session_state:
     st.session_state.registro_progreso = pd.DataFrame(
-        columns=["Fecha", "Peso (kg)", "Músculo (%)", "Grasa (%)"]
+        columns=[
+            "Fecha",
+            "Peso (kg)",
+            "Meta (kg)",
+            "Faltan (kg)",
+            "IMC",
+            "Diagnóstico",
+            "Grasa (%)",
+            "Músculo (%)",
+            "Meta Kcal",
+        ]
     )
 
 if "lista_compras" not in st.session_state:
@@ -35,7 +52,8 @@ if "lista_compras" not in st.session_state:
 if opcion == "📊 Control de Peso y Músculo":
     st.header("📊 Registro, Diagnóstico y Meta de Peso")
     st.write(
-        "Define tu peso objetivo y monitorea tu progreso en tiempo real."
+        "Define tu peso objetivo y monitorea tu progreso en tiempo real según"
+        " tu nivel de actividad real."
     )
 
     col1, col2 = st.columns([1, 2])
@@ -46,14 +64,27 @@ if opcion == "📊 Control de Peso y Músculo":
         genero = st.selectbox("Género", ["Hombre", "Mujer"])
         edad = st.number_input("Edad", min_value=10, max_value=120, value=28)
         estatura_cm = st.number_input(
-            "Estatura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=1.0
+            "Estatura (cm)",
+            min_value=100.0,
+            max_value=250.0,
+            value=170.0,
+            step=1.0,
         )
         peso = st.number_input(
-            "Peso actual (kg)", min_value=30.0, max_value=200.0, value=84.0, step=0.1
+            "Peso actual (kg)",
+            min_value=30.0,
+            max_value=200.0,
+            value=84.0,
+            step=0.1,
         )
         peso_meta = st.number_input(
-            "🎯 Peso Meta (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
+            "🎯 Peso Meta (kg)",
+            min_value=30.0,
+            max_value=200.0,
+            value=70.0,
+            step=0.1,
         )
+
         actividad = st.selectbox(
             "Nivel de Actividad Física diario:",
             [
@@ -63,28 +94,10 @@ if opcion == "📊 Control de Peso y Músculo":
                 "Activo (Trabajo físico pesado o ejercicio diario)",
                 "Muy Activo (Trabajo pesado + Ejercicio intenso)",
             ],
-            index=2,  # Selecciona Mixto 50/50 por defecto
+            index=2,
         )
 
-        # FACTORES DE ACTIVIDAD AJUSTADOS
-        mult_act = {
-            "Sedentario (Oficina / Trabajo de escritorio)": 1.2,
-            "Ligero (Oficina + Caminata diaria ligera)": 1.375,
-            "Mixto 50/50 (Oficina + Trabajo de campo / Mantenimiento)": 1.55,
-            "Activo (Trabajo físico pesado o ejercicio diario)": 1.725,
-            "Muy Activo (Trabajo pesado + Ejercicio intenso)": 1.9,
-        }
-
-        # Cálculo de la Tasa Metabólica Basal (TMB) y Gasto Total (TDEE)
-        if genero == "Hombre":
-            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
-        else:
-            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
-
-        tdee = tmb * mult_act[actividad]
-        meta_deficit = tdee * 0.80  # Déficit moderado del 20% para bajar de peso
-
-        # 1. CÁLCULO DE IMC Y DIAGNÓSTICO
+        # 1. CÁLCULO DE IMC Y DIAGNÓSTICO OMS
         estatura_m = estatura_cm / 100
         imc = peso / (estatura_m**2)
 
@@ -104,29 +117,31 @@ if opcion == "📊 Control de Peso y Músculo":
             diagnostico_imc = "Obesidad Clase II / III"
             color_diag = "error"
 
-        # 2. CÁLCULO DE GRASA Y MÚSCULO (Deurenberg)
+        # 2. CÁLCULO DE GRASA Y MÚSCULO (Fórmula de Deurenberg)
         val_genero = 1 if genero == "Hombre" else 0
         pct_grasa = (1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4
         pct_grasa = max(5.0, min(pct_grasa, 60.0))
         pct_musculo = 100.0 - pct_grasa
 
-        # 3. CÁLCULO DE AVANCE Y METAS
+        # 3. CÁLCULO DE KILOS RESTANTES
         kilos_faltantes = peso - peso_meta
-        
-        # 4. CÁLCULO DE CALORÍAS (Mifflin-St Jeor)
+
+        # 4. CÁLCULO DE CALORÍAS (Mifflin-St Jeor + Factor Actividad)
+        mult_act = {
+            "Sedentario (Oficina / Trabajo de escritorio)": 1.2,
+            "Ligero (Oficina + Caminata diaria ligera)": 1.375,
+            "Mixto 50/50 (Oficina + Trabajo de campo / Mantenimiento)": 1.55,
+            "Activo (Trabajo físico pesado o ejercicio diario)": 1.725,
+            "Muy Activo (Trabajo pesado + Ejercicio intenso)": 1.9,
+        }
+
         if genero == "Hombre":
             tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
         else:
             tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
 
-        mult_act = {
-            "Sedentario (Poco o ningún ejercicio)": 1.2,
-            "Lijero (Ejercicio 1-3 días/semana)": 1.375,
-            "Moderado (Ejercicio 3-5 días/semana)": 1.55,
-            "Fuerte (Ejercicio 6-7 días/semana)": 1.725,
-        }
         tdee = tmb * mult_act[actividad]
-        meta_deficit = tdee * 0.80  # Déficit del 20%
+        meta_deficit = tdee * 0.80  # Déficit moderado del 20%
 
         # DESPLEGAR RESULTADOS Y DIAGNÓSTICO
         st.markdown("---")
@@ -139,15 +154,21 @@ if opcion == "📊 Control de Peso y Músculo":
         else:
             st.error(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
 
-        # Tarjetas de progreso hacia la meta
         c_k1, c_k2 = st.columns(2)
         c_k1.metric("Peso Meta", f"{peso_meta:.1f} kg")
         if kilos_faltantes > 0:
-            c_k2.metric("Kilos por bajar", f"{kilos_faltantes:.1f} kg", delta=f"-{kilos_faltantes:.1f} kg", delta_color="inverse")
+            c_k2.metric(
+                "Kilos por bajar",
+                f"{kilos_faltantes:.1f} kg",
+                delta=f"-{kilos_faltantes:.1f} kg",
+                delta_color="inverse",
+            )
         elif kilos_faltantes == 0:
             c_k2.metric("Estatus", "¡Meta alcanzada! 🎉")
         else:
-            c_k2.metric("Estatus", f"Por debajo de la meta ({abs(kilos_faltantes):.1f} kg)")
+            c_k2.metric(
+                "Estatus", f"Por debajo de la meta ({abs(kilos_faltantes):.1f} kg)"
+            )
 
         c_m1, c_m2 = st.columns(2)
         c_m1.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
@@ -190,26 +211,27 @@ if opcion == "📊 Control de Peso y Músculo":
 
     with col2:
         st.subheader("Tu Histórico y Progreso hacia la Meta")
-        
-        # BARRA DE PROGRESO VISUAL SI HAY AL MENOS UN REGISTRO HISTÓRICO
+
         if not st.session_state.registro_progreso.empty:
-            # Obtener el primer peso registrado para calcular el progreso total acumulado
             peso_inicial = st.session_state.registro_progreso.iloc[0]["Peso (kg)"]
             peso_actual = st.session_state.registro_progreso.iloc[-1]["Peso (kg)"]
-            
+
             total_a_bajar = peso_inicial - peso_meta
             bajado_hasta_ahora = peso_inicial - peso_actual
 
             if total_a_bajar > 0:
-                porcentaje_avance = min(1.0, max(0.0, bajado_hasta_ahora / total_a_bajar))
-                st.write(f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%")
+                porcentaje_avance = min(
+                    1.0, max(0.0, bajado_hasta_ahora / total_a_bajar)
+                )
+                st.write(
+                    f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%"
+                )
                 st.progress(porcentaje_avance)
-            
+
             st.dataframe(
                 st.session_state.registro_progreso, use_container_width=True
             )
 
-            # Gráfica interactiva con línea de meta
             fig = px.line(
                 st.session_state.registro_progreso,
                 x="Fecha",
@@ -230,7 +252,8 @@ if opcion == "📊 Control de Peso y Músculo":
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador de Recetas según tu Hoja de Porciones")
     st.write(
-        "Ingresa los equivalentes/porciones que te asignó tu nutrióloga para crear una receta fácil y deliciosa."
+        "Ingresa los equivalentes/porciones que te asignó tu nutrióloga para"
+        " crear una receta fácil y deliciosa."
     )
 
     c1, c2, c3, c4 = st.columns(4)
@@ -247,7 +270,9 @@ elif opcion == "🍳 Generador de Recetas":
         "Ingredientes que tienes en casa (separados por coma):",
         "Pollo, tortillas de maíz, aguacate, jitomate, cebolla",
     )
-    tiempo_comida = st.selectbox("Tiempo de comida:", ["Desayuno", "Almuerzo", "Cena", "Snack"])
+    tiempo_comida = st.selectbox(
+        "Tiempo de comida:", ["Desayuno", "Almuerzo", "Cena", "Snack"]
+    )
 
     if st.button("🍳 Crear Receta Personalizada"):
         try:
@@ -286,10 +311,7 @@ elif opcion == "🍳 Generador de Recetas":
                 st.success("¡Agregado a tu lista de compras!")
 
         except Exception as e:
-            st.error(
-                "Ocurrió un error al conectar con Gemini. Revisa que el"
-                f" Secret GEMINI_API_KEY esté bien configurado. Detalles: {e}"
-            )
+            st.error(f"Error al conectar con Gemini: {e}")
 
 # ==========================================
 # MÓDULO 3: LISTA DE COMPRAS
@@ -310,6 +332,6 @@ elif opcion == "🛒 Lista de Compras":
 
         if st.button("🗑️ Limpiar lista"):
             st.session_state.lista_compras = []
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.info("Tu lista de compras está vacía.")
