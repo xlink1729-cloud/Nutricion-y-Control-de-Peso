@@ -53,8 +53,7 @@ if "lista_compras" not in st.session_state:
 if opcion == "📊 Control de Peso y Músculo":
     st.header("📊 Registro, Diagnóstico y Meta de Peso")
     st.write(
-        "Define tu peso objetivo y monitorea tu progreso en tiempo real según"
-        " tu nivel de actividad real."
+        "Define tus parámetros físicos y calcula tus métricas metabólicas en tiempo real."
     )
 
     col1, col2 = st.columns([1, 2])
@@ -65,25 +64,13 @@ if opcion == "📊 Control de Peso y Músculo":
         genero = st.selectbox("Género", ["Hombre", "Mujer"])
         edad = st.number_input("Edad", min_value=10, max_value=120, value=28)
         estatura_cm = st.number_input(
-            "Estatura (cm)",
-            min_value=100.0,
-            max_value=250.0,
-            value=170.0,
-            step=1.0,
+            "Estatura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=1.0
         )
         peso = st.number_input(
-            "Peso actual (kg)",
-            min_value=30.0,
-            max_value=200.0,
-            value=84.0,
-            step=0.1,
+            "Peso actual (kg)", min_value=30.0, max_value=200.0, value=84.0, step=0.1
         )
         peso_meta = st.number_input(
-            "🎯 Peso Meta (kg)",
-            min_value=30.0,
-            max_value=200.0,
-            value=70.0,
-            step=0.1,
+            "🎯 Peso Meta (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
 
         actividad = st.selectbox(
@@ -98,36 +85,34 @@ if opcion == "📊 Control de Peso y Músculo":
             index=2,
         )
 
-        # 1. CÁLCULO DE IMC Y DIAGNÓSTICO
+        # ----------------------------------------------------
+        # CÁLCULOS AUTOMÁTICOS DE LA APP
+        # ----------------------------------------------------
         estatura_m = estatura_cm / 100
-        imc = peso / (estatura_m**2)
-
+        
+        # 1. IMC
+        imc = peso / (estatura_m ** 2)
         if imc < 18.5:
             diagnostico_imc = "Bajo peso"
-            color_diag = "warning"
         elif 18.5 <= imc < 25.0:
-            diagnostico_imc = "Peso normal / Saludable"
-            color_diag = "success"
+            diagnostico_imc = "Peso normal"
         elif 25.0 <= imc < 30.0:
             diagnostico_imc = "Sobrepeso"
-            color_diag = "warning"
         elif 30.0 <= imc < 35.0:
             diagnostico_imc = "Obesidad Clase I"
-            color_diag = "error"
         else:
-            diagnostico_imc = "Obesidad Clase II / III"
-            color_diag = "error"
+            diagnostico_imc = "Obesidad Clase II/III"
 
-        # 2. CÁLCULO DE GRASA Y MÚSCULO
-        val_genero = 1 if genero == "Hombre" else 0
-        pct_grasa = (1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4
-        pct_grasa = max(5.0, min(pct_grasa, 60.0))
-        pct_musculo = 100.0 - pct_grasa
+        # 2. Peso Saludable Aproximado (Rango medio IMC 22.5)
+        peso_saludable_aprox = 22.5 * (estatura_m ** 2)
 
-        # 3. KILOS RESTANTES
-        kilos_faltantes = peso - peso_meta
+        # 3. Metabolismo Basal (TMB - Mifflin-St Jeor)
+        if genero == "Hombre":
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
+        else:
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
 
-        # 4. CALORÍAS
+        # 4. Gasto Energético Diario Estimado (TDEE)
         mult_act = {
             "Sedentario (Oficina / Trabajo de escritorio)": 1.2,
             "Ligero (Oficina + Caminata diaria ligera)": 1.375,
@@ -135,57 +120,39 @@ if opcion == "📊 Control de Peso y Músculo":
             "Activo (Trabajo físico pesado o ejercicio diario)": 1.725,
             "Muy Activo (Trabajo pesado + Ejercicio intenso)": 1.9,
         }
-
-        if genero == "Hombre":
-            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
-        else:
-            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
-
         tdee = tmb * mult_act[actividad]
-        meta_deficit = tdee * 0.80
 
-        # 5. HIDRATACIÓN COLIMA
+        # 5. Meta Calórica Orientativa (-20% de déficit para pérdida de peso)
+        meta_calorica = tdee * 0.80
+
+        # Kilos restantes y composición
+        kilos_faltantes = peso - peso_meta
+        val_genero = 1 if genero == "Hombre" else 0
+        pct_grasa = max(5.0, min((1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4, 60.0))
+        pct_musculo = 100.0 - pct_grasa
+
+        # ----------------------------------------------------
+        # DESPLIEGUE DE RESULTADOS EN PANTALLA
+        # ----------------------------------------------------
+        st.markdown("---")
+        st.markdown("### 🧮 Métricas Calculadas Automáticamente:")
+        
+        st.metric("1. Índice de Masa Corporal (IMC)", f"{imc:.1f}", delta=diagnostico_imc, delta_color="off")
+        st.metric("2. Peso Saludable Aproximado", f"~{peso_saludable_aprox:.1f} kg")
+        st.metric("3. Metabolismo Basal (TMB)", f"{int(tmb)} kcal/día")
+        st.metric("4. Gasto Energético Diario (TDEE)", f"{int(tdee)} kcal/día")
+        st.metric("5. Meta Calórica Orientativa (-20%)", f"{int(meta_calorica)} kcal/día")
+
+        # Hidratación ajustada a Colima
         agua_base = (peso * 35) / 1000
         agua_oficina = agua_base + 0.5
         agua_campo = agua_base + 1.2
 
         st.markdown("---")
-        st.markdown("#### 📐 Estado Actual:")
-
-        if color_diag == "success":
-            st.success(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
-        elif color_diag == "warning":
-            st.warning(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
-        else:
-            st.error(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
-
-        c_k1, c_k2 = st.columns(2)
-        c_k1.metric("Peso Meta", f"{peso_meta:.1f} kg")
-        if kilos_faltantes > 0:
-            c_k2.metric(
-                "Kilos por bajar",
-                f"{kilos_faltantes:.1f} kg",
-                delta=f"-{kilos_faltantes:.1f} kg",
-                delta_color="inverse",
-            )
-        elif kilos_faltantes == 0:
-            c_k2.metric("Estatus", "¡Meta alcanzada! 🎉")
-        else:
-            c_k2.metric(
-                "Estatus", f"Por debajo de la meta ({abs(kilos_faltantes):.1f} kg)"
-            )
-
-        c_m1, c_m2 = st.columns(2)
-        c_m1.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
-        c_m2.metric("% Masa Magra", f"{pct_musculo:.1f}%")
-
-        st.info(f"🎯 **Meta Calórica Diaria (-20%):** {int(meta_deficit)} kcal/día")
-
-        st.markdown("---")
-        st.markdown("#### 💧 Meta de Hidratación (Ajustada a Colima):")
+        st.markdown("#### 💧 Hidratación Recomendada:")
         c_h1, c_h2 = st.columns(2)
-        c_h1.metric("🏢 Día de Oficina", f"{agua_oficina:.1f} Litros/día")
-        c_h2.metric("🛠️ Día de Campo / Mantenimiento", f"{agua_campo:.1f} Litros/día")
+        c_h1.metric("🏢 Día de Oficina", f"{agua_oficina:.1f} L/día")
+        c_h2.metric("🛠️ Día de Campo", f"{agua_campo:.1f} L/día")
 
         if st.button("💾 Guardar Registro"):
             nuevo_registro = pd.DataFrame(
@@ -198,7 +165,7 @@ if opcion == "📊 Control de Peso y Músculo":
                     diagnostico_imc,
                     round(pct_grasa, 1),
                     round(pct_musculo, 1),
-                    int(meta_deficit),
+                    int(meta_calorica),
                 ]],
                 columns=[
                     "Fecha",
@@ -217,43 +184,6 @@ if opcion == "📊 Control de Peso y Músculo":
                 ignore_index=True,
             )
             st.success("¡Registro guardado con éxito!")
-
-    with col2:
-        st.subheader("Tu Histórico y Progreso hacia la Meta")
-
-        if not st.session_state.registro_progreso.empty:
-            peso_inicial = st.session_state.registro_progreso.iloc[0]["Peso (kg)"]
-            peso_actual = st.session_state.registro_progreso.iloc[-1]["Peso (kg)"]
-
-            total_a_bajar = peso_inicial - peso_meta
-            bajado_hasta_ahora = peso_inicial - peso_actual
-
-            if total_a_bajar > 0:
-                porcentaje_avance = min(
-                    1.0, max(0.0, bajado_hasta_ahora / total_a_bajar)
-                )
-                st.write(
-                    f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%"
-                )
-                st.progress(porcentaje_avance)
-
-            st.dataframe(
-                st.session_state.registro_progreso, use_container_width=True
-            )
-
-            fig = px.line(
-                st.session_state.registro_progreso,
-                x="Fecha",
-                y=["Peso (kg)", "Meta (kg)"],
-                markers=True,
-                title="Evolución del Peso vs. Peso Meta",
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info(
-                "Aún no has añadido registros. Ingresa tus datos en el"
-                " formulario de la izquierda."
-            )
 
 # ==========================================
 # MÓDULO 2: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
