@@ -11,9 +11,8 @@ st.set_page_config(
 st.title("🥗 NutriTrack & Generador de Recetas")
 st.write("Lleva el control de tu progreso físico y transforma tus porciones en recetas reales.")
 
-# --- BARRA LATERAL: API KEY ---
-st.sidebar.header("🔑 Configuración")
-api_key = st.sidebar.text_input("Ingresa tu Gemini API Key:", type="password")
+# Inicializar cliente de Gemini usando el Secret de Streamlit
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- MENÚ PRINCIPAL DE NAVEGACIÓN ---
 opcion = st.sidebar.radio(
@@ -105,48 +104,46 @@ elif opcion == "🍳 Generador de Recetas":
     tiempo_comida = st.selectbox("Tiempo de comida:", ["Desayuno", "Almuerzo", "Cena", "Snack"])
 
     if st.button("🍳 Crear Receta Personalizada"):
-        if not api_key:
-            st.error("Por favor ingresa tu API Key de Gemini en la barra lateral.")
-        else:
-            try:
-                client = genai.Client(api_key=api_key)
+        try:
+            prompt = f"""
+            Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa, sencilla de cocinar y práctica para el tiempo de comida '{tiempo_comida}'.
+            
+            ESPECIFICACIONES DE PORCIONES ESTRICTAS (Hoja de Nutrióloga):
+            - Proteína: {p_prot} porciones
+            - Carbohidratos: {p_carb} porciones
+            - Grasa: {p_gras} porciones
+            - Verduras: {p_verd} porciones
+            
+            Ingredientes disponibles preferentes: {ingredientes_disponibles}.
+            
+            Responde en formato Markdown claro con las siguientes secciones:
+            1. 📌 **Nombre del Platillo**
+            2. 🥗 **Desglose de Ingredientes con cantidades exactas para cumplir las porciones**
+            3. 👩‍🍳 **Pasos de Preparación rápidos (máximo 5 pasos)**
+            4. 💡 **Tip del Chef para mejor sabor sin añadir calorías extra**
+            """
 
-                prompt = f"""
-                Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa, sencilla de cocinar y práctica para el tiempo de comida '{tiempo_comida}'.
-                
-                ESPECIFICACIONES DE PORCIONES ESTRICTAS (Hoja de Nutrióloga):
-                - Proteína: {p_prot} porciones
-                - Carbohidratos: {p_carb} porciones
-                - Grasa: {p_gras} porciones
-                - Verduras: {p_verd} porciones
-                
-                Ingredientes disponibles preferentes: {ingredientes_disponibles}.
-                
-                Responde en formato Markdown claro con las siguientes secciones:
-                1. 📌 **Nombre del Platillo**
-                2. 🥗 **Desglose de Ingredientes con cantidades exactas para cumplir las porciones**
-                3. 👩‍🍳 **Pasos de Preparación rápidos (máximo 5 pasos)**
-                4. 💡 **Tip del Chef para mejor sabor sin añadir calorías extra**
-                """
+            with st.spinner("Diseñando tu receta según tus porciones..."):
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash", contents=prompt
+                )
+                receta_texto = response.text
 
-                with st.spinner("Diseñando tu receta según tus porciones..."):
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash", contents=prompt
-                    )
-                    receta_texto = response.text
+            st.markdown("---")
+            st.markdown(receta_texto)
 
-                st.markdown("---")
-                st.markdown(receta_texto)
+            if st.button("➕ Agregar ingredientes a la Lista de Compras"):
+                st.session_state.lista_compras.append(
+                    f"Ingredientes para receta de {tiempo_comida} ({p_prot}"
+                    f" Prot, {p_carb} Carb, {p_gras} Gras)"
+                )
+                st.success("¡Agregado a tu lista de compras!")
 
-                # Opción para agregar ingredientes a la lista de compras
-                if st.button("➕ Agregar ingredientes a la Lista de Compras"):
-                    st.session_state.lista_compras.append(
-                        f"Ingredientes para receta de {tiempo_comida} ({p_prot} Prot, {p_carb} Carb, {p_gras} Gras)"
-                    )
-                    st.success("¡Agregado a tu lista de compras!")
-
-            except Exception as e:
-                st.error(f"Ocurrió un error al conectar con Gemini: {e}")
+        except Exception as e:
+            st.error(
+                "Ocurrió un error al conectar con Gemini. Revisa que el"
+                f" Secret GEMINI_API_KEY esté bien configurado. Detalles: {e}"
+            )
 
 # ==========================================
 # MÓDULO 3: LISTA DE COMPRAS
