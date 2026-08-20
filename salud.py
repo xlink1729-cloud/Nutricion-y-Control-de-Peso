@@ -30,14 +30,13 @@ if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
 # ==========================================
-# MÓDULO 1: CONTROL DE PESO Y MÚSCULO (CÁLCULO AUTOMÁTICO)
+# MÓDULO 1: CONTROL DE PESO Y COMPOSICIÓN CORPORAL
 # ==========================================
 if opcion == "📊 Control de Peso y Músculo":
-    st.header("📊 Registro de Peso y Composición Corporal")
+    st.header("📊 Registro y Diagnóstico Antropométrico")
     st.write(
-        "Ingresa tus datos básicos y calcularemos automáticamente tu IMC,"
-        " % de grasa y masa magra según la fórmula antropométrica de"
-        " Deurenberg."
+        "Calcula tu diagnóstico de IMC, porcentaje de grasa, masa magra y"
+        " tus calorías diarias para pérdida de peso."
     )
 
     col1, col2 = st.columns([1, 2])
@@ -53,57 +52,125 @@ if opcion == "📊 Control de Peso y Músculo":
         peso = st.number_input(
             "Peso actual (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
+        actividad = st.selectbox(
+            "Nivel de Actividad Física",
+            [
+                "Sedentario (Poco o ningún ejercicio)",
+                "Lijero (Ejercicio 1-3 días/semana)",
+                "Moderado (Ejercicio 3-5 días/semana)",
+                "Fuerte (Ejercicio 6-7 días/semana)",
+            ],
+        )
 
-        # CÁLCULOS AUTOMÁTICOS
+        # 1. CÁLCULO DE IMC
         estatura_m = estatura_cm / 100
-        imc = peso / (estatura_m ** 2)
+        imc = peso / (estatura_m**2)
 
-        # Valor numérico para la fórmula (1 = Hombre, 0 = Mujer)
+        # Clasificación según la OMS
+        if imc < 18.5:
+            diagnostico_imc = "Bajo peso"
+            color_diag = "warning"
+        elif 18.5 <= imc < 25.0:
+            diagnostico_imc = "Peso normal / Saludable"
+            color_diag = "success"
+        elif 25.0 <= imc < 30.0:
+            diagnostico_imc = "Sobrepeso"
+            color_diag = "warning"
+        elif 30.0 <= imc < 35.0:
+            diagnostico_imc = "Obesidad Clase I"
+            color_diag = "error"
+        else:
+            diagnostico_imc = "Obesidad Clase II / III"
+            color_diag = "error"
+
+        # 2. CÁLCULO DE GRASA Y MÚSCULO (Deurenberg)
         val_genero = 1 if genero == "Hombre" else 0
-
-        # Fórmula de Deurenberg para Porcentaje de Grasa
         pct_grasa = (1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4
-        pct_grasa = max(5.0, min(pct_grasa, 60.0))  # Limitar a rangos realistas
-
-        # Estimación de Masa Magra / Muscular (%)
+        pct_grasa = max(5.0, min(pct_grasa, 60.0))
         pct_musculo = 100.0 - pct_grasa
 
-        # Mostrar métricas calculadas en tiempo real antes de guardar
+        # 3. CÁLCULO DE CALORÍAS (Mifflin-St Jeor)
+        if genero == "Hombre":
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
+        else:
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
+
+        mult_act = {
+            "Sedentario (Poco o ningún ejercicio)": 1.2,
+            "Lijero (Ejercicio 1-3 días/semana)": 1.375,
+            "Moderado (Ejercicio 3-5 días/semana)": 1.55,
+            "Fuerte (Ejercicio 6-7 días/semana)": 1.725,
+        }
+        tdee = tmb * mult_act[actividad]
+        meta_deficit = tdee * 0.80  # Déficit del 20% para perder peso de forma segura
+
+        # DESPLEGAR RESULTADOS EN TIEMPO REAL
         st.markdown("---")
-        st.markdown("#### 📐 Resultados Estimados:")
+        st.markdown("#### 📐 Resultados Diagnósticos:")
+
+        if color_diag == "success":
+            st.success(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
+        elif color_diag == "warning":
+            st.warning(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
+        else:
+            st.error(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
+
         c_m1, c_m2 = st.columns(2)
-        c_m1.metric("IMC", f"{imc:.1f} kg/m²")
-        c_m2.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
-        st.metric("% Masa Magra / Músculo", f"{pct_musculo:.1f}%")
+        c_m1.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
+        c_m2.metric("% Masa Magra", f"{pct_musculo:.1f}%")
+
+        st.info(
+            f"🔥 **Mantenimiento:** {int(tdee)} kcal/día\n\n"
+            f"🎯 **Meta Perder Peso (-20%):** {int(meta_deficit)} kcal/día"
+        )
 
         if st.button("💾 Guardar Registro"):
             nuevo_registro = pd.DataFrame(
-                [[fecha, peso, round(imc, 1), round(pct_grasa, 1), round(pct_musculo, 1)]],
-                columns=["Fecha", "Peso (kg)", "IMC", "Grasa (%)", "Músculo/Magra (%)"],
+                [[
+                    fecha,
+                    peso,
+                    round(imc, 1),
+                    diagnostico_imc,
+                    round(pct_grasa, 1),
+                    round(pct_musculo, 1),
+                    int(meta_deficit),
+                ]],
+                columns=[
+                    "Fecha",
+                    "Peso (kg)",
+                    "IMC",
+                    "Diagnóstico",
+                    "Grasa (%)",
+                    "Músculo (%)",
+                    "Meta Kcal",
+                ],
             )
             st.session_state.registro_progreso = pd.concat(
                 [st.session_state.registro_progreso, nuevo_registro],
                 ignore_index=True,
             )
-            st.success("¡Registro calculado y guardado con éxito!")
+            st.success("¡Registro guardado con éxito!")
 
     with col2:
         st.subheader("Tu Histórico y Evolución")
         if not st.session_state.registro_progreso.empty:
-            st.dataframe(st.session_state.registro_progreso, use_container_width=True)
+            st.dataframe(
+                st.session_state.registro_progreso, use_container_width=True
+            )
 
-            # Gráfica interactiva con Plotly
+            # Gráfica interactiva
             fig = px.line(
                 st.session_state.registro_progreso,
                 x="Fecha",
-                y=["Peso (kg)", "Grasa (%)", "Músculo/Magra (%)"],
+                y=["Peso (kg)", "Grasa (%)", "Músculo (%)"],
                 markers=True,
-                title="Evolución de Composición Corporal",
+                title="Evolución de Peso y Composición Corporal",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info(
-                "Aún no has añadido registros. Ingresa tus datos en el formulario de la izquierda."
+                "Aún no has añadido registros. Ingresa tus datos en el"
+                " formulario de la izquierda."
             )
 
 # ==========================================
