@@ -28,6 +28,7 @@ opcion = st.sidebar.radio(
     [
         "🏠 Dashboard Principal",
         "📊 Control de Peso y Músculo",
+        ""📉 Registro Diario de Peso",
         "🥤 Licuados 5:00 AM (L-J)",
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
@@ -301,9 +302,112 @@ elif opcion == "📊 Control de Peso y Músculo":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Ingresa tus datos en la sección 'Perfil Inicial' y haz clic en 'Guardar Perfil / Registro'.")
-            
+
 # ==========================================
-# MÓDULO 2: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
+# MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
+# ==========================================
+    st.header("📉 Registro Diario y Análisis de Peso")
+    st.write("Registra tu peso cada mañana y deja que la app interprete las tendencias por ti.")
+
+    col_ingreso, col_analisis = st.columns([1, 2])
+
+    with col_ingreso:
+        st.subheader("📝 Registrar Hoy")
+        f_reg = st.date_input("Fecha", key="f_diaria")
+        p_reg = st.number_input("Peso (kg)", min_value=30.0, max_value=200.0, value=82.5, step=0.1)
+
+        if st.button("📌 Guardar Peso Diario", use_container_width=True):
+            nuevo_p = pd.DataFrame([{"Fecha": pd.to_datetime(f_reg), "Peso (kg)": p_reg}])
+            
+            if "historial_diario" not in st.session_state:
+                st.session_state.historial_diario = pd.DataFrame(columns=["Fecha", "Peso (kg)"])
+
+            # Evitar duplicados del mismo día
+            st.session_state.historial_diario = (
+                pd.concat([st.session_state.historial_diario, nuevo_p])
+                .drop_duplicates(subset=["Fecha"], keep="last")
+                .sort_values("Fecha")
+                .reset_index(drop=True)
+            )
+            st.success("¡Peso registrado exitosamente!")
+
+    with col_analisis:
+        st.subheader("📊 Análisis e Interpretación")
+
+        if "historial_diario" in st.session_state and not st.session_state.historial_diario.empty:
+            df = st.session_state.historial_diario.copy()
+            df["Fecha"] = pd.to_datetime(df["Fecha"])
+            
+            # --- 1. MÉTIRCAS BÁSICAS Y EXTREMOS ---
+            p_actual = df.iloc[-1]["Peso (kg)"]
+            p_min = df["Peso (kg)"].min()
+            p_max = df["Peso (kg)"].max()
+
+            # Promedio últimos 7 días
+            ultimos_7 = df.tail(7)
+            prom_semanal = ultimos_7["Peso (kg)"].mean()
+
+            # --- 2. COMPARATIVA SEMANAL & CONCLUSIÓN EN TEXTO ---
+            if len(df) >= 7:
+                # Promedio de los 7 días anteriores a esta semana
+                previo_7 = df.iloc[-14:-7] if len(df) >= 14 else df.iloc[:-7]
+                prom_anterior = previo_7["Peso (kg)"].mean()
+                diff_semanal = prom_semanal - prom_anterior
+
+                if diff_semanal < 0:
+                    mensaje_conclusion = f"🎉 **Esta semana bajaste {abs(diff_semanal):.2f} kg** en comparación con la semana anterior."
+                    color_callout = "success"
+                elif diff_semanal > 0:
+                    mensaje_conclusion = f"⚠️ **Esta semana subiste {diff_semanal:.2f} kg** en comparación con la semana anterior."
+                    color_callout = "warning"
+                else:
+                    mensaje_conclusion = "⚖️ **Tu peso se mantuvo exactamente igual** que la semana anterior."
+                    color_callout = "info"
+            else:
+                diff_semanal = 0.0
+                mensaje_conclusion = f"💡 **Registra al menos 7 días** para calcular la diferencia semanal real. Tu promedio actual es de **{prom_semanal:.2f} kg**."
+                color_callout = "info"
+
+            # --- 3. MOSTRAR TARJETA DE CONCLUSIÓN DIRECTA ---
+            if color_callout == "success":
+                st.success(mensaje_conclusion)
+            elif color_callout == "warning":
+                st.warning(mensaje_conclusion)
+            else:
+                st.info(mensaje_conclusion)
+
+            # --- 4. MÉTRICAS CLAVE EN PANTALLA ---
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("⚖️ Peso Diario", f"{p_actual:.1f} kg")
+            c2.metric("📅 Promedio Semanal", f"{prom_semanal:.2f} kg")
+            c3.metric("📉 Mínimo Histórico", f"{p_min:.1f} kg")
+            c4.metric("📈 Máximo Histórico", f"{p_max:.1f} kg")
+
+            # --- 5. GRÁFICA DE EVOLUCIÓN CON TENDENCIA MENSUAL ---
+            st.markdown("---")
+            st.markdown("##### 📈 Evolución y Tendencia")
+
+            # Promedio móvil de 7 días para suavizar fluctuaciones de agua/comida
+            df["Promedio Móvil"] = df["Peso (kg)"].rolling(window=7, min_periods=1).mean()
+
+            fig = px.line(
+                df,
+                x="Fecha",
+                y=["Peso (kg)", "Promedio Móvil"],
+                markers=True,
+                labels={"value": "Peso (kg)", "variable": "Indicador"},
+                title="Peso Diario vs. Tendencia Real (Promedio Móvil)",
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Tabla interactiva
+            with st.expander("📋 Ver Historial de Datos"):
+                st.dataframe(df.sort_values("Fecha", ascending=False), use_container_width=True)
+        else:
+            st.info("Aún no hay registros diarios. Utiliza el formulario de la izquierda para comenzar.")
+
+# ==========================================
+# MÓDULO 3: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
 # ==========================================
 elif opcion == "🥤 Licuados 5:00 AM (L-J)":
     st.header("🥤 Planificador de Licuados para el Despertar (5:10 AM)")
@@ -380,7 +484,7 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
             st.success("¡Ingredientes añadidos a la lista de compras!")
 
 # ==========================================
-# MÓDULO 3: GENERADOR DE RECETAS SEGÚN PLAN NUTRICIONAL
+# MÓDULO 4: GENERADOR DE RECETAS SEGÚN PLAN NUTRICIONAL
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador de Recetas según tu Plan Nutricional")
@@ -527,7 +631,7 @@ elif opcion == "🍳 Generador de Recetas":
             st.success("¡Receta agregada a tu lista de supermercado!")
 
 # ==========================================
-# MÓDULO 4: LISTA DE COMPRAS
+# MÓDULO 5: LISTA DE COMPRAS
 # ==========================================
 elif opcion == "🛒 Lista de Compras":
     st.header("🛒 Tu Lista de Supermercado")
