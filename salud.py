@@ -48,20 +48,20 @@ if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
 # ==========================================
-# MÓDULO 1: CONTROL DE PESO Y MÚSCULO
+# MÓDULO 1: PERFIL INICIAL Y CONTROL DE PESO
 # ==========================================
 if opcion == "📊 Control de Peso y Músculo":
-    st.header("📊 Registro, Diagnóstico y Meta de Peso")
+    st.header("👤 Perfil Inicial, Diagnóstico y Objetivos")
     st.write(
-        "Define tus parámetros físicos y calcula tus métricas metabólicas en tiempo real."
+        "Configura tus datos biométricos para obtener tu diagnóstico metabólico y dar seguimiento a tus metas."
     )
 
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1.2, 1.8])
 
     with col1:
-        st.subheader("Ingresar Mediciones y Meta")
-        fecha = st.date_input("Fecha")
-        genero = st.selectbox("Género", ["Hombre", "Mujer"])
+        st.subheader("1. Perfil Inicial")
+        fecha = st.date_input("Fecha de registro", key="fecha_reg")
+        genero = st.selectbox("Sexo", ["Hombre", "Mujer"])
         edad = st.number_input("Edad", min_value=10, max_value=120, value=28)
         estatura_cm = st.number_input(
             "Estatura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=1.0
@@ -70,11 +70,11 @@ if opcion == "📊 Control de Peso y Músculo":
             "Peso actual (kg)", min_value=30.0, max_value=200.0, value=84.0, step=0.1
         )
         peso_meta = st.number_input(
-            "🎯 Peso Meta (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
+            "🎯 Peso objetivo (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
 
         actividad = st.selectbox(
-            "Nivel de Actividad Física diario:",
+            "Nivel de actividad:",
             [
                 "Sedentario (Oficina / Trabajo de escritorio)",
                 "Ligero (Oficina + Caminata diaria ligera)",
@@ -85,8 +85,22 @@ if opcion == "📊 Control de Peso y Músculo":
             index=2,
         )
 
+        objetivo = st.selectbox(
+            "Objetivo principal:",
+            [
+                "Perder peso (Déficit calórico)",
+                "Mantener peso (Mantenimiento)",
+                "Ganar masa muscular (Superávit ligero)",
+            ],
+        )
+
+        usar_fecha_meta = st.checkbox("¿Agregar fecha objetivo?")
+        fecha_meta = None
+        if usar_fecha_meta:
+            fecha_meta = st.date_input("Fecha objetivo", key="fecha_obj")
+
         # ----------------------------------------------------
-        # 🧮 CÁLCULOS AUTOMÁTICOS
+        # 🧮 CÁLCULOS AUTOMÁTICOS DE LA APP
         # ----------------------------------------------------
         estatura_m = estatura_cm / 100
         
@@ -122,17 +136,22 @@ if opcion == "📊 Control de Peso y Músculo":
         }
         tdee = tmb * mult_act[actividad]
 
-        # 5. Meta Calórica Orientativa (-20% déficit)
-        meta_calorica = tdee * 0.80
+        # 5. Meta Calórica Orientativa según el Objetivo seleccionado
+        if "Perder peso" in objetivo:
+            meta_calorica = tdee * 0.80  # Déficit del 20%
+        elif "Ganar masa" in objetivo:
+            meta_calorica = tdee * 1.15  # Superávit del 15%
+        else:
+            meta_calorica = tdee        # Mantenimiento
 
         # Composición corporal y diferencia
-        kilos_faltantes = peso - peso_meta
+        kilos_diferencia = peso - peso_meta
         val_genero = 1 if genero == "Hombre" else 0
         pct_grasa = max(5.0, min((1.20 * imc) + (0.23 * edad) - (10.8 * val_genero) - 5.4, 60.0))
         pct_musculo = 100.0 - pct_grasa
 
         # ----------------------------------------------------
-        # 📊 DESPLIEGUE DE MÉTRICAS EN PANTALLA
+        # 📊 DESPLIEGUE DE RESULTADOS
         # ----------------------------------------------------
         st.markdown("---")
         st.markdown("### 🧮 Métricas Calculadas Automáticamente:")
@@ -141,12 +160,12 @@ if opcion == "📊 Control de Peso y Músculo":
         with m_col1:
             st.metric("1. IMC", f"{imc:.1f}", delta=diagnostico_imc, delta_color="off")
             st.metric("3. Metabolismo Basal (TMB)", f"{int(tmb)} kcal/día")
-            st.metric("5. Meta Calórica (-20%)", f"{int(meta_calorica)} kcal/día")
+            st.metric("5. Meta Calórica Orientativa", f"{int(meta_calorica)} kcal/día")
         with m_col2:
             st.metric("2. Peso Saludable Aprox.", f"~{peso_saludable_aprox:.1f} kg")
             st.metric("4. Gasto Diario (TDEE)", f"{int(tdee)} kcal/día")
 
-        # Hidratación ajustada a Colima
+        # Hidratación recomendada
         agua_base = (peso * 35) / 1000
         agua_oficina = agua_base + 0.5
         agua_campo = agua_base + 1.2
@@ -157,13 +176,15 @@ if opcion == "📊 Control de Peso y Músculo":
         c_h1.metric("🏢 Día de Oficina", f"{agua_oficina:.1f} L/día")
         c_h2.metric("🛠️ Día de Campo", f"{agua_campo:.1f} L/día")
 
-        if st.button("💾 Guardar Registro"):
+        if st.button("💾 Guardar Perfil / Registro"):
             nuevo_registro = pd.DataFrame(
                 [[
                     fecha,
                     peso,
                     peso_meta,
-                    round(kilos_faltantes, 1),
+                    objetivo,
+                    fecha_meta if fecha_meta else "N/A",
+                    round(kilos_diferencia, 1),
                     round(imc, 1),
                     diagnostico_imc,
                     round(pct_grasa, 1),
@@ -173,8 +194,10 @@ if opcion == "📊 Control de Peso y Músculo":
                 columns=[
                     "Fecha",
                     "Peso (kg)",
-                    "Meta (kg)",
-                    "Faltan (kg)",
+                    "Objetivo (kg)",
+                    "Meta Principal",
+                    "Fecha Objetivo",
+                    "Diferencia (kg)",
                     "IMC",
                     "Diagnóstico",
                     "Grasa (%)",
@@ -186,21 +209,21 @@ if opcion == "📊 Control de Peso y Músculo":
                 [st.session_state.registro_progreso, nuevo_registro],
                 ignore_index=True,
             )
-            st.success("¡Registro guardado con éxito!")
+            st.success("¡Perfil y registro guardados exitosamente!")
 
     with col2:
-        st.subheader("Tu Histórico y Progreso hacia la Meta")
+        st.subheader("2. Seguimiento y Progreso")
 
         if not st.session_state.registro_progreso.empty:
             peso_inicial = float(st.session_state.registro_progreso.iloc[0]["Peso (kg)"])
             peso_actual = float(st.session_state.registro_progreso.iloc[-1]["Peso (kg)"])
 
-            total_a_bajar = peso_inicial - peso_meta
-            bajado_hasta_ahora = peso_inicial - peso_actual
+            total_a_cambiar = abs(peso_inicial - peso_meta)
+            cambio_actual = abs(peso_inicial - peso_actual)
 
-            if total_a_bajar > 0:
-                porcentaje_avance = min(1.0, max(0.0, bajado_hasta_ahora / total_a_bajar))
-                st.write(f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%")
+            if total_a_cambiar > 0:
+                porcentaje_avance = min(1.0, max(0.0, cambio_actual / total_a_cambiar))
+                st.write(f"**Avance hacia la meta:** {int(porcentaje_avance * 100)}%")
                 st.progress(porcentaje_avance)
 
             st.dataframe(st.session_state.registro_progreso, use_container_width=True)
@@ -208,13 +231,13 @@ if opcion == "📊 Control de Peso y Músculo":
             fig = px.line(
                 st.session_state.registro_progreso,
                 x="Fecha",
-                y=["Peso (kg)", "Meta (kg)"],
+                y=["Peso (kg)", "Objetivo (kg)"],
                 markers=True,
-                title="Evolución del Peso vs. Peso Meta",
+                title="Evolución del Peso vs. Peso Objetivo",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Aún no has añadido registros. Ingresa tus datos en el formulario de la izquierda.")
+            st.info("Ingresa tus datos en la sección 'Perfil Inicial' y haz clic en 'Guardar Perfil / Registro'.")
 
 # ==========================================
 # MÓDULO 2: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
