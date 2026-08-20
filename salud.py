@@ -28,7 +28,7 @@ opcion = st.sidebar.radio(
     [
         "🏠 Dashboard Principal",
         "📊 Control de Peso y Músculo",
-        ""📉 Registro Diario de Peso",
+        "📉 Registro Diario de Peso",
         "🥤 Licuados 5:00 AM (L-J)",
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
