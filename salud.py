@@ -3,6 +3,11 @@ import plotly.express as px
 import streamlit as st
 from google import genai
 
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from google import genai
+
 # Configuración de la página
 st.set_page_config(
     page_title="NutriTrack & Recetas", page_icon="🥗", layout="wide"
@@ -21,6 +26,7 @@ st.write(
 opcion = st.sidebar.radio(
     "Selecciona una sección:",
     [
+        "🏠 Dashboard Principal",
         "📊 Control de Peso y Músculo",
         "🥤 Licuados 5:00 AM (L-J)",
         "🍳 Generador de Recetas",
@@ -34,8 +40,10 @@ if "registro_progreso" not in st.session_state:
         columns=[
             "Fecha",
             "Peso (kg)",
-            "Meta (kg)",
-            "Faltan (kg)",
+            "Objetivo (kg)",
+            "Meta Principal",
+            "Fecha Objetivo",
+            "Diferencia (kg)",
             "IMC",
             "Diagnóstico",
             "Grasa (%)",
@@ -48,9 +56,64 @@ if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
 # ==========================================
+# MÓDULO 0: DASHBOARD PRINCIPAL
+# ==========================================
+if opcion == "🏠 Dashboard Principal":
+    st.header("🏠 Resumen Diario")
+    st.write("Vista rápida de tus metas, consumo e indicadores del día.")
+
+    if not st.session_state.registro_progreso.empty:
+        # Extraer datos reales del registro
+        ultimo_registro = st.session_state.registro_progreso.iloc[-1]
+        primer_registro = st.session_state.registro_progreso.iloc[0]
+
+        peso_inicial = float(primer_registro["Peso (kg)"])
+        peso_actual = float(ultimo_registro["Peso (kg)"])
+        peso_meta = float(ultimo_registro["Objetivo (kg)"])
+        meta_kcal = int(ultimo_registro["Meta Kcal"])
+
+        kg_cambiados = abs(peso_inicial - peso_actual)
+        kg_meta_total = abs(peso_inicial - peso_meta)
+        pct_avance = min(1.0, max(0.0, kg_cambiados / kg_meta_total)) if kg_meta_total > 0 else 1.0
+
+        st.markdown("### 📈 Progreso General")
+        st.write(
+            f"**Has avanzado {kg_cambiados:.1f} kg de {kg_meta_total:.1f} kg objetivo**"
+        )
+        st.progress(pct_avance)
+        st.caption(f"🎯 Cumplido el **{int(pct_avance * 100)}%** de tu meta de peso.")
+
+        st.markdown("---")
+        st.markdown("### 🗓️ Estado de Hoy")
+
+        # Fila 1: Control de Peso
+        col_p1, col_p2, col_p3 = st.columns(3)
+        col_p1.metric("⚖️ Peso Actual", f"{peso_actual:.1f} kg")
+        col_p2.metric("🎯 Peso Objetivo", f"{peso_meta:.1f} kg")
+        col_p3.metric("📉 Diferencia Restante", f"{abs(peso_actual - peso_meta):.1f} kg")
+
+        st.markdown("---")
+
+        # Fila 2: Nutrición y Calorías
+        col_n1, col_n2, col_n3 = st.columns(3)
+        col_n1.metric("🔥 Meta Calórica", f"{meta_kcal} kcal/día")
+        col_n2.metric("🍽️ Calorías Restantes", f"{meta_kcal} kcal")
+        col_n3.metric("🥗 Proteína Objetivo", "~120g - 150g")
+
+        st.markdown("---")
+
+        # Fila 3: Estilo de Vida y Hábitos
+        col_h1, col_h2 = st.columns(2)
+        agua_rec = (peso_actual * 35) / 1000
+        col_h1.metric("💧 Meta de Agua", f"{agua_rec:.1f} L/día")
+        col_h2.metric("🚶 Pasos / Actividad", "10,000 pasos")
+    else:
+        st.info("👋 ¡Bienvenido! Ingresa primero tus datos en la sección **📊 Control de Peso y Músculo** para activar tu Dashboard.")
+
+# ==========================================
 # MÓDULO 1: PERFIL INICIAL Y CONTROL DE PESO
 # ==========================================
-if opcion == "📊 Control de Peso y Músculo":
+elif opcion == "📊 Control de Peso y Músculo":
     st.header("👤 Perfil Inicial, Diagnóstico y Objetivos")
     st.write(
         "Configura tus datos biométricos para obtener tu diagnóstico metabólico y dar seguimiento a tus metas."
@@ -238,7 +301,7 @@ if opcion == "📊 Control de Peso y Músculo":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Ingresa tus datos en la sección 'Perfil Inicial' y haz clic en 'Guardar Perfil / Registro'.")
-
+            
 # ==========================================
 # MÓDULO 2: PLAN DE LICUADOS DE LUNES A JUEVES (5:10 AM)
 # ==========================================
