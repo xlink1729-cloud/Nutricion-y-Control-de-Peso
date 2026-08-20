@@ -642,184 +642,158 @@ elif opcion == "🥗 Registro de Alimentación":
                     st.rerun()
 
 # ==========================================
-# MÓDULO 5: GENERADOR DE RECETAS SEGÚN PLAN NUTRICIONAL
+# MÓDULO 5: GENERADOR DE RECETAS Y GUÍA DE ALIMENTACIÓN
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
-    st.header("🍳 Generador de Recetas según tu Plan Nutricional")
-    st.write(
-        "Configura tus horarios y porciones exactas para recibir recetas"
-        " personalizadas según tu día."
-    )
+    st.header("🍳 Generador de Recetas y Plan según Jornada")
+    st.write("Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales.")
 
-    # 1. INICIALIZAR PLAN NUTRICIONAL DIARIO EN SESSION_STATE
+    # 1. CONFIGURACIÓN DE JORNADA LABORAL
+    with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
+        col_h1, col_h2, col_h3 = st.columns(3)
+        with col_h1:
+            hora_inicio = st.time_input("Hora de entrada:", value=datetime.time(7, 0))
+        with col_h2:
+            hora_salida = st.time_input("Hora de salida:", value=datetime.time(19, 0))
+        with col_h3:
+            hora_comida = st.time_input("Hora de comida:", value=datetime.time(12, 0))
+
+        col_h4, col_h5 = st.columns(2)
+        with col_h4:
+            hora_licuado = st.time_input("Hora de licuado / al despertar:", value=datetime.time(5, 10))
+        with col_h5:
+            hora_desayuno = st.time_input("Hora de desayuno (oficina):", value=datetime.time(7, 30))
+
+        opcion_comedor = st.checkbox("Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)", value=True)
+
+    # 2. PLAN BASE DE LA NUTRIÓLOGA
     if "plan_nutriologa_horarios" not in st.session_state:
         st.session_state.plan_nutriologa_horarios = {
-            "Al despertar": {
-                "Lácteos": 1,
-                "Grasas c/ Prot": 1,
-                "Sugerencia Horario": "5:10 AM (Licuado ligero)",
-            },
-            "Desayuno": {
-                "Verduras": 1,
-                "Frutas": 1,
-                "Cereales": 2,
-                "AOA (Proteína)": 2.5,
-                "Grasas s/ Prot": 1,
-                "Sugerencia Horario": "7:30 AM (Oficina / Inicio de turno)",
-            },
-            "Colación 1": {
-                "Frutas": 1,
-                "Grasas c/ Prot": 1,
-                "Sugerencia Horario": "10:30 AM (A mitad de mañana)",
-            },
-            "Comida": {
-                "Verduras": 1,
-                "Cereales": 3,
-                "AOA (Proteína)": 5,
-                "Grasas s/ Prot": 2,
-                "Sugerencia Horario": "2:00 PM (Turno de comida)",
-            },
-            "Colación 2": {
-                "Frutas": 1,
-                "Sugerencia Horario": "5:00 PM (A mitad de tarde)",
-            },
-            "Cena": {
-                "Verduras": 1,
-                "Cereales": 3,
-                "AOA (Proteína)": 2.5,
-                "Grasas s/ Prot": 1,
-                "Sugerencia Horario": "7:30 PM (Al regresar a casa)",
-            },
+            "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
+            "Desayuno": {"Verduras": 1, "Frutas": 1, "Cereales": 2, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
+            "Colación 1": {"Frutas": 1, "Grasas c/ Prot": 1},
+            "Comida": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 5, "Grasas s/ Prot": 2},
+            "Colación 2": {"Frutas": 1},
+            "Cena": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
         }
 
     plan_actual = st.session_state.plan_nutriologa_horarios
 
-    # Expander para editar libremente las porciones asignadas por tu nutrióloga
-    with st.expander("⚙️ Personalizar Equivalentes por Tiempo de Comida"):
-        comida_editar = st.selectbox("Selecciona la comida a editar:", list(plan_actual.keys()))
-        col_ed1, col_ed2 = st.columns(2)
-        
-        # Crear campos editables dinámicos
-        for grp, val in plan_actual[comida_editar].items():
-            if grp != "Sugerencia Horario":
-                st.session_state.plan_nutriologa_horarios[comida_editar][grp] = col_ed1.number_input(
-                    f"Porciones de {grp} en {comida_editar}", min_value=0.0, value=float(val), step=0.5, key=f"edit_{comida_editar}_{grp}"
-                )
-
+    # 3. SELECCIÓN DE MODALIDAD Y OPCIÓN DE COMEDOR
     st.markdown("---")
-
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        # Agregamos la opción de 'Menú Completo del Día'
         opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
-        tiempo_comida = st.selectbox(
-            "Selecciona el tiempo de comida:", opciones_tiempo
-        )
+        tiempo_comida = st.selectbox("Selecciona el tiempo de comida:", opciones_tiempo)
     with col_t2:
-        modalidad_trabajo = st.selectbox(
-            "Modalidad de tu día:",
-            [
-                "Normal / En casa / Oficina",
-                "🛠️ Día de Campo / Para llevar en Hielera/Tupper (Resistente al calor)",
-            ],
-        )
+        modalidades = [
+            "Normal / En casa / Oficina",
+            "🏢 Comedor de Empresa (Selección inteligente de menú)",
+            "🛠️ Día de Campo / Para llevar en Hielera/Tupper",
+        ]
+        idx_def = 1 if opcion_comedor else 0
+        modalidad_trabajo = st.selectbox("Modalidad de la comida:", modalidades, index=idx_def)
 
+    if "Comedor" in modalidad_trabajo:
+        opcion_comedor_elegida = st.radio(
+            "🍽️ Opciones disponibles en comedor:",
+            ["🥗 Paquete Saludable / Ensaladas", "🍲 Comida del Día / Paquete General"],
+            horizontal=True,
+        )
+    else:
+        opcion_comedor_elegida = "N/A"
+
+    # 4. GUSTOS Y RESTRICCIONES POR CATEGORÍA
     st.markdown("---")
     st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
-    # Usamos tabs para organizar visualmente sin saturar la pantalla
     tab_prot, tab_veg, tab_frutas = st.tabs(["🥩 Proteínas y Carnes", "🥦 Verduras y Acompañamientos", "🍎 Frutas"])
 
     with tab_prot:
         col_p1, col_p2 = st.columns(2)
         with col_p1:
-            fav_prot = st.text_input("💚 Proteínas que te GUSTAN:", "Pollo, queso panela, atún, huevo", key="fav_p")
+            fav_prot = st.text_input("💚 Proteínas preferidas:", "Pollo, queso panela, atún, huevo", key="fav_p")
         with col_p2:
-            no_prot = st.text_input("❌ Proteínas que NO te gustan / evitas:", "Pescado, cerdo, mariscos", key="no_p")
+            no_prot = st.text_input("❌ Proteínas a evitar:", "Pescado, cerdo, mariscos", key="no_p")
 
     with tab_veg:
         col_v1, col_v2 = st.columns(2)
         with col_v1:
-            fav_veg = st.text_input("💚 Verduras / Carbohidratos que te GUSTAN:", "Jitomate, aguacate, tortillas de maíz, avena", key="fav_v")
+            fav_veg = st.text_input("💚 Verduras / Cereales preferidos:", "Jitomate, aguacate, tortillas, avena", key="fav_v")
         with col_v2:
-            no_veg = st.text_input("❌ Verduras / Carbohidratos que NO te gustan:", "Cilantro, calabacita, mayonesa", key="no_v")
+            no_veg = st.text_input("❌ Verduras / Cereales a evitar:", "Cilantro, calabacita, mayonesa", key="no_v")
 
     with tab_frutas:
         col_f1, col_f2 = st.columns(2)
         with col_f1:
             fav_frutas = st.text_input("💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f")
         with col_f2:
-            no_frutas = st.text_input("❌ Frutas que NO te gustan:", "Papaya, melón", key="no_f")
+            no_frutas = st.text_input("❌ Frutas a evitar:", "Papaya, melón", key="no_f")
 
-    # Consolidamos las respuestas para el prompt de Gemini
     alimentos_favoritos = f"Proteínas: {fav_prot} | Verduras/Cereales: {fav_veg} | Frutas: {fav_frutas}"
     alimentos_no_gustan = f"Proteínas: {no_prot} | Verduras/Cereales: {no_veg} | Frutas: {no_frutas}"
 
-    if st.button("🍳 Generar Recetas"):
+    # 5. GENERACIÓN CON GEMINI 3.6
+    if st.button("🍳 Generar Plan / Guía de Alimentación"):
         try:
-            # Si elije todo el día, construimos el resumen de todos los tiempos de comida
+            duracion_jornada = (datetime.datetime.combine(datetime.date.today(), hora_salida) - 
+                                datetime.datetime.combine(datetime.date.today(), hora_inicio)).seconds / 3600
+
+            contexto_rutina = f"""
+            - Horario de trabajo: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} horas de jornada)
+            - Licuado al despertar: {hora_licuado.strftime('%I:%M %p')}
+            - Desayuno en oficina: {hora_desayuno.strftime('%I:%M %p')}
+            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Plato elegido en comedor: {opcion_comedor_elegida})
+            """
+
             if tiempo_comida == "📌 Menú Completo del Día":
                 resumen_plan = ""
                 for t_nombre, t_datos in plan_actual.items():
-                    datos_temp = t_datos.copy()
-                    horario = datos_temp.pop("Sugerencia Horario", "")
-                    porciones_t = ", ".join([f"{cant} {grp}" for grp, cant in datos_temp.items()])
-                    resumen_plan += f"- **{t_nombre}** ({horario}): {porciones_t}\n"
+                    porciones_t = ", ".join([f"{cant} {grp}" for grp, cant in t_datos.items()])
+                    resumen_plan += f"- **{t_nombre}**: {porciones_t}\n"
 
                 prompt = f"""
-                Actúa como un Chef y Nutriólogo Experto. Crea un plan de alimentación COMPLETO para TODO EL DÍA.
+                Actúa como un Nutriólogo Experto. Diseña la distribución del menú para la siguiente jornada:
 
-                CONTEXTO DEL USUARIO:
-                - Modalidad: '{modalidad_trabajo}'. Si es día de campo, priorizar alimentos transportables.
+                RUTINA DE HORARIOS:
+                {contexto_rutina}
+                Modalidad: '{modalidad_trabajo}'.
 
-                PLAN Y PORCIONES EXACTAS PARA EL DÍA:
+                PORCIONES DE LA NUTRIÓLOGA:
                 {resumen_plan}
 
                 PREFERENCIAS:
-                - Le gustan: {alimentos_favoritos}.
-                - NO le gustan (ESTRICTAMENTE EXCLUIR): {alimentos_no_gustan}.
+                - Le gustan: {alimentos_favoritos}
+                - EXCLUIR: {alimentos_no_gustan}
 
-                FORMATO DE RESPUESTA:
-                Por cada tiempo de comida asignado, entrega:
-                1. 📌 **Nombre de la Comida / Receta**
-                2. 🥗 **Ingredientes y Cantidades Exactas**
-                3. 👩‍🍳 **Preparación rápida**
-                4. 🧊 **Tip de Empaque/Conservación** (si aplica)
+                INSTRUCCIONES:
+                1. Muestra un cronograma exacto asociando cada tiempo de comida con su hora asignada.
+                2. Para la Comida en comedor ({hora_comida.strftime('%I:%M %p')}), explica cómo ajustar el plato ('{opcion_comedor_elegida}') agregando o limitando guarniciones (arroz, frijol, ensalada) para cumplir exactamente las porciones.
+                3. Dado que la jornada es larga ({duracion_jornada:.1f} h), organiza las colaciones para evitar bajones de energía antes de salir.
                 """
             else:
-                # Generación para un solo tiempo de comida
                 datos_comida = plan_actual[tiempo_comida].copy()
-                sugerencia_h = datos_comida.pop("Sugerencia Horario", "")
-                porciones_str = ", ".join(
-                    [f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()]
-                )
+                porciones_str = ", ".join([f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()])
 
                 prompt = f"""
-                Actúa como un Chef y Nutriólogo Experto. Crea una receta deliciosa y práctica.
+                Actúa como Nutriólogo Asesor. Diseña el tiempo de comida '{tiempo_comida}'.
 
-                CONTEXTO:
-                - Tiempo de comida: '{tiempo_comida}' (Horario: {sugerencia_h})
-                - Modalidad: '{modalidad_trabajo}'
-
-                PORCIONES EXACTAS: {porciones_str}
+                RUTINA: {contexto_rutina}
+                MODALIDAD: '{modalidad_trabajo}' (Comedor: {opcion_comedor_elegida})
+                PORCIONES: {porciones_str}
                 GUSTOS: {alimentos_favoritos}
-                PROHIBIDOS: {alimentos_no_gustan}
+                EXCLUIR: {alimentos_no_gustan}
 
-                FORMATO:
-                📌 **Nombre de la Receta**
-                🥗 **Ingredientes y Cantidades Exactas**
-                👩‍🍳 **Pasos de Preparación**
-                🧊 **Tip de Empaque**
+                Si es la comida en el comedor, da la instrucción precisa de cómo armar o pedir la porción en la barra. Si es para casa/oficina, da la preparación rápida.
                 """
 
-            with st.spinner("Diseñando tu plan nutricional con Gemini 3.6..."):
+            with st.spinner("Adaptando tu plan a tu jornada con Gemini 3.6..."):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
                 receta_texto = response.text
 
             st.session_state["ultima_receta"] = receta_texto
-            st.session_state["receta_tiempo"] = tiempo_comida
 
         except Exception as e:
             st.error(f"Error al conectar con Gemini: {e}")
@@ -827,12 +801,6 @@ elif opcion == "🍳 Generador de Recetas":
     if "ultima_receta" in st.session_state:
         st.markdown("---")
         st.markdown(st.session_state["ultima_receta"])
-
-        if st.button("🛒 Agregar Ingredientes a la Lista de Compras"):
-            st.session_state.lista_compras.append(
-                f"Receta para {st.session_state['receta_tiempo']}"
-            )
-            st.success("¡Receta agregada a tu lista de supermercado!")
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS
