@@ -653,17 +653,17 @@ elif opcion == "🍳 Generador de Recetas":
     with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
         col_h1, col_h2, col_h3 = st.columns(3)
         with col_h1:
-            hora_inicio = st.time_input("Hora de entrada:", value=datetime.time(7, 0))
+            hora_inicio = st.time_input("Hora de entrada:", value=time(7, 0))
         with col_h2:
-            hora_salida = st.time_input("Hora de salida:", value=datetime.time(19, 0))
+            hora_salida = st.time_input("Hora de salida:", value=time(19, 0))
         with col_h3:
-            hora_comida = st.time_input("Hora de comida:", value=datetime.time(12, 0))
+            hora_comida = st.time_input("Hora de comida:", value=time(12, 0))
 
         col_h4, col_h5 = st.columns(2)
         with col_h4:
-            hora_licuado = st.time_input("Hora de licuado / al despertar:", value=datetime.time(5, 10))
+            hora_licuado = st.time_input("Hora de licuado / al despertar:", value=time(5, 10))
         with col_h5:
-            hora_desayuno = st.time_input("Hora de desayuno (oficina):", value=datetime.time(7, 30))
+            hora_desayuno = st.time_input("Hora de desayuno (oficina):", value=time(7, 30))
 
         opcion_comedor = st.checkbox("Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)", value=True)
 
@@ -737,8 +737,13 @@ elif opcion == "🍳 Generador de Recetas":
     # 5. GENERACIÓN CON GEMINI 3.6
     if st.button("🍳 Generar Plan / Guía de Alimentación"):
         try:
-            duracion_jornada = (datetime.datetime.combine(datetime.date.today(), hora_salida) - 
-                                datetime.datetime.combine(datetime.date.today(), hora_inicio)).seconds / 3600
+            # Cálculo seguro de la duración de la jornada laboral
+            hoy = datetime.date.today()
+            dt_inicio = datetime.datetime.combine(hoy, hora_inicio)
+            dt_salida = datetime.datetime.combine(hoy, hora_salida)
+            if dt_salida < dt_inicio:
+                dt_salida += datetime.timedelta(days=1)
+            duracion_jornada = (dt_salida - dt_inicio).total_seconds() / 3600
 
             contexto_rutina = f"""
             - Horario de trabajo: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} horas de jornada)
