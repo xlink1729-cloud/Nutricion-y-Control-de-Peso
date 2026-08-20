@@ -651,49 +651,67 @@ elif opcion == "🍳 Generador de Recetas":
         " personalizadas según tu día."
     )
 
-    PLAN_NUTRICIONAL = {
-        "Al despertar": {
-            "Lácteos": 1,
-            "Grasas c/ Prot": 1,
-            "Sugerencia Horario": "5:10 AM (Licuado ligero)",
-        },
-        "Desayuno": {
-            "Verduras": 1,
-            "Frutas": 1,
-            "Cereales": 2,
-            "AOA (Proteína)": 2.5,
-            "Grasas s/ Prot": 1,
-            "Sugerencia Horario": "7:30 AM (Oficina / Inicio de turno)",
-        },
-        "Colación 1": {
-            "Frutas": 1,
-            "Grasas c/ Prot": 1,
-            "Sugerencia Horario": "10:30 AM (A mitad de mañana)",
-        },
-        "Comida": {
-            "Verduras": 1,
-            "Cereales": 3,
-            "AOA (Proteína)": 5,
-            "Grasas s/ Prot": 2,
-            "Sugerencia Horario": "2:00 PM (Turno de comida)",
-        },
-        "Colación 2": {
-            "Frutas": 1,
-            "Sugerencia Horario": "5:00 PM (A mitad de tarde)",
-        },
-        "Cena": {
-            "Verduras": 1,
-            "Cereales": 3,
-            "AOA (Proteína)": 2.5,
-            "Grasas s/ Prot": 1,
-            "Sugerencia Horario": "7:30 PM (Al regresar a casa)",
-        },
-    }
+    # 1. INICIALIZAR PLAN NUTRICIONAL DIARIO EN SESSION_STATE
+    if "plan_nutriologa_horarios" not in st.session_state:
+        st.session_state.plan_nutriologa_horarios = {
+            "Al despertar": {
+                "Lácteos": 1,
+                "Grasas c/ Prot": 1,
+                "Sugerencia Horario": "5:10 AM (Licuado ligero)",
+            },
+            "Desayuno": {
+                "Verduras": 1,
+                "Frutas": 1,
+                "Cereales": 2,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+                "Sugerencia Horario": "7:30 AM (Oficina / Inicio de turno)",
+            },
+            "Colación 1": {
+                "Frutas": 1,
+                "Grasas c/ Prot": 1,
+                "Sugerencia Horario": "10:30 AM (A mitad de mañana)",
+            },
+            "Comida": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 5,
+                "Grasas s/ Prot": 2,
+                "Sugerencia Horario": "2:00 PM (Turno de comida)",
+            },
+            "Colación 2": {
+                "Frutas": 1,
+                "Sugerencia Horario": "5:00 PM (A mitad de tarde)",
+            },
+            "Cena": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+                "Sugerencia Horario": "7:30 PM (Al regresar a casa)",
+            },
+        }
+
+    plan_actual = st.session_state.plan_nutriologa_horarios
+
+    # Expander para editar libremente las porciones asignadas por tu nutrióloga
+    with st.expander("⚙️ Personalizar Equivalentes por Tiempo de Comida"):
+        comida_editar = st.selectbox("Selecciona la comida a editar:", list(plan_actual.keys()))
+        col_ed1, col_ed2 = st.columns(2)
+        
+        # Crear campos editables dinámicos
+        for grp, val in plan_actual[comida_editar].items():
+            if grp != "Sugerencia Horario":
+                st.session_state.plan_nutriologa_horarios[comida_editar][grp] = col_ed1.number_input(
+                    f"Porciones de {grp} en {comida_editar}", min_value=0.0, value=float(val), step=0.5, key=f"edit_{comida_editar}_{grp}"
+                )
+
+    st.markdown("---")
 
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         tiempo_comida = st.selectbox(
-            "Selecciona el tiempo de comida:", list(PLAN_NUTRICIONAL.keys())
+            "Selecciona el tiempo de comida:", list(plan_actual.keys())
         )
     with col_t2:
         modalidad_trabajo = st.selectbox(
@@ -704,7 +722,7 @@ elif opcion == "🍳 Generador de Recetas":
             ],
         )
 
-    datos_comida = PLAN_NUTRICIONAL[tiempo_comida].copy()
+    datos_comida = plan_actual[tiempo_comida].copy()
     sugerencia_h = datos_comida.pop("Sugerencia Horario")
 
     st.markdown(
