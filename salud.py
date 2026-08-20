@@ -30,7 +30,7 @@ opcion = st.sidebar.radio(
         "📊 Control de Peso y Músculo",
         "📉 Registro Diario de Peso",
         "🥤 Licuados 5:00 AM (L-J)",
-        "🥗 Registro de Alimentación"
+        "🥗 Registro de Alimentación",
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
     ],
