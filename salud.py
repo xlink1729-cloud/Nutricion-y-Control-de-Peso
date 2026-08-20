@@ -35,6 +35,7 @@ opcion = st.sidebar.radio(
         "🛒 Lista de Compras",
         "🔥 Seguimiento de Hábitos",
         "📈 Reporte Semanal",
+        "🤖 Asistente Virtual Nutricional",
     ],
 )
 
@@ -1011,3 +1012,53 @@ elif opcion == "📈 Reporte Semanal":
 
     else:
         st.info("👋 Para generar tu primer reporte semanal, ingresa al menos un par de registros en el apartado **📉 Registro Diario de Peso**.")
+
+# ==========================================
+# MÓDULO 9: ASISTENTE VIRTUAL NUTRICIONAL (IA)
+# ==========================================
+elif opcion == "🤖 Asistente Virtual Nutricional":
+    st.header("🤖 Coach Personal de Nutrición")
+    st.write("Escribe o dicta lo que comiste en lenguaje natural y la IA calculará tus macros y te dará feedback en tiempo real.")
+
+    # Inicializar historial de conversación del asistente
+    if "chat_asistente" not in st.session_state:
+        st.session_state.chat_asistente = []
+
+    # Mostrar mensajes previos del chat
+    for mensaje in st.session_state.chat_asistente:
+        with st.chat_message(mensaje["role"]):
+            st.markdown(mensaje["content"])
+
+    # Entrada de texto del usuario
+    if prompt := st.chat_input("Ejemplo: Hoy desayuné 2 huevos, 2 tortillas y un café con leche..."):
+        # Guardar y mostrar mensaje del usuario
+        st.session_state.chat_asistente.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Generar respuesta con la API de Gemini
+        with st.chat_message("assistant"):
+            with st.spinner("Analizando tu comida..."):
+                try:
+                    # Prompt del sistema para guiar a Gemini a actuar como un Coach Nutricional
+                    system_instruction = (
+                        "Eres un Coach Nutricional empático, práctico y directo. "
+                        "Cuando el usuario te diga lo que comió, debes:\n"
+                        "1. Confirmar el registro.\n"
+                        "2. Dar un estimado aproximado de calorías (kcal) y proteína (g).\n"
+                        "3. Dar un breve consejo o feedback motivacional sobre si tiene margen para sus siguientes comidas.\n"
+                        "Mantén la respuesta corta (máximo 3-4 oraciones) y tono amigable."
+                    )
+                    
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=f"{system_instruction}\n\nEntrada del usuario: {prompt}"
+                    )
+                    
+                    respuesta_txt = response.text
+                    st.markdown(respuesta_txt)
+                    
+                    # Guardar respuesta en el historial
+                    st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_txt})
+                except Exception as e:
+                    st.error(f"Error al conectar con el asistente: {e}")
