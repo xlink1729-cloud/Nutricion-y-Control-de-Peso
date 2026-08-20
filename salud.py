@@ -55,14 +55,34 @@ if opcion == "📊 Control de Peso y Músculo":
             "🎯 Peso Meta (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
         actividad = st.selectbox(
-            "Nivel de Actividad Física",
+            "Nivel de Actividad Física diario:",
             [
-                "Sedentario (Poco o ningún ejercicio)",
-                "Lijero (Ejercicio 1-3 días/semana)",
-                "Moderado (Ejercicio 3-5 días/semana)",
-                "Fuerte (Ejercicio 6-7 días/semana)",
+                "Sedentario (Oficina / Trabajo de escritorio)",
+                "Ligero (Oficina + Caminata diaria ligera)",
+                "Mixto 50/50 (Oficina + Trabajo de campo / Mantenimiento)",
+                "Activo (Trabajo físico pesado o ejercicio diario)",
+                "Muy Activo (Trabajo pesado + Ejercicio intenso)",
             ],
+            index=2,  # Selecciona Mixto 50/50 por defecto
         )
+
+        # FACTORES DE ACTIVIDAD AJUSTADOS
+        mult_act = {
+            "Sedentario (Oficina / Trabajo de escritorio)": 1.2,
+            "Ligero (Oficina + Caminata diaria ligera)": 1.375,
+            "Mixto 50/50 (Oficina + Trabajo de campo / Mantenimiento)": 1.55,
+            "Activo (Trabajo físico pesado o ejercicio diario)": 1.725,
+            "Muy Activo (Trabajo pesado + Ejercicio intenso)": 1.9,
+        }
+
+        # Cálculo de la Tasa Metabólica Basal (TMB) y Gasto Total (TDEE)
+        if genero == "Hombre":
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
+        else:
+            tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) - 161
+
+        tdee = tmb * mult_act[actividad]
+        meta_deficit = tdee * 0.80  # Déficit moderado del 20% para bajar de peso
 
         # 1. CÁLCULO DE IMC Y DIAGNÓSTICO
         estatura_m = estatura_cm / 100
