@@ -266,21 +266,20 @@ if opcion == "📊 Control de Peso y Músculo":
             )
 
 # ==========================================
-# MÓDULO 2: GENERADOR DE RECETAS UNIVERSAL CON HORARIOS
+# MÓDULO 2: GENERADOR DE RECETAS Y LICUADOS EXPRESS
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
-    st.header("🍳 Generador de Recetas según tu Plan Nutricional")
+    st.header("🍳 Generador de Recetas y Licuados Express")
     st.write(
-        "Configura tus horarios de trabajo y preferencias para recibir recetas"
-        " adaptadas a tu rutina real."
+        "Planifica tus comidas o genera licuados al instante al despertar según tus frutas disponibles."
     )
 
     # Matriz de porciones basada en la tabla de Intervención Nutricional
     PLAN_NUTRICIONAL = {
-        "Al despertar": {
+        "Al despertar (Licuado Express)": {
             "Lácteos": 1,
             "Grasas c/ Prot": 1,
-            "Sugerencia Horario": "En los primeros 20 mins tras despertar",
+            "Sugerencia Horario": "5:10 AM (Antes de salir a campo)",
         },
         "Desayuno": {
             "Verduras": 1,
@@ -288,143 +287,173 @@ elif opcion == "🍳 Generador de Recetas":
             "Cereales": 2,
             "AOA (Proteína)": 2.5,
             "Grasas s/ Prot": 1,
-            "Sugerencia Horario": "Inicio de jornada / Pre-campo",
+            "Sugerencia Horario": "7:00 AM (Inicio de Turno)",
         },
         "Colación 1": {
             "Frutas": 1,
             "Grasas c/ Prot": 1,
-            "Sugerencia Horario": "A mitad de la mañana",
+            "Sugerencia Horario": "10:30 AM",
         },
         "Comida": {
             "Verduras": 1,
             "Cereales": 3,
             "AOA (Proteína)": 5,
             "Grasas s/ Prot": 2,
-            "Sugerencia Horario": "A mitad del turno de trabajo",
+            "Sugerencia Horario": "2:00 PM",
         },
         "Colación 2": {
             "Frutas": 1,
-            "Sugerencia Horario": "A mitad de la tarde",
+            "Sugerencia Horario": "5:00 PM",
         },
         "Cena": {
             "Verduras": 1,
             "Cereales": 3,
             "AOA (Proteína)": 2.5,
             "Grasas s/ Prot": 1,
-            "Sugerencia Horario": "Al concluir la jornada laboral",
+            "Sugerencia Horario": "7:30 PM (Al terminar turno)",
         },
     }
 
-    # CONFIGURACIÓN DE RUTINA Y HORARIOS (UNIVERSAL)
-    st.subheader("⏰ Configuración de Rutina Laboral")
-    c_h1, c_h2, c_h3 = st.columns(3)
-    with c_h1:
-        hora_despertar = st.time_input("Hora habitual de despertar:", value=pd.to_datetime("05:10").time())
-    with c_h2:
-        hora_inicio_turno = st.time_input("Inicio de Turno:", value=pd.to_datetime("07:00").time())
-    with c_h3:
-        hora_fin_turno = st.time_input("Fin de Turno:", value=pd.to_datetime("19:00").time())
-
-    st.markdown("---")
-
+    st.subheader("⏰ Configuración de Rutina")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         tiempo_comida = st.selectbox(
-            "Selecciona el tiempo de comida a preparar:", list(PLAN_NUTRICIONAL.keys())
+            "Selecciona el tiempo de comida o licuado:", list(PLAN_NUTRICIONAL.keys())
         )
     with col_t2:
         modalidad_trabajo = st.selectbox(
             "Modalidad de tu día:",
             [
                 "Normal / En casa / Oficina",
-                "🛠️ Día de Campo / Para llevar en Hielera/Tupper (Resistente al calor)",
+                "🛠️ Día de Campo / Para llevar en Hielera/Tupper",
             ],
         )
 
-    # Mostrar las porciones cargadas automáticamente
+    # Cargar porciones automáticamente
     datos_comida = PLAN_NUTRICIONAL[tiempo_comida].copy()
     sugerencia_h = datos_comida.pop("Sugerencia Horario")
 
-    st.markdown(f"#### 📊 Porciones para **{tiempo_comida}** *(Sugerido: {sugerencia_h})*:")
-
+    st.markdown(f"#### 📊 Porciones para **{tiempo_comida}** *(Horario: {sugerencia_h})*:")
     cols = st.columns(len(datos_comida))
     for idx, (grupo, cant) in enumerate(datos_comida.items()):
         cols[idx].metric(grupo, f"{cant} porc.")
 
     st.markdown("---")
-    st.subheader("⚙️ Gustos y Restricciones")
 
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        alimentos_favoritos = st.text_input(
-            "💚 Alimentos que te GUSTAN (separados por coma):",
-            "Pollo, aguacate, tortillas de maíz, queso panela, jitomate, atún, plátano, avena",
+    # ENFOQUE DEDICADO PARA "AL DESPERTAR" (LICUADOS CON FRUTAS DISPONIBLES)
+    if tiempo_comida == "Al despertar (Licuado Express)":
+        st.subheader("🥤 Generador de Licuados Rápidos (5:10 AM)")
+        frutas_disponibles = st.text_input(
+            "🍓 Frutas que tienes disponibles hoy (separadas por coma):",
+            "Manzana, papaya, fresas congeladas, pera, plátano",
         )
-    with col_g2:
-        alimentos_no_gustan = st.text_input(
-            "❌ Alimentos que NO te gustan o evitas:",
-            "Cilantro, mayonesa, pescado, calabacita",
+        base_liquida = st.selectbox(
+            "🥛 Base para tu licuado (1 Porción de Lácteo/Sustituto):",
+            ["Leche entera", "Leche descremada", "Leche de almendras", "Yogurt natural"],
+        )
+        grasa_saludable = st.selectbox(
+            "🥜 Grasa saludable con proteína (1 Porción):",
+            ["Crema de cacahuate", "Almendras (10 piezas)", "Nueces (4 mitades)", "Semillas de chía / linaza"],
         )
 
-    if st.button("🍳 Generar Receta Personalizada"):
-        try:
-            porciones_str = ", ".join(
-                [f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()]
+        if st.button("⚡ Crear Licuado Express"):
+            try:
+                prompt = f"""
+                Actúa como un Nutriólogo Experto. Crea una combinación de licuado súper rápida (preparación en menos de 3 minutos) para el usuario que se levanta a las 5:10 AM.
+
+                RESTRICCIONES Y ESTRUCTURA DE LA NUTRIÓLOGA:
+                - 1 Porción de Lácteo: Usar {base_liquida}.
+                - 1 Porción de Grasa con Proteína: Usar {grasa_saludable}.
+                - Fruta: Combinar adecuadamente usando SOLO de estas opciones disponibles: {frutas_disponibles}.
+
+                FORMATO DE RESPUESTA REQUERIDO (En Markdown exacto):
+                📌 **Nombre del Licuado**
+                
+                🥤 **Ingredientes Exactos para la Licuadora**:
+                - Cantidad exacta de {base_liquida}
+                - Cantidad exacta de {grasa_saludable}
+                - Cantidad/porción exacta de la(s) fruta(s) seleccionada(s)
+                
+                ⏱️ **Instrucciones de Preparación Express (2 pasos)**:
+                1. Pasos...
+                
+                ⚡ **Beneficio Nutricional para tu jornada**:
+                [Breve explicación del aporte de energía para arrancar el turno]
+                """
+
+                with st.spinner("Mezclando tu licuado mañanero..."):
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash", contents=prompt
+                    )
+                    receta_texto = response.text
+
+                st.session_state["ultima_receta"] = receta_texto
+                st.session_state["receta_tiempo"] = "Licuado Express 5:10 AM"
+
+            except Exception as e:
+                st.error(f"Error al conectar con Gemini: {e}")
+
+    # ENFOQUE ESTÁNDAR PARA OTRAS COMIDAS (DESAYUNO, COMIDA, CENA)
+    else:
+        st.subheader("⚙️ Gustos y Restricciones")
+        col_g1, col_g2 = st.columns(2)
+        with col_g1:
+            alimentos_favoritos = st.text_input(
+                "💚 Alimentos que te GUSTAN (separados por coma):",
+                "Pollo, aguacate, tortillas de maíz, queso panela, jitomate, atún",
+            )
+        with col_g2:
+            alimentos_no_gustan = st.text_input(
+                "❌ Alimentos que NO te gustan o evitas:",
+                "Cilantro, mayonesa, pescado, calabacita",
             )
 
-            prompt = f"""
-            Actúa como un Chef y Nutriólogo Experto en comida práctica. Crea una receta adaptada a la rutina laboral del usuario.
-
-            CONTEXTO DEL USUARIO Y HORARIOS:
-            - Se levanta a las: {hora_despertar.strftime('%H:%M')} hrs.
-            - Horario de trabajo: {hora_inicio_turno.strftime('%H:%M')} a {hora_fin_turno.strftime('%H:%M')} hrs.
-            - Tiempo de comida solicitado: '{tiempo_comida}'
-            - Modalidad de consumo: '{modalidad_trabajo}'. Si es 'Al despertar' o 'Día de campo', priorizar opciones rápidas de preparar (como licuados, bowls o tuppers prácticos resistentes al calor de Colima).
-
-            PORCIONES STRICTAS DE LA NUTRIÓLOGA:
-            {porciones_str}.
-
-            PREFERENCIAS PERSONALIZADAS:
-            - Alimentos preferidos / disponibles: {alimentos_favoritos}.
-            - Alimentos prohibidos / NO le gustan: {alimentos_no_gustan} (ESTRICTAMENTE NO INCLUIR NINGUNO DE ESTOS).
-
-            FORMATO DE RESPUESTA REQUERIDO (En Markdown exacto):
-            📌 **Nombre de la Receta**
-            
-            🥗 **Ingredientes y Cantidades Exactas**:
-            - [Cantidad exacta] [Ingrediente 1]
-            - [Cantidad exacta] [Ingrediente 2]
-            
-            👩‍🍳 **Pasos de Preparación Rápida**:
-            1. Paso 1...
-            2. Paso 2...
-            
-            🧊 **Tip de Empaque / Conservación para el Turno**:
-            [Tip específico de empaque, conservación térmica o consumo sobre la marcha]
-            """
-
-            with st.spinner("Diseñando tu receta personalizada..."):
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=prompt
+        if st.button("🍳 Generar Receta Personalizada"):
+            try:
+                porciones_str = ", ".join(
+                    [f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()]
                 )
-                receta_texto = response.text
 
-            st.session_state["ultima_receta"] = receta_texto
-            st.session_state["receta_tiempo"] = tiempo_comida
+                prompt = f"""
+                Actúa como un Chef y Nutriólogo Experto. Crea una receta adaptada a las porciones exactas.
 
-        except Exception as e:
-            st.error(f"Error al conectar con Gemini: {e}")
+                TIEMPO DE COMIDA: '{tiempo_comida}'
+                PORCIONES STRICTAS DE LA NUTRIÓLOGA: {porciones_str}.
+                MODALIDAD: '{modalidad_trabajo}' (Si es día de campo, considerar resistencia al calor de Colima y empaque).
 
-    # Desplegar receta e integración con la lista de compras
+                PREFERENCIAS PERSONALIZADAS:
+                - Preferidos: {alimentos_favoritos}.
+                - Prohibidos: {alimentos_no_gustan}.
+
+                FORMATO DE RESPUESTA:
+                📌 **Nombre de la Receta**
+                🥗 **Ingredientes y Cantidades Exactas**
+                👩‍🍳 **Pasos de Preparación**
+                🧊 **Tip de Empaque / Conservación**
+                """
+
+                with st.spinner("Diseñando receta..."):
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash", contents=prompt
+                    )
+                    receta_texto = response.text
+
+                st.session_state["ultima_receta"] = receta_texto
+                st.session_state["receta_tiempo"] = tiempo_comida
+
+            except Exception as e:
+                st.error(f"Error al conectar con Gemini: {e}")
+
+    # Desplegar receta generada
     if "ultima_receta" in st.session_state:
         st.markdown("---")
         st.markdown(st.session_state["ultima_receta"])
 
         if st.button("🛒 Agregar Ingredientes a la Lista de Compras"):
             st.session_state.lista_compras.append(
-                f"Receta de {st.session_state['receta_tiempo']} (Generada para turno {hora_inicio_turno.strftime('%H:%M')}-{hora_fin_turno.strftime('%H:%M')})"
+                f"Ingredientes de {st.session_state['receta_tiempo']}"
             )
-            st.success("¡Receta agregada a tu lista de supermercado!")
+            st.success("¡Ingredientes agregados a tu lista de compras!")
 
 # ==========================================
 # MÓDULO 3: LISTA DE COMPRAS
