@@ -786,7 +786,7 @@ elif opcion == "🍳 Generador de Recetas":
 
             with st.spinner("Diseñando tu receta según tus porciones y gustos..."):
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=prompt
+                    model="gemini-3.6-flash", contents=prompt
                 )
                 receta_texto = response.text
 
