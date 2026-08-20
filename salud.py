@@ -274,15 +274,17 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
         "🥛 Bases, semillas y agregados disponibles:",
         [
             "Leche de almendra",
-            "Leche entera/deslactosada",
+            "Leche entera",
+            "Leche deslactosada",
             "Yogurt griego",
+            "Nueces",
             "Almendras",
             "Cacahuates",
             "Crema de cacahuate",
             "Semillas de chía/linaza",
             "Proteína en polvo",
         ],
-        default=["Leche de almendra", "Almendras", "Crema de cacahuate"],
+        default=["Leche deslactosada", "Nueces", "Almendras"]
     )
 
     if st.button("🥤 Generar Plan de Licuados (Lunes a Jueves)"):
