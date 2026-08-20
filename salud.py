@@ -30,19 +30,18 @@ if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
 # ==========================================
-# MÓDULO 1: CONTROL DE PESO Y COMPOSICIÓN CORPORAL
+# MÓDULO 1: CONTROL DE PESO, METAS Y COMPOSICIÓN CORPORAL
 # ==========================================
 if opcion == "📊 Control de Peso y Músculo":
-    st.header("📊 Registro y Diagnóstico Antropométrico")
+    st.header("📊 Registro, Diagnóstico y Meta de Peso")
     st.write(
-        "Calcula tu diagnóstico de IMC, porcentaje de grasa, masa magra y"
-        " tus calorías diarias para pérdida de peso."
+        "Define tu peso objetivo y monitorea tu progreso en tiempo real."
     )
 
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.subheader("Ingresar Mediciones")
+        st.subheader("Ingresar Mediciones y Meta")
         fecha = st.date_input("Fecha")
         genero = st.selectbox("Género", ["Hombre", "Mujer"])
         edad = st.number_input("Edad", min_value=10, max_value=120, value=28)
@@ -50,7 +49,10 @@ if opcion == "📊 Control de Peso y Músculo":
             "Estatura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=1.0
         )
         peso = st.number_input(
-            "Peso actual (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
+            "Peso actual (kg)", min_value=30.0, max_value=200.0, value=84.0, step=0.1
+        )
+        peso_meta = st.number_input(
+            "🎯 Peso Meta (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1
         )
         actividad = st.selectbox(
             "Nivel de Actividad Física",
@@ -62,11 +64,10 @@ if opcion == "📊 Control de Peso y Músculo":
             ],
         )
 
-        # 1. CÁLCULO DE IMC
+        # 1. CÁLCULO DE IMC Y DIAGNÓSTICO
         estatura_m = estatura_cm / 100
         imc = peso / (estatura_m**2)
 
-        # Clasificación según la OMS
         if imc < 18.5:
             diagnostico_imc = "Bajo peso"
             color_diag = "warning"
@@ -89,7 +90,10 @@ if opcion == "📊 Control de Peso y Músculo":
         pct_grasa = max(5.0, min(pct_grasa, 60.0))
         pct_musculo = 100.0 - pct_grasa
 
-        # 3. CÁLCULO DE CALORÍAS (Mifflin-St Jeor)
+        # 3. CÁLCULO DE AVANCE Y METAS
+        kilos_faltantes = peso - peso_meta
+        
+        # 4. CÁLCULO DE CALORÍAS (Mifflin-St Jeor)
         if genero == "Hombre":
             tmb = (10 * peso) + (6.25 * estatura_cm) - (5 * edad) + 5
         else:
@@ -102,11 +106,11 @@ if opcion == "📊 Control de Peso y Músculo":
             "Fuerte (Ejercicio 6-7 días/semana)": 1.725,
         }
         tdee = tmb * mult_act[actividad]
-        meta_deficit = tdee * 0.80  # Déficit del 20% para perder peso de forma segura
+        meta_deficit = tdee * 0.80  # Déficit del 20%
 
-        # DESPLEGAR RESULTADOS EN TIEMPO REAL
+        # DESPLEGAR RESULTADOS Y DIAGNÓSTICO
         st.markdown("---")
-        st.markdown("#### 📐 Resultados Diagnósticos:")
+        st.markdown("#### 📐 Estado Actual:")
 
         if color_diag == "success":
             st.success(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
@@ -115,13 +119,22 @@ if opcion == "📊 Control de Peso y Músculo":
         else:
             st.error(f"**Diagnóstico IMC:** {diagnostico_imc} ({imc:.1f})")
 
+        # Tarjetas de progreso hacia la meta
+        c_k1, c_k2 = st.columns(2)
+        c_k1.metric("Peso Meta", f"{peso_meta:.1f} kg")
+        if kilos_faltantes > 0:
+            c_k2.metric("Kilos por bajar", f"{kilos_faltantes:.1f} kg", delta=f"-{kilos_faltantes:.1f} kg", delta_color="inverse")
+        elif kilos_faltantes == 0:
+            c_k2.metric("Estatus", "¡Meta alcanzada! 🎉")
+        else:
+            c_k2.metric("Estatus", f"Por debajo de la meta ({abs(kilos_faltantes):.1f} kg)")
+
         c_m1, c_m2 = st.columns(2)
         c_m1.metric("% Grasa Estimada", f"{pct_grasa:.1f}%")
         c_m2.metric("% Masa Magra", f"{pct_musculo:.1f}%")
 
         st.info(
-            f"🔥 **Mantenimiento:** {int(tdee)} kcal/día\n\n"
-            f"🎯 **Meta Perder Peso (-20%):** {int(meta_deficit)} kcal/día"
+            f"🎯 **Meta Calórica Diaria (-20%):** {int(meta_deficit)} kcal/día"
         )
 
         if st.button("💾 Guardar Registro"):
@@ -129,6 +142,8 @@ if opcion == "📊 Control de Peso y Músculo":
                 [[
                     fecha,
                     peso,
+                    peso_meta,
+                    round(kilos_faltantes, 1),
                     round(imc, 1),
                     diagnostico_imc,
                     round(pct_grasa, 1),
@@ -138,6 +153,8 @@ if opcion == "📊 Control de Peso y Músculo":
                 columns=[
                     "Fecha",
                     "Peso (kg)",
+                    "Meta (kg)",
+                    "Faltan (kg)",
                     "IMC",
                     "Diagnóstico",
                     "Grasa (%)",
@@ -152,19 +169,33 @@ if opcion == "📊 Control de Peso y Músculo":
             st.success("¡Registro guardado con éxito!")
 
     with col2:
-        st.subheader("Tu Histórico y Evolución")
+        st.subheader("Tu Histórico y Progreso hacia la Meta")
+        
+        # BARRA DE PROGRESO VISUAL SI HAY AL MENOS UN REGISTRO HISTÓRICO
         if not st.session_state.registro_progreso.empty:
+            # Obtener el primer peso registrado para calcular el progreso total acumulado
+            peso_inicial = st.session_state.registro_progreso.iloc[0]["Peso (kg)"]
+            peso_actual = st.session_state.registro_progreso.iloc[-1]["Peso (kg)"]
+            
+            total_a_bajar = peso_inicial - peso_meta
+            bajado_hasta_ahora = peso_inicial - peso_actual
+
+            if total_a_bajar > 0:
+                porcentaje_avance = min(1.0, max(0.0, bajado_hasta_ahora / total_a_bajar))
+                st.write(f"**Progreso de pérdida de peso:** {int(porcentaje_avance * 100)}%")
+                st.progress(porcentaje_avance)
+            
             st.dataframe(
                 st.session_state.registro_progreso, use_container_width=True
             )
 
-            # Gráfica interactiva
+            # Gráfica interactiva con línea de meta
             fig = px.line(
                 st.session_state.registro_progreso,
                 x="Fecha",
-                y=["Peso (kg)", "Grasa (%)", "Músculo (%)"],
+                y=["Peso (kg)", "Meta (kg)"],
                 markers=True,
-                title="Evolución de Peso y Composición Corporal",
+                title="Evolución del Peso vs. Peso Meta",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
