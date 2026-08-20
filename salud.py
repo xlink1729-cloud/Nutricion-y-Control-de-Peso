@@ -580,27 +580,28 @@ elif opcion == "🥗 Registro de Alimentación":
                 columns=["Comida", "Alimento", "Kcal", "Proteína (g)"]
             )
 
-        # Botones de Carga Rápida
+        # Botones de Carga Rápida (Corregido con compatibilidad de llaves)
         st.markdown("##### 🔁 Repetir Comida Habitual")
         cols_frec = st.columns(len(st.session_state.comidas_frecuentes))
         for idx, item in enumerate(st.session_state.comidas_frecuentes):
             with cols_frec[idx]:
+                # Extraer proteína de manera segura soporte 'Prot' o 'Proteína (g)'
+                proteina_val = item.get("Prot", item.get("Proteína (g)", 0))
+                
                 st.markdown(f"**{item['Tipo']}:** {item['Nombre']}")
-                st.caption(f"🔥 {item['Kcal']} kcal | 🥗 {item['Prot']}g Prot")
+                st.caption(f"🔥 {item['Kcal']} kcal | 🥗 {proteina_val}g Prot")
                 if st.button("🔁 Repetir", key=f"frec_tab_{idx}", use_container_width=True):
                     nuevo = pd.DataFrame([{
                         "Comida": item['Tipo'],
                         "Alimento": item['Nombre'],
                         "Kcal": item['Kcal'],
-                        "Proteína (g)": item['Prot'],
+                        "Proteína (g)": proteina_val,
                     }])
                     st.session_state.diario_alimentos = pd.concat(
                         [st.session_state.diario_alimentos, nuevo], ignore_index=True
                     )
                     st.success(f"¡{item['Nombre']} agregado!")
                     st.rerun()
-
-        st.markdown("---")
 
         # Registro Manual
         col_f1, col_f2 = st.columns([1, 1])
