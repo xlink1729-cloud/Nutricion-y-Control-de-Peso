@@ -311,7 +311,7 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
 
             with st.spinner("Diseñando tus licuados de la semana..."):
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=prompt
+                    model="gemini-3.6-flash", contents=prompt
                 )
                 plan_licuados = response.text
 
