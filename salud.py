@@ -739,13 +739,12 @@ elif opcion == "🍳 Generador de Recetas":
     # 5. GENERACIÓN CON GEMINI 3.6
     if st.button("🍳 Generar Plan / Guía de Alimentación"):
         try:
-            # Cálculo seguro de la duración de la jornada laboral
-            hoy = datetime.date.today()
-            dt_inicio = datetime.datetime.combine(hoy, hora_inicio)
-            dt_salida = datetime.datetime.combine(hoy, hora_salida)
-            if dt_salida < dt_inicio:
-                dt_salida += datetime.timedelta(days=1)
-            duracion_jornada = (dt_salida - dt_inicio).total_seconds() / 3600
+            # Cálculo directo de horas de jornada laboral
+            duracion_jornada = (hora_salida.hour + hora_salida.minute / 60) - (
+                hora_inicio.hour + hora_inicio.minute / 60
+            )
+            if duracion_jornada < 0:
+                duracion_jornada += 24
 
             contexto_rutina = f"""
             - Horario de trabajo: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} horas de jornada)
@@ -757,15 +756,17 @@ elif opcion == "🍳 Generador de Recetas":
             reglas_cocina_saludable = """
             REGLAS DE PREPARACIÓN Y GRASAS SALUDABLES:
             - NUNCA sugerir aceites refinados (maíz, soya, girasol, cártamo).
-            - Usar EXCLUSIVAMENTE: Aceite de Oliva Extra Virgen (para ensaladas o salteados a fuego bajo/medio), Aceite de Aguacate (para cocción/plancha) o Aceite en Aerosol/Spray.
+            - Usar EXCLUSIVAMENTE: Aceite de Oliva Extra Virgen, Aceite de Aguacate o Aceite en Aerosol/Spray.
             - Priorizar métodos de cocción como: a la plancha, al vapor, al horno, empapelado o freidora de aire.
-            - Evitar aderezos o salsas comerciales procesados; indicar aderezos naturales a base de limón, vinagre de manzana, mostaza Dijon o yogur griego.
+            - Evitar aderezos o salsas comerciales procesados; indicar aderezos naturales a base de limón, vinagre de manzana o mostaza.
             """
 
             if tiempo_comida == "📌 Menú Completo del Día":
                 resumen_plan = ""
                 for t_nombre, t_datos in plan_actual.items():
-                    porciones_t = ", ".join([f"{cant} {grp}" for grp, cant in t_datos.items()])
+                    porciones_t = ", ".join(
+                        [f"{cant} {grp}" for grp, cant in t_datos.items()]
+                    )
                     resumen_plan += f"- **{t_nombre}**: {porciones_t}\n"
 
                 prompt = f"""
@@ -791,7 +792,12 @@ elif opcion == "🍳 Generador de Recetas":
                 """
             else:
                 datos_comida = plan_actual[tiempo_comida].copy()
-                porciones_str = ", ".join([f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()])
+                porciones_str = ", ".join(
+                    [
+                        f"{cant} porción(es) de {grupo}"
+                        for grupo, cant in datos_comida.items()
+                    ]
+                )
 
                 prompt = f"""
                 Actúa como Nutriólogo Asesor. Diseña el tiempo de comida '{tiempo_comida}'.
@@ -807,7 +813,9 @@ elif opcion == "🍳 Generador de Recetas":
                 Si es la comida en el comedor, da la instrucción precisa de cómo armar o pedir la porción en la barra (evitando aderezos/salsas grasosas). Si es para casa/oficina, da la preparación rápida aplicando los aceites y métodos recomendados.
                 """
 
-            with st.spinner("Adaptando tu plan a tu jornada con Gemini 3.6..."):
+            with st.spinner(
+                "Adaptando tu plan a tu jornada con Gemini 3.6..."
+            ):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
