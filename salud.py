@@ -905,10 +905,14 @@ if "plan_nutriologa_horarios" not in st.session_state:
 
             reglas_prompt = """
             REGLAS DE PREPARACIÓN Y SACIEDAD CRÍTICAS:
-            1. REGLA DE SACIEDAD EN TARDE: La ventana entre la Comida y la Cena es extensa. La Colación 2 NUNCA debe ser una fruta sola.
-               Debe ser una combinación densa (ej. Fruta + Semillas/Nueces + Proteína rápida como yogurt o queso) para saciar por 3.5 a 4 horas.
-            2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites de soya/maíz/girasol.
-            3. COCINADO: Priorizar plancha, vapor, horno, empapelado o air fryer. Evitar aderezos comerciales.
+            1. CONTROL DEL ANTOJO DE TARDE (5:00 PM):
+                El usuario suele experimentar picos de hambre a las 5:00 PM y recurrir a pan dulce/galletas por falta de saciedad y practicidad.
+                La Colación 2 (4:30 PM) DEBE ser altamente portable (fácil de comer en oficina o trayecto) y combinar carbohidratos de lenta absorción, 
+                grasa saludable y proteína (ej. fruta con crema de cacahuate/semillas, yogurt griego con frutos secos, o tostadas horneadas saladas).
+                Debe estar diseñada explícitamente para erradicar el deseo de comprar ultraprocesados antes de llegar a la cena.
+
+            2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites refinados.
+            3. COCINADO: Priorizar métodos como plancha, vapor, horno, empapelado o air fryer. Evitar aderezos comerciales.
             """
 
             if tiempo_comida == "📌 Menú Completo del Día":
