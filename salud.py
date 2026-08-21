@@ -686,14 +686,16 @@ elif opcion == "🍳 Generador de Recetas":
     with col_t1:
         opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
         tiempo_comida = st.selectbox("Selecciona el tiempo de comida:", opciones_tiempo)
-    with col_t2:
+    ith col_t2:
         modalidades = [
-            "Normal / En casa / Oficina",
-            "🏢 Comedor de Empresa (Selección inteligente de menú)",
-            "🛠️ Día de Campo / Para llevar en Hielera/Tupper",
+            "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
+            "🏠 En Casa / Home Office (Cocinando al momento)",
+            "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
+            "🏬 Comedor de Empresa (Selección inteligente de menú)",
         ]
-        idx_def = 1 if opcion_comedor else 0
-        modalidad_trabajo = st.selectbox("Modalidad de la comida:", modalidades, index=idx_def)
+        # Si tiene activo el checkbox de comedor, selecciona el comedor por defecto; si no, Oficina/Campo
+        idx_def = 3 if opcion_comedor else 0
+        modalidad_trabajo = st.selectbox("Entorno y Modalidad de tu día:", modalidades, index=idx_def)
 
     if "Comedor" in modalidad_trabajo:
         opcion_comedor_elegida = st.radio(
