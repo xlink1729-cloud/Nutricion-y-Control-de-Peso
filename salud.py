@@ -686,7 +686,7 @@ elif opcion == "🍳 Generador de Recetas":
     with col_t1:
         opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
         tiempo_comida = st.selectbox("Selecciona el tiempo de comida:", opciones_tiempo)
-    ith col_t2:
+    with col_t2:
         modalidades = [
             "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
             "🏠 En Casa / Home Office (Cocinando al momento)",
