@@ -752,6 +752,14 @@ elif opcion == "🍳 Generador de Recetas":
             - Comida principal: {hora_comida.strftime('%I:%M %p')} (Plato elegido en comedor: {opcion_comedor_elegida})
             """
 
+            reglas_cocina_saludable = """
+            REGLAS DE PREPARACIÓN Y GRASAS SALUDABLES:
+            - NUNCA sugerir aceites refinados (maíz, soya, girasol, cártamo).
+            - Usar EXCLUSIVAMENTE: Aceite de Oliva Extra Virgen (para ensaladas o salteados a fuego bajo/medio), Aceite de Aguacate (para cocción/plancha) o Aceite en Aerosol/Spray.
+            - Priorizar métodos de cocción como: a la plancha, al vapor, al horno, empapelado o freidora de aire.
+            - Evitar aderezos o salsas comerciales procesados; indicar aderezos naturales a base de limón, vinagre de manzana, mostaza Dijon o yogur griego.
+            """
+
             if tiempo_comida == "📌 Menú Completo del Día":
                 resumen_plan = ""
                 for t_nombre, t_datos in plan_actual.items():
@@ -772,9 +780,11 @@ elif opcion == "🍳 Generador de Recetas":
                 - Le gustan: {alimentos_favoritos}
                 - EXCLUIR: {alimentos_no_gustan}
 
+                {reglas_cocina_saludable}
+
                 INSTRUCCIONES:
                 1. Muestra un cronograma exacto asociando cada tiempo de comida con su hora asignada.
-                2. Para la Comida en comedor ({hora_comida.strftime('%I:%M %p')}), explica cómo ajustar el plato ('{opcion_comedor_elegida}') agregando o limitando guarniciones (arroz, frijol, ensalada) para cumplir exactamente las porciones.
+                2. Para la Comida en comedor ({hora_comida.strftime('%I:%M %p')}), explica cómo ajustar el plato ('{opcion_comedor_elegida}') agregando o limitando guarniciones (arroz, frijol, ensalada) para cumplir exactamente las porciones. Si es necesario agregar grasa saludable, indicar llevar aceite de oliva o un puño de semillas/aguacate.
                 3. Dado que la jornada es larga ({duracion_jornada:.1f} h), organiza las colaciones para evitar bajones de energía antes de salir.
                 """
             else:
@@ -790,7 +800,9 @@ elif opcion == "🍳 Generador de Recetas":
                 GUSTOS: {alimentos_favoritos}
                 EXCLUIR: {alimentos_no_gustan}
 
-                Si es la comida en el comedor, da la instrucción precisa de cómo armar o pedir la porción en la barra. Si es para casa/oficina, da la preparación rápida.
+                {reglas_cocina_saludable}
+
+                Si es la comida en el comedor, da la instrucción precisa de cómo armar o pedir la porción en la barra (evitando aderezos/salsas grasosas). Si es para casa/oficina, da la preparación rápida aplicando los aceites y métodos recomendados.
                 """
 
             with st.spinner("Adaptando tu plan a tu jornada con Gemini 3.6..."):
