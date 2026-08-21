@@ -761,39 +761,38 @@ elif opcion == "🍳 Generador de Recetas":
             value=True,
         )
 
-    # 2. PLAN BASE RESTRUCTURADO (Ajustado para saciedad en la tarde)
     # 2. PLAN BASE RESTRUCTURADO (Ajuste de puentes de saciedad)
-if "plan_nutriologa_horarios" not in st.session_state:
-    st.session_state.plan_nutriologa_horarios = {
-        "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
-        "Desayuno": {
-            "Verduras": 1,
-            "Frutas": 1,
-            "Cereales": 2,
-            "AOA (Proteína)": 2.5,
-            "Grasas s/ Prot": 1,
-        },
-        "Colación 1": {
-            "Frutas": 1
-        },  # Puente ligero (10:30 AM) para aguantar a la Comida (12:00 PM)
-        "Comida": {
-            "Verduras": 1,
-            "Cereales": 3,
-            "AOA (Proteína)": 4,
-            "Grasas s/ Prot": 2,
-        },  # Comida de las 12:00 PM
-        "Colación 2": {
-            "Frutas": 1,
-            "Grasas c/ Prot": 1,
-            "AOA (Proteína)": 1,
-        },  # Refuerzo denso (4:30 PM) para aguantar hasta la Cena (8:00 PM)
-        "Cena": {
-            "Verduras": 1,
-            "Cereales": 3,
-            "AOA (Proteína)": 2.5,
-            "Grasas s/ Prot": 1,
-        },
-    }
+    if "plan_nutriologa_horarios" not in st.session_state:
+        st.session_state.plan_nutriologa_horarios = {
+            "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
+            "Desayuno": {
+                "Verduras": 1,
+                "Frutas": 1,
+                "Cereales": 2,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+            },
+            "Colación 1": {
+                "Frutas": 1
+            },  # Puente ligero (10:30 AM) para aguantar a la Comida (12:00 PM)
+            "Comida": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 4,
+                "Grasas s/ Prot": 2,
+            },  # Comida de las 12:00 PM
+            "Colación 2": {
+                "Frutas": 1,
+                "Grasas c/ Prot": 1,
+                "AOA (Proteína)": 1,
+            },  # Refuerzo denso (4:30 PM) para aguantar hasta la Cena (8:00 PM)
+            "Cena": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+            },
+        }
 
     plan_actual = st.session_state.plan_nutriologa_horarios
 
@@ -906,10 +905,10 @@ if "plan_nutriologa_horarios" not in st.session_state:
             reglas_prompt = """
             REGLAS DE PREPARACIÓN Y SACIEDAD CRÍTICAS:
             1. CONTROL DEL ANTOJO DE TARDE (5:00 PM):
-                El usuario suele experimentar picos de hambre a las 5:00 PM y recurrir a pan dulce/galletas por falta de saciedad y practicidad.
-                La Colación 2 (4:30 PM) DEBE ser altamente portable (fácil de comer en oficina o trayecto) y combinar carbohidratos de lenta absorción, 
-                grasa saludable y proteína (ej. fruta con crema de cacahuate/semillas, yogurt griego con frutos secos, o tostadas horneadas saladas).
-                Debe estar diseñada explícitamente para erradicar el deseo de comprar ultraprocesados antes de llegar a la cena.
+               El usuario suele experimentar picos de hambre a las 5:00 PM y recurrir a pan dulce/galletas por falta de saciedad y practicidad.
+               La Colación 2 (4:30 PM) DEBE ser highly portable (fácil de comer en oficina o trayecto) y combinar carbohidratos de lenta absorción, 
+               grasa saludable y proteína (ej. fruta con crema de cacahuate/semillas, yogurt griego con frutos secos, o tostadas horneadas saladas).
+               Debe estar diseñada explícitamente para erradicar el deseo de comprar ultraprocesados antes de llegar a la cena.
 
             2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites refinados.
             3. COCINADO: Priorizar métodos como plancha, vapor, horno, empapelado o air fryer. Evitar aderezos comerciales.
@@ -941,7 +940,7 @@ if "plan_nutriologa_horarios" not in st.session_state:
 
                 INSTRUCCIONES:
                 1. Presenta un cronograma por horas de cada tiempo de comida.
-                2. Para la Colación de las {hora_col2.strftime('%I:%M %p')}, redacta una opción saciante (Fruta + Grasa con Proteína + AOA) que evite llegar con hambre a las {hora_cena.strftime('%I:%M %p')}.
+                2. Para la Colación de las {hora_col2.strftime('%I:%M %p')}, redacta una opción saciante y portable (Fruta + Grasa con Proteína + AOA) que evite llegar con hambre o antojo de pan dulce antes de la cena ({hora_cena.strftime('%I:%M %p')}).
                 3. Da explicaciones claras para ajustar la comida de comedor ('{opcion_comedor_elegida}') controlando las porciones indicadas.
                 """
             else:
