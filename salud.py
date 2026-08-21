@@ -2,11 +2,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from google import genai
-
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-from google import genai
 from datetime import datetime, time
 
 # Configuración de la página
@@ -22,6 +17,43 @@ st.write(
     "Lleva el control de tu progreso físico, planifica tu semana y transforma"
     " tus porciones en recetas reales."
 )
+
+def calcular_requerimiento_calorico(peso, estatura_cm, edad, sexo, nivel_actividad):
+    """Calcula el Gasto Energético Total (TDEE) estimado usando Harris-Benedict."""
+    if sexo.lower() in ["hombre", "masculino"]:
+        tbm = 88.362 + (13.397 * peso) + (4.799 * estatura_cm) - (5.677 * edad)
+    else:
+        tbm = 447.593 + (9.247 * peso) + (3.098 * estatura_cm) - (4.330 * edad)
+
+    # Factores de actividad física
+    factores = {
+        "Sedentario (pocos o ningún ejercicio)": 1.2,
+        "Ligeramente activo (1-3 días/semana)": 1.375,
+        "Moderadamente activo (3-5 días/semana)": 1.55,
+        "Muy activo (6-7 días/semana)": 1.725,
+        "Fuerte / Atleta (entrenamiento doble)": 1.9,
+    }
+    factor = factores.get(nivel_actividad, 1.375)
+    return int(tbm * factor)
+
+
+def calcular_calorias_porciones(plan):
+    """Estima las calorías diarias que suma el plan de porciones (SMAE)."""
+    tabla_kcal = {
+        "Verduras": 25,
+        "Frutas": 60,
+        "Cereales": 70,
+        "AOA (Proteína)": 75,
+        "Lácteos": 110,
+        "Grasas s/ Prot": 45,
+        "Grasas c/ Prot": 70,
+        "Leguminosas": 120,
+    }
+    total_kcal = 0
+    for tiempo, grupos in plan.items():
+        for grupo, cant in grupos.items():
+            total_kcal += tabla_kcal.get(grupo, 50) * cant
+    return int(total_kcal)
 
 # --- MENÚ PRINCIPAL DE NAVEGACIÓN ---
 opcion = st.sidebar.radio(
@@ -308,6 +340,52 @@ elif opcion == "📊 Control de Peso y Músculo":
         else:
             st.info("Ingresa tus datos en la sección 'Perfil Inicial' y haz clic en 'Guardar Perfil / Registro'.")
 
+    # 🔥 ESTIMACIÓN DE INGESTA CALÓRICA DIARIA
+    st.markdown("---")
+    st.subheader("🔥 Estimación de Ingesta Calórica Diaria")
+
+    peso_u = st.session_state.get("peso", peso)
+    estatura_u = st.session_state.get("estatura", estatura_cm)
+    edad_u = st.session_state.get("edad", edad)
+    sexo_u = st.session_state.get("sexo", genero)
+    actividad_u = st.session_state.get("nivel_actividad", actividad)
+
+    kcal_requeridas = calcular_requerimiento_calorico(
+        peso_u, estatura_u, edad_u, sexo_u, actividad_u
+    )
+    kcal_plan = calcular_calorias_porciones(
+        st.session_state.get("plan_nutriologa_horarios", {})
+    )
+
+    col_k1, col_k2, col_k3 = st.columns(3)
+
+    with col_k1:
+        st.metric(
+            label="🎯 Requerimiento Calórico Estimado",
+            value=f"{kcal_requeridas:,} kcal/día",
+            help="Calorías aproximadas para mantener tu peso según tu perfil y actividad física.",
+        )
+
+    with col_k2:
+        st.metric(
+            label="🥗 Calorías del Plan de Porciones",
+            value=f"{kcal_plan:,} kcal/día",
+            help="Suma aproximada de las calorías que contienen tus porciones asignadas por la nutrióloga.",
+        )
+
+    with col_k3:
+        diferencia = kcal_plan - kcal_requeridas
+        etiqueta = "Déficit" if diferencia < 0 else "Superávit"
+        st.metric(
+            label=f"⚖️ Balance ({etiqueta})",
+            value=f"{diferencia:+} kcal",
+            delta=f"{diferencia} kcal respecto al mantenimiento",
+        )
+
+    st.caption(
+        "💡 *Nota: Estos valores son estimaciones aproximadas basadas en fórmulas estándar (Harris-Benedict) y valores promedio por grupo de alimentos (SMAE).*"
+    )
+
 # ==========================================
 # MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
 # ==========================================
@@ -344,7 +422,7 @@ elif opcion == "📉 Registro Diario de Peso":
             df = st.session_state.historial_diario.copy()
             df["Fecha"] = pd.to_datetime(df["Fecha"])
             
-            # --- 1. MÉTIRCAS BÁSICAS Y EXTREMOS ---
+            # --- 1. MÉTRICAS BÁSICAS Y EXTREMOS ---
             p_actual = df.iloc[-1]["Peso (kg)"]
             p_min = df["Peso (kg)"].min()
             p_max = df["Peso (kg)"].max()
