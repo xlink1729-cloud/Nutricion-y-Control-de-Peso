@@ -190,6 +190,7 @@ elif opcion == "📊 Control de Peso y Músculo":
             "Objetivo principal:",
             [
                 "Perder peso (Déficit calórico)",
+                "Recomposición corporal (Perder grasa y ganar músculo)",
                 "Mantener peso (Mantenimiento)",
                 "Ganar masa muscular (Superávit ligero)",
             ],
