@@ -728,7 +728,9 @@ elif opcion == "🥗 Registro de Alimentación":
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador de Recetas y Plan según Jornada")
-    st.write("Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales.")
+    st.write(
+        "Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales."
+    )
 
     # 1. CONFIGURACIÓN DE JORNADA LABORAL
     with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
@@ -740,24 +742,58 @@ elif opcion == "🍳 Generador de Recetas":
         with col_h3:
             hora_comida = st.time_input("Hora de comida:", value=time(12, 0))
 
-        col_h4, col_h5 = st.columns(2)
+        col_h4, col_h5, col_h6, col_h7 = st.columns(4)
         with col_h4:
-            hora_licuado = st.time_input("Hora de licuado / al despertar:", value=time(5, 10))
+            hora_licuado = st.time_input(
+                "Licuado / Al despertar:", value=time(5, 10)
+            )
         with col_h5:
-            hora_desayuno = st.time_input("Hora de desayuno (oficina):", value=time(7, 30))
+            hora_desayuno = st.time_input("Desayuno:", value=time(7, 30))
+        with col_h6:
+            hora_col2 = st.time_input(
+                "Colación Tarde (Media Tarde):", value=time(16, 30)
+            )
+        with col_h7:
+            hora_cena = st.time_input("Cena:", value=time(20, 0))
 
-        opcion_comedor = st.checkbox("Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)", value=True)
+        opcion_comedor = st.checkbox(
+            "Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)",
+            value=True,
+        )
 
-    # 2. PLAN BASE DE LA NUTRIÓLOGA
-    if "plan_nutriologa_horarios" not in st.session_state:
-        st.session_state.plan_nutriologa_horarios = {
-            "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
-            "Desayuno": {"Verduras": 1, "Frutas": 1, "Cereales": 2, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
-            "Colación 1": {"Frutas": 1, "Grasas c/ Prot": 1},
-            "Comida": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 5, "Grasas s/ Prot": 2},
-            "Colación 2": {"Frutas": 1},
-            "Cena": {"Verduras": 1, "Cereales": 3, "AOA (Proteína)": 2.5, "Grasas s/ Prot": 1},
-        }
+    # 2. PLAN BASE RESTRUCTURADO (Ajustado para saciedad en la tarde)
+    # 2. PLAN BASE RESTRUCTURADO (Ajuste de puentes de saciedad)
+if "plan_nutriologa_horarios" not in st.session_state:
+    st.session_state.plan_nutriologa_horarios = {
+        "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
+        "Desayuno": {
+            "Verduras": 1,
+            "Frutas": 1,
+            "Cereales": 2,
+            "AOA (Proteína)": 2.5,
+            "Grasas s/ Prot": 1,
+        },
+        "Colación 1": {
+            "Frutas": 1
+        },  # Puente ligero (10:30 AM) para aguantar a la Comida (12:00 PM)
+        "Comida": {
+            "Verduras": 1,
+            "Cereales": 3,
+            "AOA (Proteína)": 4,
+            "Grasas s/ Prot": 2,
+        },  # Comida de las 12:00 PM
+        "Colación 2": {
+            "Frutas": 1,
+            "Grasas c/ Prot": 1,
+            "AOA (Proteína)": 1,
+        },  # Refuerzo denso (4:30 PM) para aguantar hasta la Cena (8:00 PM)
+        "Cena": {
+            "Verduras": 1,
+            "Cereales": 3,
+            "AOA (Proteína)": 2.5,
+            "Grasas s/ Prot": 1,
+        },
+    }
 
     plan_actual = st.session_state.plan_nutriologa_horarios
 
@@ -765,8 +801,12 @@ elif opcion == "🍳 Generador de Recetas":
     st.markdown("---")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
-        tiempo_comida = st.selectbox("Selecciona el tiempo de comida:", opciones_tiempo)
+        opciones_tiempo = ["📌 Menú Completo del Día"] + list(
+            plan_actual.keys()
+        )
+        tiempo_comida = st.selectbox(
+            "Selecciona el tiempo de comida:", opciones_tiempo
+        )
     with col_t2:
         modalidades = [
             "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
@@ -774,14 +814,18 @@ elif opcion == "🍳 Generador de Recetas":
             "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
             "🏬 Comedor de Empresa (Selección inteligente de menú)",
         ]
-        # Si tiene activo el checkbox de comedor, selecciona el comedor por defecto; si no, Oficina/Campo
         idx_def = 3 if opcion_comedor else 0
-        modalidad_trabajo = st.selectbox("Entorno y Modalidad de tu día:", modalidades, index=idx_def)
+        modalidad_trabajo = st.selectbox(
+            "Entorno y Modalidad de tu día:", modalidades, index=idx_def
+        )
 
     if "Comedor" in modalidad_trabajo:
         opcion_comedor_elegida = st.radio(
             "🍽️ Opciones disponibles en comedor:",
-            ["🥗 Paquete Saludable / Ensaladas", "🍲 Comida del Día / Paquete General"],
+            [
+                "🥗 Paquete Saludable / Ensaladas",
+                "🍲 Comida del Día / Paquete General",
+            ],
             horizontal=True,
         )
     else:
@@ -791,28 +835,52 @@ elif opcion == "🍳 Generador de Recetas":
     st.markdown("---")
     st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
-    tab_prot, tab_veg, tab_frutas = st.tabs(["🥩 Proteínas y Carnes", "🥦 Verduras y Acompañamientos", "🍎 Frutas"])
+    tab_prot, tab_veg, tab_frutas = st.tabs(
+        [
+            "🥩 Proteínas y Carnes",
+            "🥦 Verduras y Acompañamientos",
+            "🍎 Frutas",
+        ]
+    )
 
     with tab_prot:
         col_p1, col_p2 = st.columns(2)
         with col_p1:
-            fav_prot = st.text_input("💚 Proteínas preferidas:", "Pollo, queso panela, atún, huevo", key="fav_p")
+            fav_prot = st.text_input(
+                "💚 Proteínas preferidas:",
+                "Pollo, queso panela, atún, huevo",
+                key="fav_p",
+            )
         with col_p2:
-            no_prot = st.text_input("❌ Proteínas a evitar:", "Pescado, cerdo, mariscos", key="no_p")
+            no_prot = st.text_input(
+                "❌ Proteínas a evitar:", "Pescado, cerdo, mariscos", key="no_p"
+            )
 
     with tab_veg:
         col_v1, col_v2 = st.columns(2)
         with col_v1:
-            fav_veg = st.text_input("💚 Verduras / Cereales preferidos:", "Jitomate, aguacate, tortillas, avena", key="fav_v")
+            fav_veg = st.text_input(
+                "💚 Verduras / Cereales preferidos:",
+                "Jitomate, aguacate, tortillas, avena",
+                key="fav_v",
+            )
         with col_v2:
-            no_veg = st.text_input("❌ Verduras / Cereales a evitar:", "Cilantro, calabacita, mayonesa", key="no_v")
+            no_veg = st.text_input(
+                "❌ Verduras / Cereales a evitar:",
+                "Cilantro, calabacita, mayonesa",
+                key="no_v",
+            )
 
     with tab_frutas:
         col_f1, col_f2 = st.columns(2)
         with col_f1:
-            fav_frutas = st.text_input("💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f")
+            fav_frutas = st.text_input(
+                "💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f"
+            )
         with col_f2:
-            no_frutas = st.text_input("❌ Frutas a evitar:", "Papaya, melón", key="no_f")
+            no_frutas = st.text_input(
+                "❌ Frutas a evitar:", "Papaya, melón", key="no_f"
+            )
 
     alimentos_favoritos = f"Proteínas: {fav_prot} | Verduras/Cereales: {fav_veg} | Frutas: {fav_frutas}"
     alimentos_no_gustan = f"Proteínas: {no_prot} | Verduras/Cereales: {no_veg} | Frutas: {no_frutas}"
@@ -820,26 +888,27 @@ elif opcion == "🍳 Generador de Recetas":
     # 5. GENERACIÓN CON GEMINI 3.6
     if st.button("🍳 Generar Plan / Guía de Alimentación"):
         try:
-            # Cálculo directo de horas de jornada laboral
-            duracion_jornada = (hora_salida.hour + hora_salida.minute / 60) - (
-                hora_inicio.hour + hora_inicio.minute / 60
-            )
+            duracion_jornada = (
+                hora_salida.hour + hora_salida.minute / 60
+            ) - (hora_inicio.hour + hora_inicio.minute / 60)
             if duracion_jornada < 0:
                 duracion_jornada += 24
 
             contexto_rutina = f"""
-            - Horario de trabajo: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} horas de jornada)
-            - Licuado al despertar: {hora_licuado.strftime('%I:%M %p')}
-            - Desayuno en oficina: {hora_desayuno.strftime('%I:%M %p')}
-            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Plato elegido en comedor: {opcion_comedor_elegida})
+            - Horario laboral: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
+            - Al despertar: {hora_licuado.strftime('%I:%M %p')}
+            - Desayuno: {hora_desayuno.strftime('%I:%M %p')}
+            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Comedor: {opcion_comedor_elegida})
+            - Colación 2 (Tarde): {hora_col2.strftime('%I:%M %p')}
+            - Cena: {hora_cena.strftime('%I:%M %p')}
             """
 
-            reglas_cocina_saludable = """
-            REGLAS DE PREPARACIÓN Y GRASAS SALUDABLES:
-            - NUNCA sugerir aceites refinados (maíz, soya, girasol, cártamo).
-            - Usar EXCLUSIVAMENTE: Aceite de Oliva Extra Virgen, Aceite de Aguacate o Aceite en Aerosol/Spray.
-            - Priorizar métodos de cocción como: a la plancha, al vapor, al horno, empapelado o freidora de aire.
-            - Evitar aderezos o salsas comerciales procesados; indicar aderezos naturales a base de limón, vinagre de manzana o mostaza.
+            reglas_prompt = """
+            REGLAS DE PREPARACIÓN Y SACIEDAD CRÍTICAS:
+            1. REGLA DE SACIEDAD EN TARDE: La ventana entre la Comida y la Cena es extensa. La Colación 2 NUNCA debe ser una fruta sola.
+               Debe ser una combinación densa (ej. Fruta + Semillas/Nueces + Proteína rápida como yogurt o queso) para saciar por 3.5 a 4 horas.
+            2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites de soya/maíz/girasol.
+            3. COCINADO: Priorizar plancha, vapor, horno, empapelado o air fryer. Evitar aderezos comerciales.
             """
 
             if tiempo_comida == "📌 Menú Completo del Día":
@@ -851,11 +920,11 @@ elif opcion == "🍳 Generador de Recetas":
                     resumen_plan += f"- **{t_nombre}**: {porciones_t}\n"
 
                 prompt = f"""
-                Actúa como un Nutriólogo Experto. Diseña la distribución del menú para la siguiente jornada:
+                Actúa como Nutriólogo Experto. Diseña un cronograma de alimentación optimizado para la jornada:
 
                 RUTINA DE HORARIOS:
                 {contexto_rutina}
-                Modalidad: '{modalidad_trabajo}'.
+                Modalidad: '{modalidad_trabajo}'
 
                 PORCIONES DE LA NUTRIÓLOGA:
                 {resumen_plan}
@@ -864,12 +933,12 @@ elif opcion == "🍳 Generador de Recetas":
                 - Le gustan: {alimentos_favoritos}
                 - EXCLUIR: {alimentos_no_gustan}
 
-                {reglas_cocina_saludable}
+                {reglas_prompt}
 
                 INSTRUCCIONES:
-                1. Muestra un cronograma exacto asociando cada tiempo de comida con su hora asignada.
-                2. Para la Comida en comedor ({hora_comida.strftime('%I:%M %p')}), explica cómo ajustar el plato ('{opcion_comedor_elegida}') agregando o limitando guarniciones (arroz, frijol, ensalada) para cumplir exactamente las porciones. Si es necesario agregar grasa saludable, indicar llevar aceite de oliva o un puño de semillas/aguacate.
-                3. Dado que la jornada es larga ({duracion_jornada:.1f} h), organiza las colaciones para evitar bajones de energía antes de salir.
+                1. Presenta un cronograma por horas de cada tiempo de comida.
+                2. Para la Colación de las {hora_col2.strftime('%I:%M %p')}, redacta una opción saciante (Fruta + Grasa con Proteína + AOA) que evite llegar con hambre a las {hora_cena.strftime('%I:%M %p')}.
+                3. Da explicaciones claras para ajustar la comida de comedor ('{opcion_comedor_elegida}') controlando las porciones indicadas.
                 """
             else:
                 datos_comida = plan_actual[tiempo_comida].copy()
@@ -881,7 +950,7 @@ elif opcion == "🍳 Generador de Recetas":
                 )
 
                 prompt = f"""
-                Actúa como Nutriólogo Asesor. Diseña el tiempo de comida '{tiempo_comida}'.
+                Actúa como Nutriólogo Asesor. Diseña la receta/guía para '{tiempo_comida}'.
 
                 RUTINA: {contexto_rutina}
                 MODALIDAD: '{modalidad_trabajo}' (Comedor: {opcion_comedor_elegida})
@@ -889,14 +958,12 @@ elif opcion == "🍳 Generador de Recetas":
                 GUSTOS: {alimentos_favoritos}
                 EXCLUIR: {alimentos_no_gustan}
 
-                {reglas_cocina_saludable}
+                {reglas_prompt}
 
-                Si es la comida en el comedor, da la instrucción precisa de cómo armar o pedir la porción en la barra (evitando aderezos/salsas grasosas). Si es para casa/oficina, da la preparación rápida aplicando los aceites y métodos recomendados.
+                Si es la Colación 2, enfatiza que la preparación debe ser sustanciosa y rica en proteína/grasa saludable para aguantar la tarde.
                 """
 
-            with st.spinner(
-                "Adaptando tu plan a tu jornada con Gemini 3.6..."
-            ):
+            with st.spinner("Optimizando plan de saciedad con Gemini..."):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
