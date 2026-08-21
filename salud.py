@@ -241,6 +241,8 @@ elif opcion == "📊 Control de Peso y Músculo":
         # 5. Meta Calórica Orientativa según el Objetivo seleccionado
         if "Perder peso" in objetivo:
             meta_calorica = tdee * 0.80  # Déficit del 20%
+        elif "Recomposición" in objetivo:
+            meta_calorica = tdee * 0.90  # Déficit ligero del 10% (o tdee directo)
         elif "Ganar masa" in objetivo:
             meta_calorica = tdee * 1.15  # Superávit del 15%
         else:
