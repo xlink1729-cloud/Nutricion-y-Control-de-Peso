@@ -219,6 +219,7 @@ if opcion == "🏠 Dashboard Principal":
     st.header("🏠 Resumen Diario")
     st.write("Vista rápida de tus metas, consumo e indicadores del día.")
 
+    # 1. Consulta de Control de Peso
     registros_db = run_query(
         """
         SELECT fecha, peso, objetivo, meta_principal, fecha_objetivo, diferencia, imc, diagnostico, grasa, musculo, meta_kcal 
@@ -226,6 +227,20 @@ if opcion == "🏠 Dashboard Principal":
     """,
         (user_id,),
     )
+
+    # 2. Consulta de Reloj Inteligente / Diario
+    registro_reloj = run_query(
+        """
+        SELECT pasos, horas_sueno 
+        FROM seguimiento_diario 
+        WHERE user_id = %s 
+        ORDER BY fecha DESC LIMIT 1
+    """,
+        (user_id,),
+    )
+
+    pasos_actuales = registro_reloj[0][0] if registro_reloj else 0
+    sueno_actual = float(registro_reloj[0][1]) if registro_reloj else 0.0
 
     if registros_db:
         df_progreso = pd.DataFrame(
@@ -289,11 +304,29 @@ if opcion == "🏠 Dashboard Principal":
         col_n3.metric("🥗 Proteína Objetivo", "~120g - 150g")
 
         st.markdown("---")
+        st.markdown("### ⌚ Indicadores de tu Reloj Inteligente")
 
-        col_h1, col_h2 = st.columns(2)
+        col_h1, col_h2, col_h3 = st.columns(3)
         agua_rec = (peso_actual * 35) / 1000
+        
         col_h1.metric("💧 Meta de Agua", f"{agua_rec:.1f} L/día")
-        col_h2.metric("🚶 Pasos / Actividad", "10,000 pasos")
+        
+        # Métrica dinámica de pasos
+        diff_pasos = pasos_actuales - 10000
+        col_h2.metric(
+            "🚶 Pasos del Día", 
+            f"{pasos_actuales:,}", 
+            delta=f"{diff_pasos:,} vs meta" if pasos_actuales > 0 else None
+        )
+        
+        # Métrica dinámica de sueño
+        col_h3.metric(
+            "😴 Sueño Reparador", 
+            f"{sueno_actual} hrs", 
+            delta="Óptimo (>=7h)" if sueno_actual >= 7.0 else "Revisar descanso" if sueno_actual > 0 else None,
+            delta_color="normal" if sueno_actual >= 7.0 else "inverse"
+        )
+
     else:
         st.info(
             "👋 ¡Bienvenido! Ingresa primero tus datos en la sección **📊 Control"
@@ -526,25 +559,35 @@ elif opcion == "📉 Registro Diario de Peso":
     col_ingreso, col_analisis = st.columns([1, 2])
 
     with col_ingreso:
-        st.subheader("📝 Registrar Hoy")
+        st.subheader("📝 Registrar Datos del Día")
         f_reg = st.date_input("Fecha", key="f_diaria")
         p_reg = st.number_input("Peso (kg)", min_value=30.0, max_value=200.0, value=82.5, step=0.1)
+        
+        st.markdown("---")
+        st.caption("⌚ Datos de tu Reloj Inteligente")
+        pasos_reg = st.number_input("🚶 Pasos del día", min_value=0, max_value=100000, value=8000, step=500)
+        sueno_reg = st.number_input("😴 Horas de sueño", min_value=0.0, max_value=24.0, value=7.5, step=0.5)
+        kcal_reg = st.number_input("🔥 Kcal activas (Reloj)", min_value=0, max_value=10000, value=400, step=50)
 
-        if st.button("📌 Guardar Peso Diario", use_container_width=True):
-            nuevo_p = pd.DataFrame([{"Fecha": pd.to_datetime(f_reg), "Peso (kg)": float(p_reg)}])
-            
-            if "historial_diario" not in st.session_state:
-                st.session_state.historial_diario = pd.DataFrame(columns=["Fecha", "Peso (kg)"])
-
-            # Evitar duplicados del mismo día y ordenar
-            st.session_state.historial_diario = (
-                pd.concat([st.session_state.historial_diario, nuevo_p])
-                .drop_duplicates(subset=["Fecha"], keep="last")
-                .sort_values("Fecha")
-                .reset_index(drop=True)
-            )
-            st.success("¡Peso registrado exitosamente!")
-            st.rerun()
+        if st.button("📌 Guardar Registro Completo", use_container_width=True):
+            try:
+                execute_db(
+                    """
+                    INSERT INTO seguimiento_diario (user_id, fecha, peso, pasos, horas_sueno, calorias_activas)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (user_id, fecha) 
+                    DO UPDATE SET 
+                        peso = EXCLUDED.peso,
+                        pasos = EXCLUDED.pasos,
+                        horas_sueno = EXCLUDED.horas_sueno,
+                        calorias_activas = EXCLUDED.calorias_activas;
+                    """,
+                    (user_id, f_reg, float(p_reg), int(pasos_reg), float(sueno_reg), int(kcal_reg))
+                )
+                st.success("¡Datos guardados correctamente en la base de datos!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error al guardar: {e}")
 
     with col_analisis:
         st.subheader("📊 Análisis e Interpretación")
