@@ -602,80 +602,417 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
         st.markdown(st.session_state["plan_licuados_texto"])
 
 # ==========================================
-# MÓDULO 4: REGISTRO DE ALIMENTACIÓN
+# MÓDULO 4: REGISTRO DE ALIMENTACIÓN DUAL
 # ==========================================
 elif opcion == "🥗 Registro de Alimentación":
     st.header("🥗 Registro de Alimentación")
-    st.write(
-        "Controla tus porciones guardadas en tu perfil para este usuario."
-    )
-    st.info("Módulo de porciones sincronizado con tu cuenta.")
+    st.write("Elige tu método de registro preferido para el día de hoy.")
+
+    # Creación de Pestañas
+    tab_porciones, tab_frecuentes = st.tabs([
+        "📋 Porciones (Plan Nutrióloga)", 
+        "⚡ Calorías y Comidas Frecuentes"
+    ])
+
+    # ----------------------------------------------------
+    # PESTAÑA 1: PLAN DE PORCIONES DE LA NUTRIÓLOGA
+    # ----------------------------------------------------
+    with tab_porciones:
+        st.subheader("📋 Control por Equivalentes / Porciones")
+        st.caption("Marca las porciones que vas consumiendo a lo largo del día según tu plan nutricional.")
+
+        if "meta_porciones" not in st.session_state:
+            st.session_state.meta_porciones = {
+                "🥩 Proteína / Origen Animal": 5,
+                "🍞 Cereales / Carbohidratos": 4,
+                "🥦 Verduras": 4,
+                "🍎 Frutas": 2,
+                "🥑 Grasas Saludables": 3,
+                "🥛 Lácteos": 1,
+            }
+
+        if "porciones_hoy" not in st.session_state:
+            st.session_state.porciones_hoy = {k: 0 for k in st.session_state.meta_porciones.keys()}
+
+        # Ajuste de metas de la nutrióloga
+        with st.expander("⚙️ Configurar Metas Diarias de la Nutrióloga"):
+            c_cfg = st.columns(2)
+            for idx, (grupo, meta_val) in enumerate(st.session_state.meta_porciones.items()):
+                col_target = c_cfg[idx % 2]
+                st.session_state.meta_porciones[grupo] = col_target.number_input(
+                    f"Meta - {grupo}", min_value=0, value=meta_val, key=f"cfg_{grupo}"
+                )
+
+        st.markdown("---")
+
+        # Botones de registro rápido
+        col_reg1, col_reg2 = st.columns(2)
+        for idx, (grupo, meta_val) in enumerate(st.session_state.meta_porciones.items()):
+            col_actual = col_reg1 if idx % 2 == 0 else col_reg2
+            with col_actual:
+                consumido = st.session_state.porciones_hoy[grupo]
+                restante = meta_val - consumido
+                
+                st.markdown(f"**{grupo}**")
+                c_b1, c_b2, c_info = st.columns([1, 1, 2])
+                
+                if c_b1.button("➕ 1", key=f"add_{grupo}"):
+                    st.session_state.porciones_hoy[grupo] += 1
+                    st.rerun()
+                if c_b2.button("➖ 1", key=f"sub_{grupo}"):
+                    if st.session_state.porciones_hoy[grupo] > 0:
+                        st.session_state.porciones_hoy[grupo] -= 1
+                        st.rerun()
+                
+                c_info.caption(f"Consumido: **{consumido}/{meta_val}** | Quedan: **{max(0, restante)}**")
+
+        st.markdown("---")
+        st.markdown("##### 📊 Avance de Porciones Hoy")
+        for grupo, meta_val in st.session_state.meta_porciones.items():
+            consumido = st.session_state.porciones_hoy[grupo]
+            pct = min(1.0, consumido / meta_val) if meta_val > 0 else 0
+            st.write(f"**{grupo}:** {consumido} / {meta_val}")
+            st.progress(pct)
+
+        if st.button("🔄 Reiniciar Porciones para Mañana"):
+            st.session_state.porciones_hoy = {k: 0 for k in st.session_state.meta_porciones.keys()}
+            st.rerun()
+
+    # ----------------------------------------------------
+    # PESTAÑA 2: REGISTRO POR CALORÍAS Y REPETIR COMIDAS
+    # ----------------------------------------------------
+    with tab_frecuentes:
+        st.subheader("⚡ Registro por Calorías y Comidas Frecuentes")
+        st.caption("Ideal para días libres o para repetir platillos habituales con un solo clic.")
+
+        if "comidas_frecuentes" not in st.session_state:
+            st.session_state.comidas_frecuentes = [
+                {"Nombre": "Licuado de plátano + avena", "Tipo": "Desayuno", "Kcal": 450, "Prot": 22},
+                {"Nombre": "Pechuga + Arroz + Verduras", "Tipo": "Comida", "Kcal": 550, "Prot": 45},
+            ]
+
+        if "diario_alimentos" not in st.session_state:
+            st.session_state.diario_alimentos = pd.DataFrame(
+                columns=["Comida", "Alimento", "Kcal", "Proteína (g)"]
+            )
+
+        # Botones de Carga Rápida
+        st.markdown("##### 🔁 Repetir Comida Habitual")
+        cols_frec = st.columns(len(st.session_state.comidas_frecuentes))
+        for idx, item in enumerate(st.session_state.comidas_frecuentes):
+            with cols_frec[idx]:
+                proteina_val = item.get("Prot", item.get("Proteína (g)", 0))
+                
+                st.markdown(f"**{item['Tipo']}:** {item['Nombre']}")
+                st.caption(f"🔥 {item['Kcal']} kcal | 🥗 {proteina_val}g Prot")
+                if st.button("🔁 Repetir", key=f"frec_tab_{idx}", use_container_width=True):
+                    nuevo = pd.DataFrame([{
+                        "Comida": item['Tipo'],
+                        "Alimento": item['Nombre'],
+                        "Kcal": item['Kcal'],
+                        "Proteína (g)": proteina_val,
+                    }])
+                    st.session_state.diario_alimentos = pd.concat(
+                        [st.session_state.diario_alimentos, nuevo], ignore_index=True
+                    )
+                    st.success(f"¡{item['Nombre']} agregado!")
+                    st.rerun()
+
+        # Registro Manual
+        col_f1, col_f2 = st.columns([1, 1])
+        with col_f1:
+            st.markdown("##### 📝 Registro Manual")
+            cat = st.selectbox("Categoría", ["Desayuno", "Comida", "Cena", "Snack"])
+            nom = st.text_input("Nombre del alimento", placeholder="Ej. Ensalada de pollo")
+            kc = st.number_input("Calorías (kcal)", min_value=0, value=350)
+            pr = st.number_input("Proteína (g)", min_value=0, value=25)
+
+            if st.button("📌 Guardar en Diario", use_container_width=True):
+                if nom.strip() != "":
+                    nuevo_m = pd.DataFrame([{"Comida": cat, "Alimento": nom, "Kcal": kc, "Proteína (g)": pr}])
+                    st.session_state.diario_alimentos = pd.concat(
+                        [st.session_state.diario_alimentos, nuevo_m], ignore_index=True
+                    )
+                    st.success("¡Alimento registrado!")
+                    st.rerun()
+
+        with col_f2:
+            st.markdown("##### 📊 Consumo de Hoy")
+            tot_k = st.session_state.diario_alimentos["Kcal"].sum()
+            tot_p = st.session_state.diario_alimentos["Proteína (g)"].sum()
+
+            m_k, m_p = st.columns(2)
+            m_k.metric("🔥 Total Calorías", f"{tot_k} kcal")
+            m_p.metric("🥗 Total Proteína", f"{tot_p} g")
+
+            if not st.session_state.diario_alimentos.empty:
+                st.dataframe(st.session_state.diario_alimentos, use_container_width=True)
+                if st.button("🗑️ Vaciar Diario"):
+                    st.session_state.diario_alimentos = pd.DataFrame(
+                        columns=["Comida", "Alimento", "Kcal", "Proteína (g)"]
+                    )
+                    st.rerun()
 
 # ==========================================
-# MÓDULO 5: GENERADOR DE RECETAS AVANZADO
+# MÓDULO 5: GENERADOR DE RECETAS Y GUÍA DE ALIMENTACIÓN
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
-    st.header("🍳 Generador Inteligente de Recetas")
-    
-    # --- FORMULARIO DE PREFERENCIAS ---
-    with st.expander("⚙️ Configuración de Preferencias y Horarios", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            tiempo_comida = st.selectbox("Tiempo de comida:", ["Desayuno", "Comida", "Cena"])
-            horario_trabajo = st.time_input("Hora de tu jornada de trabajo:", value=time(9, 0))
-            proteinas = st.text_input("Proteínas preferidas (pollo, carne, huevo, tofu...):", "Pollo, Huevo, Pescado")
-        with col2:
-            frutas_verduras = st.text_input("Frutas y Verduras que te gustan:", "Manzana, Espinacas, Brócoli, Fresas")
-            no_gustan = st.text_input("Ingredientes que NO te gustan:", "Cebolla, Calabaza")
-            nivel_cocina = st.select_slider("Nivel de dificultad (tiempo disponible):", options=["Muy Rápido", "Estándar", "Gourmet"])
+    st.header("🍳 Generador de Recetas y Plan según Jornada")
+    st.write(
+        "Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales."
+    )
 
-    if st.button("🍳 Generar Receta Personalizada", use_container_width=True):
-        with st.spinner("Diseñando tu platillo ideal..."):
-            try:
-                # Construimos el prompt con todas tus variables
+    # 1. CONFIGURACIÓN DE JORNADA LABORAL
+    with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
+        col_h1, col_h2, col_h3 = st.columns(3)
+        with col_h1:
+            hora_inicio = st.time_input("Hora de entrada:", value=time(7, 0))
+        with col_h2:
+            hora_salida = st.time_input("Hora de salida:", value=time(19, 0))
+        with col_h3:
+            hora_comida = st.time_input("Hora de comida:", value=time(12, 0))
+
+        col_h4, col_h5, col_h6, col_h7 = st.columns(4)
+        with col_h4:
+            hora_licuado = st.time_input(
+                "Licuado / Al despertar:", value=time(5, 10)
+            )
+        with col_h5:
+            hora_desayuno = st.time_input("Desayuno:", value=time(7, 30))
+        with col_h6:
+            hora_col2 = st.time_input(
+                "Colación Tarde (Media Tarde):", value=time(16, 30)
+            )
+        with col_h7:
+            hora_cena = st.time_input("Cena:", value=time(20, 0))
+
+        opcion_comedor = st.checkbox(
+            "Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)",
+            value=True,
+        )
+
+    # 2. PLAN BASE RESTRUCTURADO (Ajuste de puentes de saciedad)
+    if "plan_nutriologa_horarios" not in st.session_state:
+        st.session_state.plan_nutriologa_horarios = {
+            "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
+            "Desayuno": {
+                "Verduras": 1,
+                "Frutas": 1,
+                "Cereales": 2,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+            },
+            "Colación 1": {
+                "Frutas": 1
+            },  
+            "Comida": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 4,
+                "Grasas s/ Prot": 2,
+            },  
+            "Colación 2": {
+                "Frutas": 1,
+                "Grasas c/ Prot": 1,
+                "AOA (Proteína)": 1,
+            },  
+            "Cena": {
+                "Verduras": 1,
+                "Cereales": 3,
+                "AOA (Proteína)": 2.5,
+                "Grasas s/ Prot": 1,
+            },
+        }
+
+    plan_actual = st.session_state.plan_nutriologa_horarios
+
+    # 3. SELECCIÓN DE MODALIDAD Y OPCIÓN DE COMEDOR
+    st.markdown("---")
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        opciones_tiempo = ["📌 Menú Completo del Día"] + list(
+            plan_actual.keys()
+        )
+        tiempo_comida = st.selectbox(
+            "Selecciona el tiempo de comida:", opciones_tiempo
+        )
+    with col_t2:
+        modalidades = [
+            "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
+            "🏠 En Casa / Home Office (Cocinando al momento)",
+            "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
+            "🏬 Comedor de Empresa (Selección inteligente de menú)",
+        ]
+        idx_def = 3 if opcion_comedor else 0
+        modalidad_trabajo = st.selectbox(
+            "Entorno y Modalidad de tu día:", modalidades, index=idx_def
+        )
+
+    if "Comedor" in modalidad_trabajo:
+        opcion_comedor_elegida = st.radio(
+            "🍽️ Opciones disponibles en comedor:",
+            [
+                "🥗 Paquete Saludable / Ensaladas",
+                "🍲 Comida del Día / Paquete General",
+            ],
+            horizontal=True,
+        )
+    else:
+        opcion_comedor_elegida = "N/A"
+
+    # 4. GUSTOS Y RESTRICCIONES POR CATEGORÍA
+    st.markdown("---")
+    st.subheader("⚙️ Gustos y Restricciones por Categoría")
+
+    tab_prot, tab_veg, tab_frutas = st.tabs(
+        [
+            "🥩 Proteínas y Carnes",
+            "🥦 Verduras y Acompañamientos",
+            "🍎 Frutas",
+        ]
+    )
+
+    with tab_prot:
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            fav_prot = st.text_input(
+                "💚 Proteínas preferidas:",
+                "Pollo, queso panela, atún, huevo",
+                key="fav_p",
+            )
+        with col_p2:
+            no_prot = st.text_input(
+                "❌ Proteínas a evitar:", "Pescado, cerdo, mariscos", key="no_p"
+            )
+
+    with tab_veg:
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            fav_veg = st.text_input(
+                "💚 Verduras / Cereales preferidos:",
+                "Jitomate, aguacate, tortillas, avena",
+                key="fav_v",
+            )
+        with col_v2:
+            no_veg = st.text_input(
+                "❌ Verduras / Cereales a evitar:",
+                "Cilantro, calabacita, mayonesa",
+                key="no_v",
+            )
+
+    with tab_frutas:
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            fav_frutas = st.text_input(
+                "💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f"
+            )
+        with col_f2:
+            no_frutas = st.text_input(
+                "❌ Frutas a evitar:", "Papaya, melón", key="no_f"
+            )
+
+    alimentos_favoritos = f"Proteínas: {fav_prot} | Verduras/Cereales: {fav_veg} | Frutas: {fav_frutas}"
+    alimentos_no_gustan = f"Proteínas: {no_prot} | Verduras/Cereales: {no_veg} | Frutas: {no_frutas}"
+
+    # 5. GENERACIÓN CON GEMINI
+    if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
+        try:
+            duracion_jornada = (
+                hora_salida.hour + hora_salida.minute / 60
+            ) - (hora_inicio.hour + hora_inicio.minute / 60)
+            if duracion_jornada < 0:
+                duracion_jornada += 24
+
+            contexto_rutina = f"""
+            - Horario laboral: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
+            - Al despertar: {hora_licuado.strftime('%I:%M %p')}
+            - Desayuno: {hora_desayuno.strftime('%I:%M %p')}
+            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Comedor: {opcion_comedor_elegida})
+            - Colación 2 (Tarde): {hora_col2.strftime('%I:%M %p')}
+            - Cena: {hora_cena.strftime('%I:%M %p')}
+            """
+
+            reglas_prompt = """
+            REGLAS DE PREPARACIÓN Y SACIEDAD CRÍTICAS:
+            1. CONTROL DEL ANTOJO DE TARDE (5:00 PM):
+               El usuario suele experimentar picos de hambre por la tarde y recurrir a ultraprocesados por falta de saciedad y practicidad.
+               La Colación 2 (4:30 PM) DEBE ser highly portable (fácil de comer en oficina o trayecto) y combinar carbohidratos de lenta absorción, 
+               grasa saludable y proteína. Debe estar diseñada explícitamente para erradicar el deseo de comer pan dulce o galletas.
+
+            2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites refinados.
+            3. COCINADO: Priorizar métodos como plancha, vapor, horno o air fryer. Evitar aderezos comerciales.
+            """
+
+            if tiempo_comida == "📌 Menú Completo del Día":
+                resumen_plan = ""
+                for t_nombre, t_datos in plan_actual.items():
+                    porciones_t = ", ".join(
+                        [f"{cant} {grp}" for grp, cant in t_datos.items()]
+                    )
+                    resumen_plan += f"- **{t_nombre}**: {porciones_t}\n"
+
                 prompt = f"""
-                Actúa como un chef y nutricionista experto. 
-                Crea una receta para {tiempo_comida}.
-                Considerando que mi horario de trabajo inicia a las {horario_trabajo.strftime('%H:%M')}, 
-                la receta debe ser adecuada en tiempo y energía.
-                
-                Preferencias:
-                - Proteínas a incluir: {proteinas}
-                - Frutas/Verduras que me gustan: {frutas_verduras}
-                - Ingredientes que NO debo incluir: {no_gustan}
-                - Nivel de cocina: {nivel_cocina}
-                
-                La receta debe ser saludable, equilibrada, práctica y deliciosa.
+                Actúa como Nutriólogo Experto. Diseña un cronograma de alimentación optimizado para la jornada:
+
+                RUTINA DE HORARIOS:
+                {contexto_rutina}
+                Modalidad: '{modalidad_trabajo}'
+
+                PORCIONES DE LA NUTRIÓLOGA:
+                {resumen_plan}
+
+                PREFERENCIAS:
+                - Le gustan: {alimentos_favoritos}
+                - EXCLUIR (No incluir bajo ningún concepto): {alimentos_no_gustan}
+
+                {reglas_prompt}
+
+                INSTRUCCIONES:
+                1. Presenta un cronograma por horas de cada tiempo de comida.
+                2. Para la Colación de las {hora_col2.strftime('%I:%M %p')}, redacta una opción saciante y portable.
+                3. Da explicaciones claras para ajustar la comida de comedor ('{opcion_comedor_elegida}') controlando las porciones indicadas.
                 """
-                
+            else:
+                datos_comida = plan_actual[tiempo_comida].copy()
+                porciones_str = ", ".join(
+                    [
+                        f"{cant} porción(es) de {grupo}"
+                        for grupo, cant in datos_comida.items()
+                    ]
+                )
+
+                prompt = f"""
+                Actúa como Nutriólogo Asesor. Diseña la receta/guía para '{tiempo_comida}'.
+
+                RUTINA: {contexto_rutina}
+                MODALIDAD: '{modalidad_trabajo}' (Comedor: {opcion_comedor_elegida})
+                PORCIONES: {porciones_str}
+                GUSTOS: {alimentos_favoritos}
+                EXCLUIR: {alimentos_no_gustan}
+
+                {reglas_prompt}
+
+                Si es la Colación 2, enfatiza que la preparación debe ser sustanciosa y rica en proteína/grasa saludable para aguantar la tarde.
+                """
+
+            with st.spinner("Optimizando plan con Gemini..."):
                 response = client.models.generate_content(
                     model="gemini-2.5-flash", contents=prompt
                 )
-                
-                receta_txt = response.text
-                st.markdown("---")
-                st.markdown(receta_txt)
-                
-                # Guardar en sesión
-                st.session_state.ultima_receta = receta_txt
-                
-            except Exception as e:
-                st.error(f"Error al generar: {e}")
+                receta_texto = response.text
 
-    # Guardar en BD si ya existe una receta
+            st.session_state["ultima_receta"] = receta_texto
+
+        except Exception as e:
+            st.error(f"Error al conectar con Gemini: {e}")
+
     if "ultima_receta" in st.session_state:
+        st.markdown("---")
+        st.markdown(st.session_state["ultima_receta"])
+        
+        # Botón para guardar en la base de datos de Neon que ya tienes configurada
         if st.button("💾 Guardar esta receta en mi cuenta"):
-            try:
-                execute_db(
-                    """
-                    INSERT INTO recetas_guardadas (user_id, dia_semana, tiempo_comida, receta_texto)
-                    VALUES (%s, %s, %s, %s)
-                """,
-                    (user_id, "General", tiempo_comida, st.session_state.ultima_receta),
-                )
-                st.success("¡Receta guardada!")
-            except Exception as e:
-                st.error(f"Error: {e}")
+            guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS
