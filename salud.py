@@ -1,9 +1,9 @@
-import psycopg2
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from google import genai
 from datetime import datetime, time
+import psycopg2
 
 # Configuración de la página
 st.set_page_config(
