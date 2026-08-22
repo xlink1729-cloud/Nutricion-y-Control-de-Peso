@@ -508,76 +508,104 @@ elif opcion == "📊 Control de Peso y Músculo":
 # ==========================================
 elif opcion == "📉 Registro Diario de Peso":
     st.header("📉 Registro Diario y Análisis de Peso")
-    st.write(
-        "Registra tu peso cada mañana y deja que la app interprete las"
-        " tendencias por ti."
-    )
+    st.write("Registra tu peso cada mañana y deja que la app interprete las tendencias por ti.")
 
     col_ingreso, col_analisis = st.columns([1, 2])
 
     with col_ingreso:
         st.subheader("📝 Registrar Hoy")
         f_reg = st.date_input("Fecha", key="f_diaria")
-        p_reg = st.number_input(
-            "Peso (kg)", min_value=30.0, max_value=200.0, value=82.5, step=0.1
-        )
+        p_reg = st.number_input("Peso (kg)", min_value=30.0, max_value=200.0, value=82.5, step=0.1)
 
         if st.button("📌 Guardar Peso Diario", use_container_width=True):
-            try:
-                execute_db(
-                    """
-                    INSERT INTO registro_diario_peso (user_id, fecha, peso)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (user_id, fecha) DO UPDATE SET peso = EXCLUDED.peso
-                """,
-                    (user_id, f_reg, p_reg),
-                )
-                st.success("¡Peso diario registrado exitosamente!")
-            except Exception as e:
-                st.error(f"Error al guardar: {e}")
+            nuevo_p = pd.DataFrame([{"Fecha": pd.to_datetime(f_reg), "Peso (kg)": float(p_reg)}])
+            
+            if "historial_diario" not in st.session_state:
+                st.session_state.historial_diario = pd.DataFrame(columns=["Fecha", "Peso (kg)"])
+
+            # Evitar duplicados del mismo día y ordenar
+            st.session_state.historial_diario = (
+                pd.concat([st.session_state.historial_diario, nuevo_p])
+                .drop_duplicates(subset=["Fecha"], keep="last")
+                .sort_values("Fecha")
+                .reset_index(drop=True)
+            )
+            st.success("¡Peso registrado exitosamente!")
+            st.rerun()
 
     with col_analisis:
         st.subheader("📊 Análisis e Interpretación")
-        diarios_db = run_query(
-            "SELECT fecha, peso FROM registro_diario_peso WHERE user_id = %s ORDER BY fecha ASC",
-            (user_id,),
-        )
 
-        if diarios_db:
-            df = pd.DataFrame(diarios_db, columns=["Fecha", "Peso (kg)"])
+        if "historial_diario" in st.session_state and not st.session_state.historial_diario.empty:
+            df = st.session_state.historial_diario.copy()
             df["Fecha"] = pd.to_datetime(df["Fecha"])
-
+            df["Peso (kg)"] = pd.to_numeric(df["Peso (kg)"])
+            
+            # --- 1. MÉTRICAS BÁSICAS Y EXTREMOS ---
             p_actual = df.iloc[-1]["Peso (kg)"]
             p_min = df["Peso (kg)"].min()
             p_max = df["Peso (kg)"].max()
+
+            # Promedio últimos 7 días
             ultimos_7 = df.tail(7)
             prom_semanal = ultimos_7["Peso (kg)"].mean()
 
-            st.success(
-                f"💡 Tu promedio semanal actual es de **{prom_semanal:.2f} kg**."
-            )
+            # --- 2. COMPARATIVA SEMANAL & CONCLUSIÓN EN TEXTO ---
+            if len(df) >= 7:
+                previo_7 = df.iloc[-14:-7] if len(df) >= 14 else df.iloc[:-7]
+                prom_anterior = previo_7["Peso (kg)"].mean()
+                diff_semanal = prom_semanal - prom_anterior
 
+                if diff_semanal < 0:
+                    mensaje_conclusion = f"🎉 **Esta semana bajaste {abs(diff_semanal):.2f} kg** en comparación con la semana anterior."
+                    color_callout = "success"
+                elif diff_semanal > 0:
+                    mensaje_conclusion = f"⚠️ **Esta semana subiste {diff_semanal:.2f} kg** en comparación con la semana anterior."
+                    color_callout = "warning"
+                else:
+                    mensaje_conclusion = "⚖️ **Tu peso se mantuvo exactamente igual** que la semana anterior."
+                    color_callout = "info"
+            else:
+                mensaje_conclusion = f"💡 **Registra al menos 7 días** para calcular la diferencia semanal real. Tu promedio actual es de **{prom_semanal:.2f} kg**."
+                color_callout = "info"
+
+            # --- 3. MOSTRAR TARJETA DE CONCLUSIÓN DIRECTA ---
+            if color_callout == "success":
+                st.success(mensaje_conclusion)
+            elif color_callout == "warning":
+                st.warning(mensaje_conclusion)
+            else:
+                st.info(mensaje_conclusion)
+
+            # --- 4. MÉTRICAS CLAVE EN PANTALLA ---
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("⚖️ Peso Diario", f"{p_actual:.1f} kg")
             c2.metric("📅 Promedio Semanal", f"{prom_semanal:.2f} kg")
             c3.metric("📉 Mínimo Histórico", f"{p_min:.1f} kg")
             c4.metric("📈 Máximo Histórico", f"{p_max:.1f} kg")
 
-            df["Promedio Móvil"] = (
-                df["Peso (kg)"].rolling(window=7, min_periods=1).mean()
-            )
+            # --- 5. GRÁFICA DE EVOLUCIÓN CON TENDENCIA MENSUAL ---
+            st.markdown("---")
+            st.markdown("##### 📈 Evolución y Tendencia")
+
+            # Asegurar cálculo numérico limpio para el promedio móvil
+            df["Promedio Móvil"] = df["Peso (kg)"].rolling(window=7, min_periods=1).mean().astype(float)
+
             fig = px.line(
                 df,
                 x="Fecha",
                 y=["Peso (kg)", "Promedio Móvil"],
                 markers=True,
-                title="Peso Diario vs. Tendencia Real",
+                labels={"value": "Peso (kg)", "variable": "Indicador"},
+                title="Peso Diario vs. Tendencia Real (Promedio Móvil)",
             )
             st.plotly_chart(fig, use_container_width=True)
+
+            # Tabla interactiva
+            with st.expander("📋 Ver Historial de Datos"):
+                st.dataframe(df.sort_values("Fecha", ascending=False), use_container_width=True)
         else:
-            st.info(
-                "Aún no hay registros diarios guardados en la base de datos."
-            )
+            st.info("Aún no hay registros diarios. Utiliza el formulario de la izquierda para comenzar.")
 
 # ==========================================
 # MÓDULO 3: LICUADOS 5:00 AM
