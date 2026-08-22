@@ -162,6 +162,20 @@ if not st.session_state.user:
                             st.error(f"No se pudo registrar: {resultado}")
     st.stop()
 
+def guardar_receta_db(categoria, tiempo, cuerpo_receta):
+    user_id = st.session_state.user["id"]
+    try:
+        execute_db(
+            """
+            INSERT INTO recetas (user_id, categoria, tiempo, cuerpo)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, categoria, tiempo, cuerpo_receta),
+        )
+        st.success("¡Receta guardada exitosamente en tu cuenta!")
+    except Exception as e:
+        st.error(f"Error al guardar la receta: {e}")
+
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
@@ -501,21 +515,7 @@ elif opcion == "📊 Control de Peso y Músculo":
                 "Aún no hay registros. Ingresa tus datos a la izquierda y"
                 " guarda tu perfil."
             )
-
-def guardar_receta_db(categoria, tiempo, cuerpo_receta):
-    user_id = st.session_state.user["id"]
-    try:
-        execute_db(
-            """
-            INSERT INTO recetas (user_id, categoria, tiempo, cuerpo)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (user_id, categoria, tiempo, cuerpo_receta),
-        )
-        st.success("¡Receta guardada exitosamente en tu cuenta!")
-    except Exception as e:
-        st.error(f"Error al guardar la receta: {e}")
-        
+       
 # ==========================================
 # MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
 # ==========================================
