@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import psycopg2
 import streamlit as st
+import bcrypt
 
 # Configuración de la página
 st.set_page_config(
@@ -20,22 +21,6 @@ def get_connection():
 
 
 # --- FUNCIONES DE BASE DE DATOS Y AUTENTICACIÓN ---
-def verificar_usuario(email, password):
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, nombre, password FROM usuarios WHERE email = %s",
-                (email,),
-            )
-            user = cur.fetchone()
-            if user and user[2] == password:
-                return {"id": user[0], "nombre": user[1], "email": email}
-        return None
-    finally:
-        conn.close()
-
-
 def registrar_nuevo_usuario(nombre, email, password):
     conn = get_connection()
     try:
@@ -44,9 +29,14 @@ def registrar_nuevo_usuario(nombre, email, password):
             if cur.fetchone():
                 return False, "El correo electrónico ya está registrado."
 
+            # Hashear la contraseña antes de guardarla
+            hashed_password = bcrypt.hashpw(
+                password.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
+
             cur.execute(
                 "INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s) RETURNING id",
-                (nombre, email, password),
+                (nombre, email, hashed_password),
             )
             nuevo_id = cur.fetchone()[0]
             conn.commit()
@@ -57,6 +47,24 @@ def registrar_nuevo_usuario(nombre, email, password):
     finally:
         conn.close()
 
+
+def verificar_usuario(email, password):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, nombre, password FROM usuarios WHERE email = %s",
+                (email,),
+            )
+            user = cur.fetchone()
+            # Verificar la contraseña ingresada contra el hash guardado
+            if user and bcrypt.checkpw(
+                password.encode("utf-8"), user[2].encode("utf-8")
+            ):
+                return {"id": user[0], "nombre": user[1], "email": email}
+        return None
+    finally:
+        conn.close()
 
 def run_query(query, params=None):
     conn = get_connection()
