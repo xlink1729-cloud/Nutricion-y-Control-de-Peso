@@ -420,24 +420,23 @@ elif opcion == "📊 Control de Peso y Músculo":
 
         if st.button("💾 Guardar Perfil / Registro"):
             try:
-                execute_db(
-                    """
-                    INSERT INTO control_peso (user_id, fecha, peso, objetivo, meta_principal, fecha_objetivo, diferencia, imc, diagnostico, grasa, musculo, meta_kcal)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                execute_db("""
+                INSERT INTO control_peso (user_id, fecha, peso, objetivo, meta_principal, fecha_objetivo, diferencia, imc, diagnostico, grasa, musculo, meta_kcal)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                    (
-                        user_id,
-                        fecha,
-                        peso,
-                        peso_meta,
-                        objetivo,
-                        str(fecha_meta) if fecha_meta else None,
-                        round(kilos_diferencia, 1),
-                        round(imc, 1),
-                        diagnostico_imc,
-                        round(pct_grasa, 1),
-                        round(pct_musculo, 1),
-                        int(meta_calorica),
+                (
+                    user_id,
+                    fecha,
+                    peso,
+                    peso_meta,
+                    objetivo,
+                    fecha_meta,  # psycopg2 gestionará None como NULL automáticamente
+                    round(kilos_diferencia, 1),
+                    round(imc, 1),
+                    diagnostico_imc,
+                    round(pct_grasa, 1),
+                    round(pct_musculo, 1),
+                    int(meta_calorica),
                     ),
                 )
                 st.success("¡Perfil y registro guardados en la base de datos!")
@@ -503,6 +502,20 @@ elif opcion == "📊 Control de Peso y Músculo":
                 " guarda tu perfil."
             )
 
+def guardar_receta_db(categoria, tiempo, cuerpo_receta):
+    user_id = st.session_state.user["id"]
+    try:
+        execute_db(
+            """
+            INSERT INTO recetas (user_id, categoria, tiempo, cuerpo)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, categoria, tiempo, cuerpo_receta),
+        )
+        st.success("¡Receta guardada exitosamente en tu cuenta!")
+    except Exception as e:
+        st.error(f"Error al guardar la receta: {e}")
+        
 # ==========================================
 # MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
 # ==========================================
