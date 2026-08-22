@@ -21,38 +21,38 @@ def get_connection():
 
 
 # --- FUNCIONES DE BASE DE DATOS Y AUTENTICACIÓN ---
-def registrar_nuevo_usuario(nombre, email, password):
-    conn = get_connection()
+# --- FUNCIONES DE SEGURIDAD ACTUALIZADAS ---
+def registrar_nuevo_usuario(nombre, email, password, pin):
+    hashed_pw = bcrypt.hashpw(
+        password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
     try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
-            if cur.fetchone():
-                return False, "El correo electrónico ya está registrado."
-
-            # Hashear la contraseña antes de guardarla
-            hashed_password = bcrypt.hashpw(
-                password.encode("utf-8"), bcrypt.gensalt()
-            ).decode("utf-8")
-
-            cur.execute(
-                "INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s) RETURNING id",
-                (nombre, email, hashed_password),
-            )
-            nuevo_id = cur.fetchone()[0]
-            conn.commit()
-            return True, nuevo_id
+        execute_db(
+            """
+            INSERT INTO usuarios (nombre, email, password_hash, pin_seguridad)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (nombre, email, hashed_pw, pin),
+        )
+        return True, "Ok"
     except Exception as e:
-        conn.rollback()
         return False, str(e)
-    finally:
-        conn.close()
 
-def cambiar_password_db(email, nueva_password):
-    # Generar el nuevo hash seguro
+
+def cambiar_password_db(email, pin, nueva_password):
+    # Validar que el PIN corresponda al correo
+    user = run_query(
+        "SELECT id FROM usuarios WHERE LOWER(email) = LOWER(%s) AND"
+        " pin_seguridad = %s",
+        (email, pin),
+    )
+    if not user:
+        return False, "El correo o el PIN de seguridad son incorrectos."
+
+    # Si el PIN es correcto, actualizamos la contraseña
     hashed_pw = bcrypt.hashpw(
         nueva_password.encode("utf-8"), bcrypt.gensalt()
     ).decode("utf-8")
-
     try:
         execute_db(
             """
@@ -62,10 +62,9 @@ def cambiar_password_db(email, nueva_password):
             """,
             (hashed_pw, email),
         )
-        return True
+        return True, "¡Contraseña actualizada con éxito!"
     except Exception as e:
-        st.error(f"Error al actualizar la contraseña: {e}")
-        return False
+        return False, f"Error al actualizar: {e}"
 
 def verificar_usuario(email, password):
     conn = get_connection()
@@ -150,6 +149,7 @@ if not st.session_state.user:
                     else:
                         st.error("Correo o contraseña incorrectos.")
 
+        # --- TAB REGISTRO ---
         with tab_registro:
             with st.form("registro_form"):
                 nombre_nuevo = st.text_input("Nombre completo")
@@ -159,33 +159,53 @@ if not st.session_state.user:
                 password_nuevo = st.text_input(
                     "Crea una contraseña", type="password", key="reg_pass"
                 )
+                pin_nuevo = st.text_input(
+                    "PIN de seguridad (4 dígitos para recuperar tu cuenta)",
+                    max_chars=4,
+                    type="password",
+                    key="reg_pin",
+                )
                 submit_registro = st.form_submit_button(
                     "Crear Cuenta", use_container_width=True
                 )
 
                 if submit_registro:
-                    if not nombre_nuevo or not email_nuevo or not password_nuevo:
-                        st.warning(
-                            "Por favor, completa todos los campos para registrarte."
-                        )
+                    if (
+                        not nombre_nuevo
+                        or not email_nuevo
+                        or not password_nuevo
+                        or not pin_nuevo
+                    ):
+                        st.warning("Por favor, completa todos los campos.")
                     else:
-                        exito, resultado = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo
+                        exito, msj = registrar_nuevo_usuario(
+                            nombre_nuevo,
+                            email_nuevo,
+                            password_nuevo,
+                            pin_nuevo,
                         )
                         if exito:
                             st.success(
-                                "¡Cuenta creada con éxito! Ve a la pestaña 'Iniciar Sesión' para entrar."
+                                "¡Cuenta creada con éxito! Ve a 'Iniciar"
+                                " Sesión'."
                             )
                         else:
-                            st.error(f"No se pudo registrar: {resultado}")
+                            st.error(f"Error al registrar: {msj}")
 
+# --- TAB RECUPERAR ---
         with tab_recuperar:
             st.subheader("🔑 Reestablecer Contraseña")
             st.caption(
-                "Ingresa tu correo registrado para definir una nueva contraseña."
+                "Ingresa tus datos y tu PIN de 4 dígitos para definir una nueva"
+                " contraseña."
             )
 
-            email_recuperar = st.text_input("Correo electrónico", key="rec_email")
+            email_recuperar = st.text_input(
+                "Correo electrónico", key="rec_email"
+            )
+            pin_recuperar = st.text_input(
+                "PIN de seguridad", max_chars=4, type="password", key="rec_pin"
+            )
             nueva_pw = st.text_input(
                 "Nueva contraseña", type="password", key="rec_pw1"
             )
@@ -194,25 +214,23 @@ if not st.session_state.user:
             )
 
             if st.button("🔄 Actualizar Contraseña", use_container_width=True):
-                if not email_recuperar or not nueva_pw:
+                if (
+                    not email_recuperar
+                    or not pin_recuperar
+                    or not nueva_pw
+                    or not confirmar_pw
+                ):
                     st.warning("Por favor completa todos los campos.")
                 elif nueva_pw != confirmar_pw:
                     st.error("Las contraseñas no coinciden.")
                 else:
-                    # Verificar si el correo existe en la base de datos
-                    user_exists = run_query(
-                        "SELECT id FROM usuarios WHERE LOWER(email) = LOWER(%s)",
-                        (email_recuperar,),
+                    exito, msj = cambiar_password_db(
+                        email_recuperar, pin_recuperar, nueva_pw
                     )
-                    if user_exists:
-                        if cambiar_password_db(email_recuperar, nueva_pw):
-                            st.success(
-                                "¡Contraseña actualizada con éxito! Ya puedes iniciar sesión."
-                            )
+                    if exito:
+                        st.success(msj)
                     else:
-                        st.error("El correo ingresado no está registrado.")
-
-    st.stop()
+                        st.error(msj)
 
 def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     user_id = st.session_state.user["id"]
