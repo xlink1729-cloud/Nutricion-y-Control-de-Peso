@@ -121,7 +121,9 @@ if not st.session_state.user:
     col1, col2, col3 = st.columns([1, 1.5, 1])
 
     with col2:
-        tab_login, tab_registro, tab_recuperar = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarme", "❓ ¿Olvidaste tu contraseña?"])
+        tab_login, tab_registro, tab_recuperar = st.tabs(
+            ["🔑 Iniciar Sesión", "📝 Registrarme", "❓ ¿Olvidaste tu contraseña?"]
+        )
 
         with tab_login:
             with st.form("login_form"):
@@ -142,8 +144,7 @@ if not st.session_state.user:
                     if usuario_valido:
                         st.session_state.user = usuario_valido
                         st.success(
-                            f"¡Bienvenido de vuelta,"
-                            f" {usuario_valido['nombre']}!"
+                            f"¡Bienvenido de vuelta, {usuario_valido['nombre']}!"
                         )
                         st.rerun()
                     else:
@@ -165,8 +166,7 @@ if not st.session_state.user:
                 if submit_registro:
                     if not nombre_nuevo or not email_nuevo or not password_nuevo:
                         st.warning(
-                            "Por favor, completa todos los campos para"
-                            " registrarte."
+                            "Por favor, completa todos los campos para registrarte."
                         )
                     else:
                         exito, resultado = registrar_nuevo_usuario(
@@ -174,20 +174,24 @@ if not st.session_state.user:
                         )
                         if exito:
                             st.success(
-                                "¡Cuenta creada con éxito! Ve a la pestaña"
-                                " 'Iniciar Sesión' para entrar."
+                                "¡Cuenta creada con éxito! Ve a la pestaña 'Iniciar Sesión' para entrar."
                             )
                         else:
                             st.error(f"No se pudo registrar: {resultado}")
 
         with tab_recuperar:
             st.subheader("🔑 Reestablecer Contraseña")
-            st.caption("Ingresa tu correo registrado para definir una nueva contraseña.")
+            st.caption(
+                "Ingresa tu correo registrado para definir una nueva contraseña."
+            )
 
             email_recuperar = st.text_input("Correo electrónico", key="rec_email")
-            nueva_pw = st.text_input("Nueva contraseña", type="password", key="rec_pw1")
-
-            confirmar_pw = st.text_input("Confirmar nueva contraseña", type="password", key="rec_pw2")
+            nueva_pw = st.text_input(
+                "Nueva contraseña", type="password", key="rec_pw1"
+            )
+            confirmar_pw = st.text_input(
+                "Confirmar nueva contraseña", type="password", key="rec_pw2"
+            )
 
             if st.button("🔄 Actualizar Contraseña", use_container_width=True):
                 if not email_recuperar or not nueva_pw:
@@ -195,17 +199,19 @@ if not st.session_state.user:
                 elif nueva_pw != confirmar_pw:
                     st.error("Las contraseñas no coinciden.")
                 else:
-                    # Verificar si el correo existe
-                    user_exists = run_query("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(%s)",(email_recuperar,),)
-            if user_exists:
-                if cambiar_password_db(email_recuperar, nueva_pw):
-                    st.success(
-                        "¡Contraseña actualizada con éxito! Ya puedes iniciar"
-                        " sesión."
+                    # Verificar si el correo existe en la base de datos
+                    user_exists = run_query(
+                        "SELECT id FROM usuarios WHERE LOWER(email) = LOWER(%s)",
+                        (email_recuperar,),
                     )
-            else:
-                st.error("El correo ingresado no está registrado.")    
-            
+                    if user_exists:
+                        if cambiar_password_db(email_recuperar, nueva_pw):
+                            st.success(
+                                "¡Contraseña actualizada con éxito! Ya puedes iniciar sesión."
+                            )
+                    else:
+                        st.error("El correo ingresado no está registrado.")
+
     st.stop()
 
 def guardar_receta_db(categoria, tiempo, cuerpo_receta):
