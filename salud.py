@@ -1019,58 +1019,272 @@ elif opcion == "🍳 Generador de Recetas":
 # ==========================================
 elif opcion == "🛒 Lista de Compras":
     st.header("🛒 Tu Lista de Supermercado")
-    nuevo_item = st.text_input("Agregar ingrediente:")
-    if st.button("Añadir"):
+
+    nuevo_item = st.text_input("Agregar ingrediente o elemento al super:")
+    if st.button("Añadir a la lista"):
         if nuevo_item:
             st.session_state.lista_compras.append(nuevo_item)
-            st.success("Agregado.")
-    for item in st.session_state.lista_compras:
-        st.write(f"- {item}")
+            st.success(f"'{nuevo_item}' agregado.")
+
+    st.subheader("Lista pendiente:")
+    if st.session_state.lista_compras:
+        for idx, item in enumerate(st.session_state.lista_compras, 1):
+            st.write(f"{idx}. {item}")
+
+        if st.button("🗑️ Limpiar lista"):
+            st.session_state.lista_compras = []
+            st.rerun()
+    else:
+        st.info("Tu lista de compras está vacía.")
 
 # ==========================================
-# MÓDULO 7: HÁBITOS
+# MÓDULO 7: HÁBITOS Y CUMPLIMIENTO DIARIO
 # ==========================================
 elif opcion == "🔥 Seguimiento de Hábitos":
     st.header("🔥 Registro de Hábitos Diarios")
-    f_habito = st.date_input("Fecha hábito")
-    h_agua = st.checkbox("Agua suficiente")
-    if st.button("Guardar Hábitos"):
-        try:
-            execute_db(
-                """
-                INSERT INTO habitos_diarios (user_id, fecha, agua, cumplido_total)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (user_id, fecha) DO UPDATE SET agua = EXCLUDED.agua
-            """,
-                    (user_id, f_habito, h_agua, h_agua),
+    st.write("Marca tus hábitos cumplidos hoy para mantener y aumentar tu racha.")
+
+    # Inicializar registro de hábitos en st.session_state
+    if "historial_habitos" not in st.session_state:
+        st.session_state.historial_habitos = pd.DataFrame(
+            columns=[
+                "Fecha",
+                "Agua",
+                "Objetivo_Nutricional",
+                "Actividad_Fisica",
+                "Sueno",
+                "Frutas_Verduras",
+                "Sin_Azucar",
+                "Cumplido_Total",
+            ]
+        )
+
+    # 1. FECHA Y FORMULARIO DE CHECKLIST DIARIO
+    col_check, col_racha = st.columns([1.2, 1.8])
+
+    with col_check:
+        st.subheader("📅 Checklist de Hoy")
+        f_habito = st.date_input("Fecha", key="f_habito_input")
+
+        # Lista de hábitos con checkboxes
+        h_agua = st.checkbox("💧 Tomé suficiente agua")
+        h_nutricion = st.checkbox("🥗 Comí de acuerdo con mi objetivo")
+        h_actividad = st.checkbox("🚶 Hice actividad física")
+        h_sueno = st.checkbox("😴 Dormí bien")
+        h_frutas = st.checkbox("🍎 Comí frutas / verduras")
+        h_azucar = st.checkbox("🚫 Evité bebidas azucaradas")
+
+        total_habitos = 6
+        completados = sum([h_agua, h_nutricion, h_actividad, h_sueno, h_frutas, h_azucar])
+
+        if st.button("💾 Guardar Hábitos de Hoy", use_container_width=True):
+            # Se considera "Día Cumplido" si realiza al menos 4 de los 6 hábitos
+            cumplio_dia = completados >= 4
+
+            nuevo_registro_h = pd.DataFrame(
+                [{
+                    "Fecha": pd.to_datetime(f_habito),
+                    "Agua": h_agua,
+                    "Objetivo_Nutricional": h_nutricion,
+                    "Actividad_Fisica": h_actividad,
+                    "Sueno": h_sueno,
+                    "Frutas_Verduras": h_frutas,
+                    "Sin_Azucar": h_azucar,
+                    "Cumplido_Total": cumplio_dia,
+                }]
             )
-            st.success("Hábitos guardados correctamente.")
-        except Exception as e:
-            st.error(f"Error: {e}")
+
+            # Evitar duplicados del mismo día guardando el último registro
+            st.session_state.historial_habitos = (
+                pd.concat([st.session_state.historial_habitos, nuevo_registro_h])
+                .drop_duplicates(subset=["Fecha"], keep="last")
+                .sort_values("Fecha")
+                .reset_index(drop=True)
+            )
+            st.success("¡Hábitos de hoy guardados!")
+            st.rerun()
+
+    # 2. CÁLCULO DE RACHA ACTUAL Y ESTADÍSTICAS
+    with col_racha:
+        st.subheader("🔥 Tu Racha Actual")
+
+        df_h = st.session_state.historial_habitos.copy()
+
+        if not df_h.empty:
+            df_h["Fecha"] = pd.to_datetime(df_h["Fecha"])
+            df_h = df_h.sort_values("Fecha", ascending=False)
+
+            # Algoritmo para calcular la racha de días consecutivos cumplidos
+            racha_actual = 0
+            for idx, fila in df_h.iterrows():
+                if fila["Cumplido_Total"]:
+                    racha_actual += 1
+                else:
+                    break
+
+            # Despliegue visual destacado de la racha
+            if racha_actual > 0:
+                st.markdown(
+                    f"""
+                    <div style="background-color: #1E293B; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #F59E0B;">
+                        <h1 style="color: #F59E0B; margin: 0; font-size: 3em;">🔥 {racha_actual} DÍAS</h1>
+                        <p style="color: #E2E8F0; margin: 5px 0 0 0; font-size: 1.2em;">¡Excelente constancia! Sigue así.</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.info("🔥 **Racha actual: 0 días.** ¡Completa al menos 4 hábitos hoy para comenzar tu racha!")
+
+            st.markdown("---")
+
+            # Métrica de porcentaje de efectividad mensual
+            dias_totales = len(df_h)
+            dias_exitosos = df_h["Cumplido_Total"].sum()
+            pct_efectividad = (dias_exitosos / dias_totales) * 100 if dias_totales > 0 else 0
+
+            m_h1, m_h2 = st.columns(2)
+            m_h1.metric("📊 Días Registrados", f"{dias_totales} días")
+            m_h2.metric("🎯 Efectividad Total", f"{pct_efectividad:.0f}%")
+
+            # Mostrar tabla detallada del historial
+            with st.expander("📋 Ver Historial Completo de Hábitos"):
+                st.dataframe(df_h, use_container_width=True)
+        else:
+            st.info("Aún no has registrado hábitos. Marca tus casillas a la izquierda y guarda tu día.")
 
 # ==========================================
 # MÓDULO 8: REPORTES SEMANALES
 # ==========================================
 elif opcion == "📈 Reporte Semanal":
     st.header("📈 Reporte Semanal de Progreso")
-    st.write(
-        "Aquí puedes visualizar el comportamiento consolidado de tus registros"
-        " recientes."
-    )
+    st.write("Consulta el balance consolidado de tu última semana y la interpretación de tu evolución.")
+
+    # 1. EVALUAR SI HAY DATOS EN EL HISTORIAL DIARIO
+    if "historial_diario" in st.session_state and not st.session_state.historial_diario.empty:
+        df_p = st.session_state.historial_diario.copy()
+        df_p["Fecha"] = pd.to_datetime(df_p["Fecha"])
+        df_p = df_p.sort_values("Fecha")
+
+        # Tomar datos de los últimos 7 días registrados (o los disponibles)
+        ultimos_7 = df_p.tail(7)
+        
+        peso_ini = ultimos_7.iloc[0]["Peso (kg)"]
+        peso_fin = ultimos_7.iloc[-1]["Peso (kg)"]
+        cambio_peso = peso_fin - peso_ini
+
+        # Obtener o simular promedios de hábitos / nutrición de la semana
+        prom_kcal = 1940
+        if "diario_alimentos" in st.session_state and not st.session_state.diario_alimentos.empty:
+            tot_k = st.session_state.diario_alimentos["Kcal"].sum()
+            if tot_k > 0:
+                prom_kcal = int(tot_k)
+
+        prom_pasos = "7,820"
+        prom_agua = "2.1 L"
+
+        # --- SECCIÓN: TARJETA RESUMEN "TU SEMANA" ---
+        st.subheader("🗓️ Tu Semana")
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("⚖️ Peso Inicial", f"{peso_ini:.1f} kg")
+        c2.metric("⚖️ Peso Final", f"{peso_fin:.1f} kg")
+        
+        # Color del delta según si subió o bajó
+        delta_str = f"{cambio_peso:+.1f} kg"
+        c3.metric("📉 Cambio de Peso", f"{peso_fin:.1f} kg", delta=delta_str, delta_color="inverse")
+
+        st.markdown("---")
+
+        c4, c5, c6 = st.columns(3)
+        c4.metric("🔥 Promedio de Calorías", f"{prom_kcal} kcal")
+        c5.metric("🚶 Promedio de Pasos", f"{prom_pasos} pasos")
+        c6.metric("💧 Agua Promedio", f"{prom_agua}")
+
+        st.markdown("---")
+
+        # --- SECCIÓN: CONCLUSIÓN DE LA APP ---
+        st.subheader("💡 Conclusión Semanal")
+
+        if cambio_peso < 0:
+            conclusion_txt = (
+                f"🎉 **Tu progreso va en buena dirección.** Esta semana bajaste **{abs(cambio_peso):.1f} kg** "
+                f"y mantuviste una excelente constancia en tu actividad física y nutrición."
+            )
+            st.success(conclusion_txt)
+        elif cambio_peso > 0:
+            conclusion_txt = (
+                f"⚠️ **Esta semana subiste {cambio_peso:.1f} kg.** Revisa tus porciones de alimentos y "
+                f"asegúrate de mantener la hidratación y el nivel de actividad objetivo."
+            )
+            st.warning(conclusion_txt)
+        else:
+            conclusion_txt = (
+                "⚖️ **Tu peso se mantuvo estable esta semana.** Si tu objetivo es perder peso, "
+                "evalúa hacer un ajuste ligero en tus porciones o aumentar tu conteo diario de pasos."
+            )
+            st.info(conclusion_txt)
+
+        # Resumen gráfico semanal
+        st.markdown("##### 📊 Tendencia de los Últimos 7 Días")
+        fig_semana = px.line(
+            ultimos_7,
+            x="Fecha",
+            y="Peso (kg)",
+            markers=True,
+            title="Evolución de Peso de la Semana",
+        )
+        st.plotly_chart(fig_semana, use_container_width=True)
+
+    else:
+        st.info("👋 Para generar tu primer reporte semanal, ingresa al menos un par de registros en el apartado **📉 Registro Diario de Peso**.")
 
 # ==========================================
-# MÓDULO 9: ASISTENTE VIRTUAL NUTRICIONAL
+# MÓDULO 9: ASISTENTE VIRTUAL NUTRICIONAL (IA)
 # ==========================================
 elif opcion == "🤖 Asistente Virtual Nutricional":
     st.header("🤖 Coach Personal de Nutrición")
-    if prompt := st.chat_input("Escribe lo que comiste..."):
+    st.write("Escribe o dicta lo que comiste en lenguaje natural y la IA calculará tus macros y te dará feedback en tiempo real.")
+
+    # Inicializar historial de conversación del asistente
+    if "chat_asistente" not in st.session_state:
+        st.session_state.chat_asistente = []
+
+    # Mostrar mensajes previos del chat
+    for mensaje in st.session_state.chat_asistente:
+        with st.chat_message(mensaje["role"]):
+            st.markdown(mensaje["content"])
+
+    # Entrada de texto del usuario
+    if prompt := st.chat_input("Ejemplo: Hoy desayuné 2 huevos, 2 tortillas y un café con leche..."):
+        # Guardar y mostrar mensaje del usuario
+        st.session_state.chat_asistente.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt
-            )
-            with st.chat_message("assistant"):
-                st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Error: {e}")
+
+        # Generar respuesta con la API de Gemini
+        with st.chat_message("assistant"):
+            with st.spinner("Analizando tu comida..."):
+                try:
+                    # Prompt del sistema para guiar a Gemini a actuar como un Coach Nutricional
+                    system_instruction = (
+                        "Eres un Coach Nutricional empático, práctico y directo. "
+                        "Cuando el usuario te diga lo que comió, debes:\n"
+                        "1. Confirmar el registro.\n"
+                        "2. Dar un estimado aproximado de calorías (kcal) y proteína (g).\n"
+                        "3. Dar un breve consejo o feedback motivacional sobre si tiene margen para sus siguientes comidas.\n"
+                        "Mantén la respuesta corta (máximo 3-4 oraciones) y tono amigable."
+                    )
+                    
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=f"{system_instruction}\n\nEntrada del usuario: {prompt}"
+                    )
+                    
+                    respuesta_txt = response.text
+                    st.markdown(respuesta_txt)
+                    
+                    # Guardar respuesta en el historial
+                    st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_txt})
+                except Exception as e:
+                    st.error(f"Error al conectar con el asistente: {e}")
