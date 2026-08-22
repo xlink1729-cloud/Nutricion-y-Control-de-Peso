@@ -617,57 +617,65 @@ elif opcion == "🥗 Registro de Alimentación":
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador Inteligente de Recetas")
     
-    col_config, col_receta = st.columns([1, 2])
-    
-    with col_config:
-        tiempo_comida = st.selectbox("¿Qué toca preparar?", ["Desayuno", "Comida", "Cena", "Snack"])
-        jornada = st.selectbox("¿Cómo es tu jornada hoy?", ["Ligera", "Entrenamiento intenso", "Día de oficina sedentario", "Día con mucha actividad física"])
-        ingredientes = st.text_area("Ingredientes disponibles (separados por coma):", "pollo, espinacas, huevo, arroz, aguacate")
-        
-        btn_generar = st.button("🍳 Generar Receta con IA", use_container_width=True)
+    # --- FORMULARIO DE PREFERENCIAS ---
+    with st.expander("⚙️ Configuración de Preferencias y Horarios", expanded=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            tiempo_comida = st.selectbox("Tiempo de comida:", ["Desayuno", "Comida", "Cena"])
+            horario_trabajo = st.time_input("Hora de tu jornada de trabajo:", value=time(9, 0))
+            proteinas = st.text_input("Proteínas preferidas (pollo, carne, huevo, tofu...):", "Pollo, Huevo, Pescado")
+        with col2:
+            frutas_verduras = st.text_input("Frutas y Verduras que te gustan:", "Manzana, Espinacas, Brócoli, Fresas")
+            no_gustan = st.text_input("Ingredientes que NO te gustan:", "Cebolla, Calabaza")
+            nivel_cocina = st.select_slider("Nivel de dificultad (tiempo disponible):", options=["Muy Rápido", "Estándar", "Gourmet"])
 
-    with col_receta:
-        if btn_generar:
-            with st.spinner("Creando tu receta personalizada..."):
-                try:
-                    # Construimos un prompt mucho más rico para la IA
-                    prompt = f"""
-                    Actúa como un nutriólogo y chef profesional. 
-                    Crea una receta para {tiempo_comida} considerando que el usuario tiene un día de jornada: {jornada}.
-                    Utiliza preferentemente estos ingredientes: {ingredientes}.
-                    Si falta algo esencial, sugiere un sustituto común.
-                    La receta debe ser saludable, equilibrada y práctica.
-                    Incluye una estimación de macros y calorías.
+    if st.button("🍳 Generar Receta Personalizada", use_container_width=True):
+        with st.spinner("Diseñando tu platillo ideal..."):
+            try:
+                # Construimos el prompt con todas tus variables
+                prompt = f"""
+                Actúa como un chef y nutricionista experto. 
+                Crea una receta para {tiempo_comida}.
+                Considerando que mi horario de trabajo inicia a las {horario_trabajo.strftime('%H:%M')}, 
+                la receta debe ser adecuada en tiempo y energía.
+                
+                Preferencias:
+                - Proteínas a incluir: {proteinas}
+                - Frutas/Verduras que me gustan: {frutas_verduras}
+                - Ingredientes que NO debo incluir: {no_gustan}
+                - Nivel de cocina: {nivel_cocina}
+                
+                La receta debe ser saludable, equilibrada, práctica y deliciosa.
+                """
+                
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash", contents=prompt
+                )
+                
+                receta_txt = response.text
+                st.markdown("---")
+                st.markdown(receta_txt)
+                
+                # Guardar en sesión
+                st.session_state.ultima_receta = receta_txt
+                
+            except Exception as e:
+                st.error(f"Error al generar: {e}")
+
+    # Guardar en BD si ya existe una receta
+    if "ultima_receta" in st.session_state:
+        if st.button("💾 Guardar esta receta en mi cuenta"):
+            try:
+                execute_db(
                     """
-                    
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash", contents=prompt
-                    )
-                    
-                    receta_final = response.text
-                    st.markdown("---")
-                    st.markdown(receta_final)
-                    
-                    # Guardamos la receta en sesión para que no se pierda al interactuar
-                    st.session_state.ultima_receta = receta_final
-                    
-                except Exception as e:
-                    st.error(f"Error al conectar con la IA: {e}")
-
-        # Si ya generamos una, mostramos el botón de guardar
-        if "ultima_receta" in st.session_state:
-            if st.button("💾 Guardar esta receta en mi historial"):
-                try:
-                    execute_db(
-                        """
-                        INSERT INTO recetas_guardadas (user_id, dia_semana, tiempo_comida, receta_texto)
-                        VALUES (%s, %s, %s, %s)
-                    """,
-                        (user_id, "N/A", tiempo_comida, st.session_state.ultima_receta),
-                    )
-                    st.success("¡Receta guardada exitosamente!")
-                except Exception as e:
-                    st.error(f"Error al guardar en BD: {e}")
+                    INSERT INTO recetas_guardadas (user_id, dia_semana, tiempo_comida, receta_texto)
+                    VALUES (%s, %s, %s, %s)
+                """,
+                    (user_id, "General", tiempo_comida, st.session_state.ultima_receta),
+                )
+                st.success("¡Receta guardada!")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS
