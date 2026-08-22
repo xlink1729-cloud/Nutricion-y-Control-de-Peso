@@ -1,3 +1,4 @@
+import psycopg2
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -17,6 +18,25 @@ st.write(
     "Lleva el control de tu progreso físico, planifica tu semana y transforma"
     " tus porciones en recetas reales."
 )
+
+# Función para conectar a Neon cargando la URL desde secrets.toml
+@st.cache_resource
+def init_connection():
+    return psycopg2.connect(st.secrets["postgres"]["url"])
+
+conn = init_connection()
+
+# Función helper para ejecutar consultas de lectura (SELECT)
+def run_query(query, params=None):
+    with conn.cursor() as cur:
+        cur.execute(query, params)
+        return cur.fetchall()
+
+# Función helper para guardar o actualizar datos (INSERT / UPDATE)
+def execute_db(query, params=None):
+    with conn.cursor() as cur:
+        cur.execute(query, params)
+        conn.commit()
 
 def calcular_requerimiento_calorico(peso, estatura_cm, edad, sexo, nivel_actividad):
     """Calcula el Gasto Energético Total (TDEE) estimado usando Harris-Benedict."""
