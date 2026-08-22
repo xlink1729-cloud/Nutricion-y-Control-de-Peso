@@ -23,7 +23,7 @@ def init_connection():
 conn = init_connection()
 
 
-# --- SISTEMA DE AUTENTICACIÓN / MULTIUSUARIO ---
+# --- FUNCIONES DE BASE DE DATOS PARA AUTENTICACIÓN ---
 def verificar_usuario(email, password):
     with conn.cursor() as cur:
         cur.execute(
@@ -31,38 +31,103 @@ def verificar_usuario(email, password):
             (email,),
         )
         user = cur.fetchone()
-        if user and user[2] == password:  # Nota: En producción usar hash (bcrypt)
+        if user and user[2] == password:  # Nota: En producción se recomienda usar hash (bcrypt)
             return {"id": user[0], "nombre": user[1], "email": email}
     return None
 
 
+def registrar_nuevo_usuario(nombre, email, password):
+    try:
+        with conn.cursor() as cur:
+            # Verificar si el correo ya existe
+            cur.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
+            if cur.fetchone():
+                return False, "El correo electrónico ya está registrado."
+
+            # Insertar nuevo usuario
+            cur.execute(
+                "INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s) RETURNING id",
+                (nombre, email, password),
+            )
+            nuevo_id = cur.fetchone()[0]
+            conn.commit()
+            return True, nuevo_id
+    except Exception as e:
+        conn.rollback()
+        return False, str(e)
+
+
+# --- CONTROL DE SESIÓN ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
     st.markdown(
-        "<h2 style='text-align: center;'>🥗 Iniciar Sesión - NutriTrack</h2>",
+        "<h2 style='text-align: center;'>🥗 NutriTrack & Recetas</h2>",
         unsafe_allow_html=True,
     )
     col1, col2, col3 = st.columns([1, 1.5, 1])
-    with col2:
-        with st.form("login_form"):
-            email_input = st.text_input("Correo electrónico")
-            password_input = st.text_input("Contraseña", type="password")
-            submit_login = st.form_submit_button(
-                "Entrar", use_container_width=True
-            )
 
-            if submit_login:
-                usuario_valido = verificar_usuario(email_input, password_input)
-                if usuario_valido:
-                    st.session_state.user = usuario_valido
-                    st.success(
-                        f"¡Bienvenido de vuelta, {usuario_valido['nombre']}!"
+    with col2:
+        # Pestañas para elegir entre Iniciar Sesión o Registrarse
+        tab_login, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarme"])
+
+        with tab_login:
+            with st.form("login_form"):
+                email_input = st.text_input(
+                    "Correo electrónico", key="login_email"
+                )
+                password_input = st.text_input(
+                    "Contraseña", type="password", key="login_pass"
+                )
+                submit_login = st.form_submit_button(
+                    "Entrar", use_container_width=True
+                )
+
+                if submit_login:
+                    usuario_valido = verificar_usuario(
+                        email_input, password_input
                     )
-                    st.rerun()
-                else:
-                    st.error("Correo o contraseña incorrectos.")
+                    if usuario_valido:
+                        st.session_state.user = usuario_valido
+                        st.success(
+                            f"¡Bienvenido de vuelta,"
+                            f" {usuario_valido['nombre']}!"
+                        )
+                        st.rerun()
+                    else:
+                        st.error("Correo o contraseña incorrectos.")
+
+        with tab_registro:
+            with st.form("registro_form"):
+                nombre_nuevo = st.text_input("Nombre completo")
+                email_nuevo = st.text_input(
+                    "Correo electrónico", key="reg_email"
+                )
+                password_nuevo = st.text_input(
+                    "Crea una contraseña", type="password", key="reg_pass"
+                )
+                submit_registro = st.form_submit_button(
+                    "Crear Cuenta", use_container_width=True
+                )
+
+                if submit_registro:
+                    if not nombre_nuevo or not email_nuevo or not password_nuevo:
+                        st.warning(
+                            "Por favor, completa todos los campos para"
+                            " registrarte."
+                        )
+                    else:
+                        exito, resultado = registrar_nuevo_usuario(
+                            nombre_nuevo, email_nuevo, password_nuevo
+                        )
+                        if exito:
+                            st.success(
+                                "¡Cuenta creada con éxito! Ahora puedes iniciar"
+                                " sesión."
+                            )
+                        else:
+                            st.error(f"No se pudo registrar: {resultado}")
     st.stop()
 
 # Si ya hay sesión iniciada, mostramos el usuario en el sidebar y botón de cerrar sesión
@@ -121,7 +186,6 @@ if opcion == "🏠 Dashboard Principal":
     st.header("🏠 Resumen Diario")
     st.write("Vista rápida de tus metas, consumo e indicadores del día.")
 
-    # Cargar registros de peso del usuario desde la base de datos
     registros_db = run_query(
         """
         SELECT fecha, peso, objetivo, meta_principal, fecha_objetivo, diferencia, imc, diagnostico, grasa, musculo, meta_kcal 
@@ -547,7 +611,6 @@ elif opcion == "🍳 Generador de Recetas":
             receta_txt = response.text
             st.markdown(receta_txt)
 
-            # Guardar en base de datos de manera multiusuario
             if st.button("💾 Guardar Receta en BD"):
                 execute_db(
                     """
