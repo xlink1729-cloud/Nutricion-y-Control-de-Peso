@@ -14,21 +14,12 @@ st.set_page_config(
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
-# Configuración de la página
-st.set_page_config(
-    page_title="NutriTrack & Recetas", page_icon="🥗", layout="wide"
-)
-
-# Inicializar cliente de Gemini utilizando el Secret de Streamlit Cloud
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
-
-# Función para obtener una conexión fresca cada vez que se necesita
+# Función para obtener una conexión fresca a la base de datos
 def get_connection():
     return psycopg2.connect(st.secrets["postgres"]["url"])
 
 
-# --- FUNCIONES DE AUTENTICACIÓN Y BD SEGURAS ---
+# --- FUNCIONES DE BASE DE DATOS Y AUTENTICACIÓN ---
 def verificar_usuario(email, password):
     conn = get_connection()
     try:
@@ -90,6 +81,88 @@ def execute_db(query, params=None):
         conn.close()
 
 
+# --- CONTROL DE SESIÓN ---
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+# Si NO hay sesión iniciada, mostramos las pestañas y detenemos la ejecución aquí mismo
+if not st.session_state.user:
+    st.markdown(
+        "<h2 style='text-align: center;'>🥗 NutriTrack & Recetas</h2>",
+        unsafe_allow_html=True,
+    )
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+
+    with col2:
+        tab_login, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarme"])
+
+        with tab_login:
+            with st.form("login_form"):
+                email_input = st.text_input(
+                    "Correo electrónico", key="login_email"
+                )
+                password_input = st.text_input(
+                    "Contraseña", type="password", key="login_pass"
+                )
+                submit_login = st.form_submit_button(
+                    "Entrar", use_container_width=True
+                )
+
+                if submit_login:
+                    usuario_valido = verificar_usuario(
+                        email_input, password_input
+                    )
+                    if usuario_valido:
+                        st.session_state.user = usuario_valido
+                        st.success(
+                            f"¡Bienvenido de vuelta,"
+                            f" {usuario_valido['nombre']}!"
+                        )
+                        st.rerun()
+                    else:
+                        st.error("Correo o contraseña incorrectos.")
+
+        with tab_registro:
+            with st.form("registro_form"):
+                nombre_nuevo = st.text_input("Nombre completo")
+                email_nuevo = st.text_input(
+                    "Correo electrónico", key="reg_email"
+                )
+                password_nuevo = st.text_input(
+                    "Crea una contraseña", type="password", key="reg_pass"
+                )
+                submit_registro = st.form_submit_button(
+                    "Crear Cuenta", use_container_width=True
+                )
+
+                if submit_registro:
+                    if not nombre_nuevo or not email_nuevo or not password_nuevo:
+                        st.warning(
+                            "Por favor, completa todos los campos para"
+                            " registrarte."
+                        )
+                    else:
+                        exito, resultado = registrar_nuevo_usuario(
+                            nombre_nuevo, email_nuevo, password_nuevo
+                        )
+                        if exito:
+                            st.success(
+                                "¡Cuenta creada con éxito! Ve a la pestaña"
+                                " 'Iniciar Sesión' para entrar."
+                            )
+                        else:
+                            st.error(f"No se pudo registrar: {resultado}")
+    st.stop()
+
+
+# --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
+user_id = st.session_state.user["id"]
+st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
+if st.sidebar.button("🚪 Cerrar Sesión"):
+    st.session_state.user = None
+    st.rerun()
+
+
 st.title("🥗 NutriTrack & Generador de Recetas")
 st.write(
     f"Hola, {st.session_state.user['nombre']}. Lleva el control de tu progreso"
@@ -114,7 +187,6 @@ opcion = st.sidebar.radio(
     ],
 )
 
-# Inicializar estados de sesión
 if "lista_compras" not in st.session_state:
     st.session_state.lista_compras = []
 
