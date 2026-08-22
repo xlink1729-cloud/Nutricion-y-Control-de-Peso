@@ -39,6 +39,22 @@ def execute_db(query, params=None):
         cur.execute(query, params)
         conn.commit()
 
+# Función para guardar la receta en Neon
+def guardar_receta_db(dia, tiempo, texto_receta):
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO recetas_guardadas (dia_semana, tiempo_comida, receta_texto)
+                VALUES (%s, %s, %s)
+            """,
+                (dia, tiempo, texto_receta),
+            )
+            conn.commit()
+            st.success("💾 ¡Receta guardada exitosamente en la base de datos!")
+    except Exception as e:
+        st.error(f"Error al guardar en la base de datos: {e}")
+
 def calcular_requerimiento_calorico(peso, estatura_cm, edad, sexo, nivel_actividad):
     """Calcula el Gasto Energético Total (TDEE) estimado usando Harris-Benedict."""
     if sexo.lower() in ["hombre", "masculino"]:
