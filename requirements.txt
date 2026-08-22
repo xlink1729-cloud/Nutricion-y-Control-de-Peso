@@ -4,4 +4,3 @@ plotly
 google-genai
 pyarrow>=18.0.0
 psycopg2-binary
-streamlit
