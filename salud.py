@@ -24,6 +24,7 @@ st.write(
 def init_connection():
     return psycopg2.connect(st.secrets["postgres"]["url"])
 
+
 conn = init_connection()
 
 # Función helper para ejecutar consultas de lectura (SELECT)
