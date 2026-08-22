@@ -14,37 +14,45 @@ st.set_page_config(
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
-# Función para conectar a Neon cargando la URL desde secrets.toml
-@st.cache_resource
-def init_connection():
+# Configuración de la página
+st.set_page_config(
+    page_title="NutriTrack & Recetas", page_icon="🥗", layout="wide"
+)
+
+# Inicializar cliente de Gemini utilizando el Secret de Streamlit Cloud
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+
+# Función para obtener una conexión fresca cada vez que se necesita
+def get_connection():
     return psycopg2.connect(st.secrets["postgres"]["url"])
 
 
-conn = init_connection()
-
-
-# --- FUNCIONES DE AUTENTICACIÓN ---
+# --- FUNCIONES DE AUTENTICACIÓN Y BD SEGURAS ---
 def verificar_usuario(email, password):
-    with conn.cursor() as cur:
-        cur.execute(
-            "SELECT id, nombre, password FROM usuarios WHERE email = %s",
-            (email,),
-        )
-        user = cur.fetchone()
-        if user and user[2] == password:  # Nota: En producción usar hash (bcrypt)
-            return {"id": user[0], "nombre": user[1], "email": email}
-    return None
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, nombre, password FROM usuarios WHERE email = %s",
+                (email,),
+            )
+            user = cur.fetchone()
+            if user and user[2] == password:
+                return {"id": user[0], "nombre": user[1], "email": email}
+        return None
+    finally:
+        conn.close()
 
 
 def registrar_nuevo_usuario(nombre, email, password):
+    conn = get_connection()
     try:
         with conn.cursor() as cur:
-            # Verificar si el correo ya existe
             cur.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
             if cur.fetchone():
                 return False, "El correo electrónico ya está registrado."
 
-            # Insertar nuevo usuario
             cur.execute(
                 "INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s) RETURNING id",
                 (nombre, email, password),
@@ -55,99 +63,31 @@ def registrar_nuevo_usuario(nombre, email, password):
     except Exception as e:
         conn.rollback()
         return False, str(e)
+    finally:
+        conn.close()
 
 
-# --- CONTROL DE SESIÓN ---
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-if not st.session_state.user:
-    st.markdown(
-        "<h2 style='text-align: center;'>🥗 NutriTrack & Recetas</h2>",
-        unsafe_allow_html=True,
-    )
-    col1, col2, col3 = st.columns([1, 1.5, 1])
-
-    with col2:
-        tab_login, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarme"])
-
-        with tab_login:
-            with st.form("login_form"):
-                email_input = st.text_input(
-                    "Correo electrónico", key="login_email"
-                )
-                password_input = st.text_input(
-                    "Contraseña", type="password", key="login_pass"
-                )
-                submit_login = st.form_submit_button(
-                    "Entrar", use_container_width=True
-                )
-
-                if submit_login:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
-                    )
-                    if usuario_valido:
-                        st.session_state.user = usuario_valido
-                        st.success(
-                            f"¡Bienvenido de vuelta,"
-                            f" {usuario_valido['nombre']}!"
-                        )
-                        st.rerun()
-                    else:
-                        st.error("Correo o contraseña incorrectos.")
-
-        with tab_registro:
-            with st.form("registro_form"):
-                nombre_nuevo = st.text_input("Nombre completo")
-                email_nuevo = st.text_input(
-                    "Correo electrónico", key="reg_email"
-                )
-                password_nuevo = st.text_input(
-                    "Crea una contraseña", type="password", key="reg_pass"
-                )
-                submit_registro = st.form_submit_button(
-                    "Crear Cuenta", use_container_width=True
-                )
-
-                if submit_registro:
-                    if not nombre_nuevo or not email_nuevo or not password_nuevo:
-                        st.warning(
-                            "Por favor, completa todos los campos para"
-                            " registrarte."
-                        )
-                    else:
-                        exito, resultado = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo
-                        )
-                        if exito:
-                            st.success(
-                                "¡Cuenta creada con éxito! Ya puedes iniciar"
-                                " sesión en la pestaña de al lado."
-                            )
-                        else:
-                            st.error(f"No se pudo registrar: {resultado}")
-    st.stop()
-
-# Si ya hay sesión iniciada, mostramos el usuario en el sidebar y botón de cerrar sesión
-user_id = st.session_state.user["id"]
-st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
-if st.sidebar.button("🚪 Cerrar Sesión"):
-    st.session_state.user = None
-    st.rerun()
-
-
-# Funciones de Base de Datos con soporte Multiusuario (user_id)
 def run_query(query, params=None):
-    with conn.cursor() as cur:
-        cur.execute(query, params)
-        return cur.fetchall()
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, params)
+            return cur.fetchall()
+    finally:
+        conn.close()
 
 
 def execute_db(query, params=None):
-    with conn.cursor() as cur:
-        cur.execute(query, params)
-        conn.commit()
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, params)
+            conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 st.title("🥗 NutriTrack & Generador de Recetas")
