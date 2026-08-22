@@ -612,35 +612,62 @@ elif opcion == "🥗 Registro de Alimentación":
     st.info("Módulo de porciones sincronizado con tu cuenta.")
 
 # ==========================================
-# MÓDULO 5: GENERADOR DE RECETAS
+# MÓDULO 5: GENERADOR DE RECETAS AVANZADO
 # ==========================================
 elif opcion == "🍳 Generador de Recetas":
-    st.header("🍳 Generador de Recetas y Plan según Jornada")
-    tiempo_comida = st.selectbox(
-        "Selecciona el tiempo:", ["Desayuno", "Comida", "Cena"]
-    )
-    if st.button("🍳 Generar Receta con IA"):
-        try:
-            prompt = (
-                f"Crea una receta saludable y práctica para {tiempo_comida}."
-            )
-            response = client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt
-            )
-            receta_txt = response.text
-            st.markdown(receta_txt)
+    st.header("🍳 Generador Inteligente de Recetas")
+    
+    col_config, col_receta = st.columns([1, 2])
+    
+    with col_config:
+        tiempo_comida = st.selectbox("¿Qué toca preparar?", ["Desayuno", "Comida", "Cena", "Snack"])
+        jornada = st.selectbox("¿Cómo es tu jornada hoy?", ["Ligera", "Entrenamiento intenso", "Día de oficina sedentario", "Día con mucha actividad física"])
+        ingredientes = st.text_area("Ingredientes disponibles (separados por coma):", "pollo, espinacas, huevo, arroz, aguacate")
+        
+        btn_generar = st.button("🍳 Generar Receta con IA", use_container_width=True)
 
-            if st.button("💾 Guardar Receta en BD"):
-                execute_db(
+    with col_receta:
+        if btn_generar:
+            with st.spinner("Creando tu receta personalizada..."):
+                try:
+                    # Construimos un prompt mucho más rico para la IA
+                    prompt = f"""
+                    Actúa como un nutriólogo y chef profesional. 
+                    Crea una receta para {tiempo_comida} considerando que el usuario tiene un día de jornada: {jornada}.
+                    Utiliza preferentemente estos ingredientes: {ingredientes}.
+                    Si falta algo esencial, sugiere un sustituto común.
+                    La receta debe ser saludable, equilibrada y práctica.
+                    Incluye una estimación de macros y calorías.
                     """
-                    INSERT INTO recetas_guardadas (user_id, dia_semana, tiempo_comida, receta_texto)
-                    VALUES (%s, %s, %s, %s)
-                """,
-                    (user_id, "General", tiempo_comida, receta_txt),
-                )
-                st.success("¡Receta guardada en tu cuenta!")
-        except Exception as e:
-            st.error(f"Error: {e}")
+                    
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash", contents=prompt
+                    )
+                    
+                    receta_final = response.text
+                    st.markdown("---")
+                    st.markdown(receta_final)
+                    
+                    # Guardamos la receta en sesión para que no se pierda al interactuar
+                    st.session_state.ultima_receta = receta_final
+                    
+                except Exception as e:
+                    st.error(f"Error al conectar con la IA: {e}")
+
+        # Si ya generamos una, mostramos el botón de guardar
+        if "ultima_receta" in st.session_state:
+            if st.button("💾 Guardar esta receta en mi historial"):
+                try:
+                    execute_db(
+                        """
+                        INSERT INTO recetas_guardadas (user_id, dia_semana, tiempo_comida, receta_texto)
+                        VALUES (%s, %s, %s, %s)
+                    """,
+                        (user_id, "N/A", tiempo_comida, st.session_state.ultima_receta),
+                    )
+                    st.success("¡Receta guardada exitosamente!")
+                except Exception as e:
+                    st.error(f"Error al guardar en BD: {e}")
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS
