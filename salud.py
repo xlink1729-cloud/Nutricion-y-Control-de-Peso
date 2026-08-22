@@ -23,7 +23,7 @@ def init_connection():
 conn = init_connection()
 
 
-# --- FUNCIONES DE BASE DE DATOS PARA AUTENTICACIÓN ---
+# --- FUNCIONES DE AUTENTICACIÓN ---
 def verificar_usuario(email, password):
     with conn.cursor() as cur:
         cur.execute(
@@ -31,7 +31,7 @@ def verificar_usuario(email, password):
             (email,),
         )
         user = cur.fetchone()
-        if user and user[2] == password:  # Nota: En producción se recomienda usar hash (bcrypt)
+        if user and user[2] == password:  # Nota: En producción usar hash (bcrypt)
             return {"id": user[0], "nombre": user[1], "email": email}
     return None
 
@@ -69,7 +69,6 @@ if not st.session_state.user:
     col1, col2, col3 = st.columns([1, 1.5, 1])
 
     with col2:
-        # Pestañas para elegir entre Iniciar Sesión o Registrarse
         tab_login, tab_registro = st.tabs(["🔑 Iniciar Sesión", "📝 Registrarme"])
 
         with tab_login:
@@ -123,8 +122,8 @@ if not st.session_state.user:
                         )
                         if exito:
                             st.success(
-                                "¡Cuenta creada con éxito! Ahora puedes iniciar"
-                                " sesión."
+                                "¡Cuenta creada con éxito! Ya puedes iniciar"
+                                " sesión en la pestaña de al lado."
                             )
                         else:
                             st.error(f"No se pudo registrar: {resultado}")
@@ -651,7 +650,7 @@ elif opcion == "🔥 Seguimiento de Hábitos":
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (user_id, fecha) DO UPDATE SET agua = EXCLUDED.agua
             """,
-                (user_id, f_habito, h_agua, h_agua),
+                    (user_id, f_habito, h_agua, h_agua),
             )
             st.success("Hábitos guardados correctamente.")
         except Exception as e:
