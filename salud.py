@@ -4,6 +4,7 @@ import streamlit as st
 from google import genai
 from datetime import datetime, time
 import psycopg2
+psycopg2-binary
 
 # Configuración de la página
 st.set_page_config(
