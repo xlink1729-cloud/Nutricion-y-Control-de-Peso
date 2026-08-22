@@ -620,8 +620,9 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
         try:
             prompt = f"Crea un plan de 4 licuados para despertar usando estas frutas: {frutas_disponibles}."
             response = client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt
+                model="gemini-3.7-flash", contents=prompt
             )
+            
             st.session_state["plan_licuados_texto"] = response.text
         except Exception as e:
             st.error(f"Error: {e}")
