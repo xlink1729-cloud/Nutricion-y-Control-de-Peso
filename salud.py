@@ -622,7 +622,7 @@ elif opcion == "🥤 Licuados 5:00 AM (L-J)":
             response = client.models.generate_content(
                 model="gemini-3.7-flash", contents=prompt
             )
-            
+
             st.session_state["plan_licuados_texto"] = response.text
         except Exception as e:
             st.error(f"Error: {e}")
@@ -708,11 +708,11 @@ elif opcion == "🥗 Registro de Alimentación":
             st.rerun()
 
     # ----------------------------------------------------
-    # PESTAÑA 2: REGISTRO POR CALORÍAS Y REPETIR COMIDAS
+    # PESTAÑA 2: REGISTRO POR CALORÍAS Y REPETIR COMIDAS (CON IA)
     # ----------------------------------------------------
     with tab_frecuentes:
-        st.subheader("⚡ Registro por Calorías y Comidas Frecuentes")
-        st.caption("Ideal para días libres o para repetir platillos habituales con un solo clic.")
+        st.subheader("⚡ Registro Inteligente por Calorías")
+        st.caption("Escribe lo que comiste en lenguaje natural y deja que la IA calcule las calorías y proteínas por ti.")
 
         if "comidas_frecuentes" not in st.session_state:
             st.session_state.comidas_frecuentes = [
@@ -747,28 +747,85 @@ elif opcion == "🥗 Registro de Alimentación":
                     st.success(f"¡{item['Nombre']} agregado!")
                     st.rerun()
 
-        # Registro Manual
+        st.markdown("---")
+
+        # Registro Asistido por IA
         col_f1, col_f2 = st.columns([1, 1])
         with col_f1:
-            st.markdown("##### 📝 Registro Manual")
-            cat = st.selectbox("Categoría", ["Desayuno", "Comida", "Cena", "Snack"])
-            nom = st.text_input("Nombre del alimento", placeholder="Ej. Ensalada de pollo")
-            kc = st.number_input("Calorías (kcal)", min_value=0, value=350)
-            pr = st.number_input("Proteína (g)", min_value=0, value=25)
+            st.markdown("##### 🪄 Registro Asistido con IA")
+            cat = st.selectbox("Categoría", ["Desayuno", "Comida", "Cena", "Snack"], key="cat_ia")
+            
+            # Campo descriptivo libre
+            desc_comida = st.text_area(
+                "¿Qué comiste?", 
+                placeholder="Ej. Sándwich de jamón con lechuga, jitomate, panela y mayonesa.",
+                key="desc_ia"
+            )
 
-            if st.button("📌 Guardar en Diario", use_container_width=True):
-                if nom.strip() != "":
-                    nuevo_m = pd.DataFrame([{"Comida": cat, "Alimento": nom, "Kcal": kc, "Proteína (g)": pr}])
-                    st.session_state.diario_alimentos = pd.concat(
-                        [st.session_state.diario_alimentos, nuevo_m], ignore_index=True
-                    )
-                    st.success("¡Alimento registrado!")
-                    st.rerun()
+            if st.button("✨ Calcular con IA y Registrar", use_container_width=True):
+                if desc_comida.strip() != "":
+                    with st.spinner("Calculando nutrimentos con Gemini..."):
+                        try:
+                            prompt_calorias = f"""
+                            Actúa como un nutriólogo experto. Analiza el siguiente alimento/platillo descrito por el usuario y estima sus calorías y proteína total de forma realista.
+                            Alimento: "{desc_comida}"
+
+                            Responde ÚNICAMENTE en el siguiente formato estricto de texto plano, sin explicaciones adicionales:
+                            KCALS: [número entero de calorías aproximadas]
+                            PROTEINA: [número entero de gramos de proteína aproximados]
+                            """
+                            
+                            response = client.models.generate_content(
+                                model="gemini-3.7-flash", contents=prompt_calorias
+                            )
+                            texto_respuesta = response.text.strip()
+                            
+                            # Parsear la respuesta de la IA de forma segura
+                            kcal_calc = 350  # Valor por defecto si falla el parseo
+                            prot_calc = 20
+                            
+                            for linea in texto_respuesta.split('\n'):
+                                if "KCALS:" in linea:
+                                    kcal_calc = int(''.filter(str.isdigit, linea)) if any(c.isdigit() for c in linea) else 350
+                                if "PROTEINA:" in linea:
+                                    prot_calc = int(''.filter(str.isdigit, linea)) if any(c.isdigit() for c in linea) else 20
+                            
+                            # Guardar directamente en el diario
+                            nuevo_m = pd.DataFrame([{
+                                "Comida": cat, 
+                                "Alimento": desc_comida, 
+                                "Kcal": kcal_calc, 
+                                "Proteína (g)": prot_calc
+                            }])
+                            st.session_state.diario_alimentos = pd.concat(
+                                [st.session_state.diario_alimentos, nuevo_m], ignore_index=True
+                            )
+                            st.success(f"¡Registrado! Estimado: 🔥 {kcal_calc} kcal | 🥗 {prot_calc}g prot")
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"No se pudo calcular automáticamente: {e}")
+                else:
+                    st.warning("Por favor escribe qué fue lo que comiste.")
+
+            # Opción por si prefieren meterlo a mano de forma tradicional
+            with st.expander("📝 O ingresar manualmente (Sin IA)"):
+                nom_m = st.text_input("Nombre corto", placeholder="Ej. Pollo con arroz")
+                kc_m = st.number_input("Calorías (kcal)", min_value=0, value=350, key="kc_manual")
+                pr_m = st.number_input("Proteína (g)", min_value=0, value=25, key="pr_manual")
+                if st.button("📌 Guardar Manual", use_container_width=True):
+                    if nom_m.strip() != "":
+                        nuevo_man = pd.DataFrame([{"Comida": cat, "Alimento": nom_m, "Kcal": kc_m, "Proteína (g)": pr_m}])
+                        st.session_state.diario_alimentos = pd.concat(
+                            [st.session_state.diario_alimentos, nuevo_man], ignore_index=True
+                        )
+                        st.success("¡Guardado manualmente!")
+                        st.rerun()
 
         with col_f2:
             st.markdown("##### 📊 Consumo de Hoy")
-            tot_k = st.session_state.diario_alimentos["Kcal"].sum()
-            tot_p = st.session_state.diario_alimentos["Proteína (g)"].sum()
+            tot_k = st.session_state.diario_alimentos["Kcal"].sum() if not st.session_state.diario_alimentos.empty else 0
+            tot_p = st.session_state.diario_alimentos["Proteína (g)"].sum() if not st.session_state.diario_alimentos.empty else 0
 
             m_k, m_p = st.columns(2)
             m_k.metric("🔥 Total Calorías", f"{tot_k} kcal")
