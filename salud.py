@@ -421,65 +421,6 @@ if not st.session_state.user:
     # Detiene la ejecución para no cargar el dashboard/app si no hay usuario
     st.stop()
 
-# --- A PARTIR DE AQUÍ VA EL CÓDIGO DE TU APP PRINCIPAL (DASHBOARD) ---
-#st.write(f"Bienvenido, {st.session_state.user}")
-
-# 2. FORMULARIO REGISTRO
-with tab_registro:
-    with st.form("registro_form"):
-        nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
-        email_nuevo = st.text_input(
-            "Correo electrónico",
-            placeholder="ejemplo@correo.com",
-            key="reg_email",
-        )
-        password_nuevo = st.text_input(
-            "Contraseña",
-            type="password",
-            placeholder="••••••••",
-            key="reg_pass",
-        )
-        pin_nuevo = st.text_input(
-            "PIN de seguridad (4 dígitos)",
-            max_chars=4,
-            type="password",
-            placeholder="1234",
-            key="reg_pin",
-        )
-        submit_registro = st.form_submit_button(
-            "REGISTRARME", use_container_width=True
-        )
-
-        if submit_registro:
-            bloqueado, segs = esta_bloqueado("registro")
-            if bloqueado:
-                st.error(
-                    f"Límite de solicitudes de registro. Reintenta en {segs}s."
-                )
-            else:
-                if (
-                    nombre_nuevo
-                    and email_nuevo
-                    and password_nuevo
-                    and len(pin_nuevo) == 4
-                ):
-                    exito, msg = registrar_nuevo_usuario(
-                        nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
-                    )
-                    if exito:
-                        resetear_intentos("registro")
-                        st.success(
-                            "¡Cuenta creada! Ahora puedes iniciar sesión."
-                        )
-                    else:
-                        registrar_intento_fallido("registro")
-                        st.error(f"Error al registrar: {msg}")
-                else:
-                    registrar_intento_fallido("registro")
-                    st.error(
-                        "Por favor completa todos los campos correctamente."
-                    )
-
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
 st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
