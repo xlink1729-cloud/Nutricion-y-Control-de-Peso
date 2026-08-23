@@ -480,56 +480,6 @@ with tab_registro:
                         "Por favor completa todos los campos correctamente."
                     )
 
-# 3. FORMULARIO RECUPERAR (Alineado al nivel principal de las pestañas)
-with tab_recuperar:
-    with st.form("recuperar_form"):
-        email_recuperar = st.text_input(
-            "Correo electrónico",
-            placeholder="ejemplo@correo.com",
-            key="rec_email",
-        )
-        pin_recuperar = st.text_input(
-            "PIN de seguridad",
-            max_chars=4,
-            type="password",
-            placeholder="1234",
-            key="rec_pin",
-        )
-        nueva_pw = st.text_input(
-            "Nueva contraseña",
-            type="password",
-            placeholder="••••••••",
-            key="rec_pw1",
-        )
-        confirmar_pw = st.text_input(
-            "Confirmar contraseña",
-            type="password",
-            placeholder="••••••••",
-            key="rec_pw2",
-        )
-        submit_recuperar = st.form_submit_button(
-            "ACTUALIZAR CONTRASEÑA", use_container_width=True
-        )
-
-        if submit_recuperar:
-            bloqueado, segs = esta_bloqueado("recuperar")
-            if bloqueado:
-                st.error(f"Bloqueo de seguridad activo. Reintenta en {segs}s.")
-            elif nueva_pw != confirmar_pw:
-                st.error("Las contraseñas no coinciden.")
-            else:
-                exito, msg = cambiar_password_db(
-                    email_recuperar, pin_recuperar, nueva_pw
-                )
-                if exito:
-                    resetear_intentos("recuperar")
-                    st.success(msg)
-                else:
-                    registrar_intento_fallido("recuperar")
-                    st.error(msg)
-
-st.stop()
-
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
 st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
