@@ -5,6 +5,7 @@ import plotly.express as px
 import psycopg2
 import streamlit as st
 import bcrypt
+import base64
 
 # Configuración de la página
 st.set_page_config(
@@ -120,7 +121,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN PERFECCIONADO ---
+# --- CONTROL DE SESIÓN CON CENTRADO Y LOGO OPTIMIZADO ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -136,39 +137,48 @@ if not st.session_state.user:
             background-attachment: fixed;
         }
 
-        /* Fuerza a que TODO (logo + pestañas + formulario) viva en un bloque central */
+        /* Enmarcar todo en una columna fija en el centro */
         .main .block-container {
-            max-width: 400px !important;
-            padding-top: 1.5rem !important;
+            max-width: 420px !important;
+            padding-top: 2rem !important;
             padding-bottom: 2rem !important;
-            margin: auto;
+            margin: 0 auto !important;
         }
 
-        /* Marco del logo fuera del formulario pero alineado */
-        [data-testid="stImage"] {
+        /* Contenedor del Logo con tarjeta clara para resaltar el texto oscuro */
+        .logo-card-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 0.5rem;
+            align-items: center;
+            margin-bottom: 1.2rem;
         }
-        [data-testid="stImage"] img {
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            background-color: #1a1a1a; /* Da contraste si el borde de la imagen es oscuro */
+        .logo-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 150px;
+            text-align: center;
+        }
+        .logo-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
         }
 
-        /* Pestañas integradas al ancho de la tarjeta */
+        /* Estilizado de Pestañas Centradas */
         .stTabs [data-baseweb="tab-list"] {
             gap: 4px;
             background-color: rgba(0, 0, 0, 0.4);
             padding: 4px;
             border-radius: 12px;
-            margin-top: 1rem;
             margin-bottom: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
             width: 100%;
         }
         .stTabs [data-baseweb="tab"] {
-            height: 36px;
+            height: 38px;
             border-radius: 8px;
             color: rgba(255, 255, 255, 0.6);
             font-weight: 600;
@@ -212,8 +222,16 @@ if not st.session_state.user:
         unsafe_allow_html=True,
     )
 
-    # 1. LOGO CENTRADO (Fuera del formulario)
-    st.image("static/logo.jpg", width=120)
+    # Convertir imagen local a base64 para cargarla limpiamente
+    try:
+        with open("static/logo.jpg", "rb") as img_file:
+            img_b64 = base64.b64encode(img_file.read()).decode()
+        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="NutriTrack"></div></div>'
+    except Exception:
+        logo_html = ""
+
+    # 1. MOSTRAR LOGO CENTRADO
+    st.markdown(logo_html, unsafe_allow_html=True)
 
     # 2. PESTAÑAS Y FORMULARIOS
     tab_login, tab_registro, tab_recuperar = st.tabs(
