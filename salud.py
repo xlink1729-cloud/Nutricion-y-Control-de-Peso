@@ -221,7 +221,7 @@ if not st.session_state.user:
     # --- LOGO EXTERNO CENTRADO Y COMPACTO ---
     col_l1, col_l2, col_l3 = st.columns([2, 1, 2])
     with col_l2:
-        st.image("static/logo.jpg", width=120)
+        st.image("static/logo.jpg", width=180)
 
     # --- PESTAÑAS DE NAVEGACIÓN ---
     tab_login, tab_registro, tab_recuperar = st.tabs(
