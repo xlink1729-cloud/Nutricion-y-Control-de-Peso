@@ -120,7 +120,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON TU LOGO Y PALETA VERDE ---
+# --- CONTROL DE SESIÓN CON LOGO AJUSTADO ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -128,61 +128,38 @@ if not st.session_state.user:
     st.markdown(
         """
         <style>
-        /* 1. Ocultar elementos nativos de Streamlit */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
+        #MainMenu, footer, header {visibility: hidden;}
         
-        /* 2. Fondo Global Oscuro con Gradiente Nutritivo (Verdes / Oscuros) */
         .stApp {
             background: radial-gradient(circle at 20% 20%, #064e3b 0%, #111827 50%),
                         radial-gradient(circle at 80% 80%, #022c22 0%, #000000 100%);
             background-attachment: fixed;
         }
 
-        /* 3. Centrado del Contenedor */
         .main .block-container {
-            max-width: 420px;
-            padding-top: 3rem;
-            padding-bottom: 3rem;
+            max-width: 420px !important;
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+            margin: auto;
         }
 
-        /* 4. Tarjeta Glassmorphism */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.125);
-            border-radius: 24px !important;
-            padding: 2.5rem 2rem !important;
+            border-radius: 20px !important;
+            padding: 2rem 1.5rem !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* 5. Estilo Adaptado para TU Logo */
-        .glass-logo-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        .glass-logo {
-            width: 170px; /* Tamaño optimizado para que luzca la marca y el eslogan */
-            height: auto;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease;
-        }
-        .glass-logo:hover {
-            transform: scale(1.02);
-        }
-
-        /* 6. Pestañas Translúcidas */
+        /* Estilizado de pestañas */
         .stTabs [data-baseweb="tab-list"] {
             gap: 4px;
             background-color: rgba(0, 0, 0, 0.3);
             padding: 4px;
             border-radius: 12px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .stTabs [data-baseweb="tab"] {
@@ -201,7 +178,17 @@ if not st.session_state.user:
             border: 1px solid rgba(16, 185, 129, 0.4);
         }
 
-        /* 7. Inputs de Texto Estilo Minimalista */
+        /* Centrado estricto para el contenedor del logo de Streamlit */
+        [data-testid="stForm"] [data-testid="stImage"] {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        [data-testid="stForm"] [data-testid="stImage"] img {
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
         .stTextInput > label {
             color: rgba(255, 255, 255, 0.85) !important;
             font-size: 0.85rem !important;
@@ -211,38 +198,22 @@ if not st.session_state.user:
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             border-radius: 10px !important;
-            padding: 0.6rem 1rem !important;
         }
-        .stTextInput input:focus {
-            border-color: #10b981 !important;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
-        }
-
-        /* 8. Botón Verde Esmeralda (Haciendo juego con la manzana) */
         .stButton > button {
             width: 100%;
-            border-radius: 12px !important;
+            border-radius: 10px !important;
             font-weight: 600 !important;
-            letter-spacing: 0.5px;
             background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
             color: white !important;
             border: none !important;
-            padding: 0.75rem 1rem !important;
-            margin-top: 1rem;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-        .stButton > button:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+            padding: 0.65rem 1rem !important;
+            margin-top: 0.5rem;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # Pestañas Superiores
     tab_login, tab_registro, tab_recuperar = st.tabs(
         ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
@@ -250,14 +221,7 @@ if not st.session_state.user:
     # --- INICIAR SESIÓN ---
     with tab_login:
         with st.form("login_form"):
-            st.markdown(
-                """
-                <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.image("static/logo.jpg", width=140)
 
             email_input = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
@@ -276,25 +240,12 @@ if not st.session_state.user:
     # --- REGISTRO ---
     with tab_registro:
         with st.form("registro_form"):
-            st.markdown(
-                """
-                <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.image("static/logo.jpg", width=140)
 
             nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
             email_nuevo = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
             password_nuevo = st.text_input("Contraseña", type="password", placeholder="••••••••", key="reg_pass")
-            pin_nuevo = st.text_input(
-                "PIN de seguridad (4 dígitos)",
-                max_chars=4,
-                type="password",
-                placeholder="1234",
-                key="reg_pin",
-            )
+            pin_nuevo = st.text_input("PIN de seguridad (4 dígitos)", max_chars=4, type="password", placeholder="1234", key="reg_pin")
             
             submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
 
@@ -302,9 +253,7 @@ if not st.session_state.user:
                 if not nombre_nuevo or not email_nuevo or not password_nuevo or not pin_nuevo:
                     st.warning("Por favor completa todos los campos.")
                 else:
-                    exito, msj = registrar_nuevo_usuario(
-                        nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
-                    )
+                    exito, msj = registrar_nuevo_usuario(nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo)
                     if exito:
                         st.success("¡Cuenta creada! Ve a 'INICIAR SESIÓN'.")
                     else:
@@ -313,10 +262,7 @@ if not st.session_state.user:
     # --- RECUPERAR ---
     with tab_recuperar:
         with st.form("recuperar_form"):
-            # Centrado del logo usando columnas nativas
-            _, col_logo, _ = st.columns([1, 2, 1])
-            with col_logo:
-                st.image("static/logo.jpg", use_container_width=True)
+            st.image("static/logo.jpg", width=140)
 
             email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
             pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
@@ -337,7 +283,6 @@ if not st.session_state.user:
                     else:
                         st.error(msj)
 
-    # Detener la ejecución para usuarios no autenticados
     st.stop()
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
