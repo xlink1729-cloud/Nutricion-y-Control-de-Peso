@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 from google import genai
 import pandas as pd
 import plotly.express as px
@@ -6,6 +6,7 @@ import psycopg2
 import streamlit as st
 import bcrypt
 import base64
+import time
 
 # --- CONFIGURACIÓN DE RATE LIMITING ---
 MAX_ATTEMPTS = 3
