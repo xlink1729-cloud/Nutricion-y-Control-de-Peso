@@ -120,7 +120,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON ESTILO GLASSMORPHISM Y LOGO ---
+# --- CONTROL DE SESIÓN CON TU LOGO Y PALETA VERDE ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -133,10 +133,10 @@ if not st.session_state.user:
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        /* 2. Fondo Global Oscuro con Gradiente Radial */
+        /* 2. Fondo Global Oscuro con Gradiente Nutritivo (Verdes / Oscuros) */
         .stApp {
-            background: radial-gradient(circle at 20% 20%, #4a154b 0%, #111827 50%),
-                        radial-gradient(circle at 80% 80%, #1e1b4b 0%, #000000 100%);
+            background: radial-gradient(circle at 20% 20%, #064e3b 0%, #111827 50%),
+                        radial-gradient(circle at 80% 80%, #022c22 0%, #000000 100%);
             background-attachment: fixed;
         }
 
@@ -147,7 +147,7 @@ if not st.session_state.user:
             padding-bottom: 3rem;
         }
 
-        /* 4. Tarjeta Glassmorphism (Efecto Cristal) */
+        /* 4. Tarjeta Glassmorphism */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.05) !important;
             backdrop-filter: blur(16px) saturate(180%);
@@ -158,44 +158,28 @@ if not st.session_state.user:
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* 5. Estilo para el Logo */
+        /* 5. Estilo Adaptado para TU Logo */
         .glass-logo-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1rem;
-        }
-        .glass-logo {
-            width: 85px;
-            height: 85px;
-            object-fit: contain;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        /* 6. Título de la App dentro de la tarjeta */
-        .glass-title {
-            text-align: center;
-            color: #ffffff;
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 0.2rem;
-        }
-        .glass-subtitle {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.85rem;
             margin-bottom: 1.5rem;
         }
+        .glass-logo {
+            width: 170px; /* Tamaño optimizado para que luzca la marca y el eslogan */
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+        .glass-logo:hover {
+            transform: scale(1.02);
+        }
 
-        /* 7. Pestañas Translúcidas */
+        /* 6. Pestañas Translúcidas */
         .stTabs [data-baseweb="tab-list"] {
             gap: 4px;
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(0, 0, 0, 0.3);
             padding: 4px;
             border-radius: 12px;
             margin-bottom: 1.5rem;
@@ -212,13 +196,14 @@ if not st.session_state.user:
             justify-content: center;
         }
         .stTabs [aria-selected="true"] {
-            background-color: rgba(255, 255, 255, 0.15) !important;
+            background-color: rgba(16, 185, 129, 0.25) !important;
             color: #ffffff !important;
+            border: 1px solid rgba(16, 185, 129, 0.4);
         }
 
-        /* 8. Inputs de Texto Estilo Minimalista */
+        /* 7. Inputs de Texto Estilo Minimalista */
         .stTextInput > label {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: rgba(255, 255, 255, 0.85) !important;
             font-size: 0.85rem !important;
         }
         .stTextInput input {
@@ -229,28 +214,28 @@ if not st.session_state.user:
             padding: 0.6rem 1rem !important;
         }
         .stTextInput input:focus {
-            border-color: #8b5cf6 !important;
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
         }
 
-        /* 9. Botón con Degradado Vibrante */
+        /* 8. Botón Verde Esmeralda (Haciendo juego con la manzana) */
         .stButton > button {
             width: 100%;
             border-radius: 12px !important;
             font-weight: 600 !important;
             letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #4c1d95 0%, #2563eb 50%, #3b82f6 100%) !important;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
             color: white !important;
             border: none !important;
             padding: 0.75rem 1rem !important;
             margin-top: 1rem;
             transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
         .stButton > button:hover {
-            opacity: 0.9;
+            opacity: 0.95;
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         }
         </style>
         """,
@@ -265,22 +250,19 @@ if not st.session_state.user:
     # --- INICIAR SESIÓN ---
     with tab_login:
         with st.form("login_form"):
-            # Renderizado del Logo desde la carpeta static/
             st.markdown(
                 """
                 <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<div class="glass-title">NutriTrack</div>', unsafe_allow_html=True)
-            st.markdown('<div class="glass-subtitle">Ingresa a tu cuenta</div>', unsafe_allow_html=True)
 
             email_input = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
             
-            submit_login = st.form_submit_button("LOGIN", use_container_width=True)
+            submit_login = st.form_submit_button("INGRESAR", use_container_width=True)
 
             if submit_login:
                 usuario_valido = verificar_usuario(email_input, password_input)
@@ -297,13 +279,11 @@ if not st.session_state.user:
             st.markdown(
                 """
                 <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<div class="glass-title">Crear Cuenta</div>', unsafe_allow_html=True)
-            st.markdown('<div class="glass-subtitle">Únete a NutriTrack</div>', unsafe_allow_html=True)
 
             nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
             email_nuevo = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
@@ -336,13 +316,11 @@ if not st.session_state.user:
             st.markdown(
                 """
                 <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            st.markdown('<div class="glass-title">Recuperar</div>', unsafe_allow_html=True)
-            st.markdown('<div class="glass-subtitle">Reestablece tu contraseña</div>', unsafe_allow_html=True)
 
             email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
             pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
@@ -363,9 +341,8 @@ if not st.session_state.user:
                     else:
                         st.error(msj)
 
-    # Detener ejecución si no hay sesión activa
+    # Detener la ejecución para usuarios no autenticados
     st.stop()
-
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
