@@ -120,7 +120,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON LOGO EXTERNO Y CENTRADO ---
+# --- CONTROL DE SESIÓN PULIDO Y COMPACTO ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -128,47 +128,38 @@ if not st.session_state.user:
     st.markdown(
         """
         <style>
-        /* 1. Ocultar interfaz nativa de Streamlit */
         #MainMenu, footer, header {visibility: hidden;}
         
-        /* 2. Fondo Radial Oscuro */
         .stApp {
             background: radial-gradient(circle at 20% 20%, #064e3b 0%, #111827 50%),
                         radial-gradient(circle at 80% 80%, #022c22 0%, #000000 100%);
             background-attachment: fixed;
         }
 
-        /* 3. Contenedor Central Angosto */
+        /* Enmarcar TODO el contenido en un bloque central */
         .main .block-container {
-            max-width: 440px !important;
+            max-width: 420px !important;
             padding-top: 2rem !important;
             padding-bottom: 2rem !important;
             margin: auto;
         }
 
-        /* 4. Estilo de Imagen Redondeada */
-        [data-testid="stImage"] img {
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-        }
-
-        /* 5. Estilizado de Pestañas Centradas */
+        /* Estilizado de Pestañas */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 6px;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 5px;
-            border-radius: 14px;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 4px;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .stTabs [data-baseweb="tab"] {
-            height: 40px;
-            border-radius: 10px;
+            height: 38px;
+            border-radius: 8px;
             border: none;
             color: rgba(255, 255, 255, 0.6);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             flex-grow: 1;
             justify-content: center;
         }
@@ -177,19 +168,23 @@ if not st.session_state.user:
             color: #ffffff !important;
             border: 1px solid rgba(16, 185, 129, 0.4);
         }
+        
+        /* Quitar la barra roja nativa de Streamlit en la pestaña activa */
+        .stTabs [data-baseweb="tab-highlight-title"] {
+            display: none;
+        }
 
-        /* 6. Tarjetas de Formularios Glassmorphism */
+        /* Estilizado del formulario */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 20px !important;
-            padding: 2rem 1.5rem !important;
+            padding: 1.8rem 1.5rem !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* 7. Inputs y Botones */
+        /* Inputs y Botón */
         .stTextInput > label {
             color: rgba(255, 255, 255, 0.85) !important;
             font-size: 0.85rem !important;
@@ -199,9 +194,6 @@ if not st.session_state.user:
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             border-radius: 10px !important;
-        }
-        .stTextInput input:focus {
-            border-color: #10b981 !important;
         }
         .stButton > button {
             width: 100%;
@@ -218,19 +210,17 @@ if not st.session_state.user:
         unsafe_allow_html=True,
     )
 
-    # --- LOGO EXTERNO CENTRADO Y COMPACTO ---
-    col_l1, col_l2, col_l3 = st.columns([2, 1, 2])
-    with col_l2:
-        st.image("static/logo.jpg", width=180)
-
-    # --- PESTAÑAS DE NAVEGACIÓN ---
+    # --- PESTAÑAS DENTRO DEL BLOQUE CENTRAL ---
     tab_login, tab_registro, tab_recuperar = st.tabs(
         ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
 
-    # --- INICIAR SESIÓN ---
     with tab_login:
         with st.form("login_form"):
+            col1, col2, col3 = st.columns([1, 1.2, 1])
+            with col2:
+                st.image("static/logo.jpg", width=110)
+
             email_input = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
             
@@ -245,9 +235,12 @@ if not st.session_state.user:
                 else:
                     st.error("Correo o contraseña incorrectos.")
 
-    # --- REGISTRO ---
     with tab_registro:
         with st.form("registro_form"):
+            col1, col2, col3 = st.columns([1, 1.2, 1])
+            with col2:
+                st.image("static/logo.jpg", width=110)
+
             nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
             email_nuevo = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
             password_nuevo = st.text_input("Contraseña", type="password", placeholder="••••••••", key="reg_pass")
@@ -265,9 +258,12 @@ if not st.session_state.user:
                     else:
                         st.error(f"Error al registrar: {msj}")
 
-    # --- RECUPERAR ---
     with tab_recuperar:
         with st.form("recuperar_form"):
+            col1, col2, col3 = st.columns([1, 1.2, 1])
+            with col2:
+                st.image("static/logo.jpg", width=110)
+
             email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
             pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
             nueva_pw = st.text_input("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
