@@ -260,7 +260,7 @@ if not st.session_state.user:
         ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
 
-    # 1. FORMULARIO LOGIN (Indentado dentro del 'if not st.session_state.user')
+    # 1. FORMULARIO LOGIN
     with tab_login:
         with st.form("login_form"):
             email_input = st.text_input(
@@ -416,7 +416,9 @@ if not st.session_state.user:
                     else:
                         registrar_intento_fallido("recuperar")
                         st.error(msg)
-st.stop()
+
+    # Detiene la ejecución aquí para mostrar los formularios al usuario no autenticado
+    st.stop()
 
 # 2. FORMULARIO REGISTRO
 with tab_registro:
