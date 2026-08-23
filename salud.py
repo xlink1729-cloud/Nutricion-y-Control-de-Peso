@@ -259,147 +259,154 @@ if not st.session_state.user:
         ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
 
-    # 1. FORMULARIO LOGIN
-    with tab_login:
-        with st.form("login_form"):
-            email_input = st.text_input(
-                "Correo electrónico",
-                placeholder="ejemplo@correo.com",
-                key="login_email",
-            )
-            password_input = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="login_pass",
-            )
-            submit_login = st.form_submit_button(
-                "INGRESAR", use_container_width=True
-            )
+# 1. FORMULARIO LOGIN
+with tab_login:
+    with st.form("login_form"):
+        email_input = st.text_input(
+            "Correo electrónico",
+            placeholder="ejemplo@correo.com",
+            key="login_email",
+        )
+        password_input = st.text_input(
+            "Contraseña",
+            type="password",
+            placeholder="••••••••",
+            key="login_pass",
+        )
+        submit_login = st.form_submit_button(
+            "INGRESAR", use_container_width=True
+        )
 
-            if submit_login:
-                bloqueado, segs = esta_bloqueado("login")
-                if bloqueado:
-                    st.error(
-                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
-                    )
+        if submit_login:
+            bloqueado, segs = esta_bloqueado("login")
+            if bloqueado:
+                st.error(f"Demasiados intentos fallidos. Reintenta en {segs}s.")
+            else:
+                usuario_valido = verificar_usuario(email_input, password_input)
+                if usuario_valido:
+                    resetear_intentos("login")
+                    st.session_state.user = usuario_valido
+                    st.rerun()
                 else:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
+                    registrar_intento_fallido("login")
+                    intentos_restantes = (
+                        MAX_ATTEMPTS - st.session_state.login_attempts
                     )
-                    if usuario_valido:
-                        resetear_intentos("login")
-                        st.session_state.user = usuario_valido
-                        st.rerun()
+                    if intentos_restantes > 0:
+                        st.error(
+                            "Credenciales incorrectas. Intentos restantes:"
+                            f" {intentos_restantes}"
+                        )
                     else:
-                        registrar_intento_fallido("login")
-                        intentos_restantes = (
-                            MAX_ATTEMPTS - st.session_state.login_attempts
+                        st.error(
+                            f"Límite superado. Bloqueado por {LOCKOUT_DURATION}s."
                         )
-                        if intentos_restantes > 0:
-                            st.error(
-                                "Credenciales incorrectas. Intentos restantes:"
-                                f" {intentos_restantes}"
-                            )
-                        else:
-                            st.error(
-                                "Límite superado. Bloqueado por"
-                                f" {LOCKOUT_DURATION}s."
-                            )
 
-    # 2. FORMULARIO REGISTRO
-    with tab_registro:
-        with st.form("registro_form"):
-            nombre_nuevo = st.text_input(
-                "Nombre completo", placeholder="Tu nombre"
-            )
-            email_nuevo = st.text_input(
-                "Correo electrónico",
-                placeholder="ejemplo@correo.com",
-                key="reg_email",
-            )
-            password_nuevo = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="reg_pass",
-            )
-            pin_nuevo = st.text_input(
-                "PIN de seguridad (4 dígitos)",
-                max_chars=4,
-                type="password",
-                placeholder="1234",
-                key="reg_pin",
-            )
-            submit_registro = st.form_submit_button(
-                "REGISTRARME", use_container_width=True
-            )
+# 2. FORMULARIO REGISTRO
+with tab_registro:
+    with st.form("registro_form"):
+        nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
+        email_nuevo = st.text_input(
+            "Correo electrónico",
+            placeholder="ejemplo@correo.com",
+            key="reg_email",
+        )
+        password_nuevo = st.text_input(
+            "Contraseña",
+            type="password",
+            placeholder="••••••••",
+            key="reg_pass",
+        )
+        pin_nuevo = st.text_input(
+            "PIN de seguridad (4 dígitos)",
+            max_chars=4,
+            type="password",
+            placeholder="1234",
+            key="reg_pin",
+        )
+        submit_registro = st.form_submit_button(
+            "REGISTRARME", use_container_width=True
+        )
 
-            if submit_registro:
-                bloqueado, segs = esta_bloqueado("registro")
-                if bloqueado:
-                    st.error(
-                        f"Límite de solicitudes de registro. Reintenta en"
-                        f" {segs}s."
+        if submit_registro:
+            bloqueado, segs = esta_bloqueado("registro")
+            if bloqueado:
+                st.error(
+                    f"Límite de solicitudes de registro. Reintenta en {segs}s."
+                )
+            else:
+                if (
+                    nombre_nuevo
+                    and email_nuevo
+                    and password_nuevo
+                    and len(pin_nuevo) == 4
+                ):
+                    exito, msg = registrar_nuevo_usuario(
+                        nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
                     )
-                else:
-                    if (
-                        nombre_nuevo
-                        and email_nuevo
-                        and password_nuevo
-                        and len(pin_nuevo) == 4
-                    ):
-                        exito, msg = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
+                    if exito:
+                        resetear_intentos("registro")
+                        st.success(
+                            "¡Cuenta creada! Ahora puedes iniciar sesión."
                         )
-                        if exito:
-                            resetear_intentos("registro")
-                            st.success(
-                                "¡Cuenta creada! Ahora puedes iniciar sesión."
-                            )
-                        else:
-                            registrar_intento_fallido("registro")
-                            st.error(f"Error al registrar: {msg}")
                     else:
                         registrar_intento_fallido("registro")
-                        st.error(
-                            "Por favor completa todos los campos correctamente."
-                        )
+                        st.error(f"Error al registrar: {msg}")
+                else:
+                    registrar_intento_fallido("registro")
+                    st.error(
+                        "Por favor completa todos los campos correctamente."
+                    )
 
-                        # 3. FORMULARIO RECUPERAR
-                        with tab_recuperar:
-                            with st.form("recuperar_form"):
-                                email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email",)
-                                pin_recuperar = st.text_input(
-                                    "PIN de seguridad",
-                                    max_chars=4,
-                                    type="password",
-                                    placeholder="1234",
-                                    key="rec_pin",
-                                )
+# 3. FORMULARIO RECUPERAR (Alineado al nivel principal de las pestañas)
+with tab_recuperar:
+    with st.form("recuperar_form"):
+        email_recuperar = st.text_input(
+            "Correo electrónico",
+            placeholder="ejemplo@correo.com",
+            key="rec_email",
+        )
+        pin_recuperar = st.text_input(
+            "PIN de seguridad",
+            max_chars=4,
+            type="password",
+            placeholder="1234",
+            key="rec_pin",
+        )
+        nueva_pw = st.text_input(
+            "Nueva contraseña",
+            type="password",
+            placeholder="••••••••",
+            key="rec_pw1",
+        )
+        confirmar_pw = st.text_input(
+            "Confirmar contraseña",
+            type="password",
+            placeholder="••••••••",
+            key="rec_pw2",
+        )
+        submit_recuperar = st.form_submit_button(
+            "ACTUALIZAR CONTRASEÑA", use_container_width=True
+        )
 
-                                nueva_pw = st.text_iput("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1",)
-                                confirmar_pw = st.text_input("Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2",)
-                                submit_recuperar = st.form_submit_button("ACTUALIZAR CONTRASEÑA", use_container_width=True)
+        if submit_recuperar:
+            bloqueado, segs = esta_bloqueado("recuperar")
+            if bloqueado:
+                st.error(f"Bloqueo de seguridad activo. Reintenta en {segs}s.")
+            elif nueva_pw != confirmar_pw:
+                st.error("Las contraseñas no coinciden.")
+            else:
+                exito, msg = cambiar_password_db(
+                    email_recuperar, pin_recuperar, nueva_pw
+                )
+                if exito:
+                    resetear_intentos("recuperar")
+                    st.success(msg)
+                else:
+                    registrar_intento_fallido("recuperar")
+                    st.error(msg)
 
-                                if submit_recuperar:
-                                    bloqueado, segs = esta_bloqueado("recuperar")
-                                    if bloqueado:
-                                        st.error("Bloqueo de seguridad activo. Reintenta en "f" {segs}s.")
-
-                                    elif nueva_pw != confirmar_pw:
-                                        st.error("Las contraseñas no coinciden.")
-                                    else:
-                                        exito, msg = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
-
-                                        if exito:
-                                            resetear_intentos("recuperar")
-                                            st.success(msg)
-                                        else:
-                                            registrar_intento_fallido("recuperar")
-                                            st.error(msg)
-
-    st.stop()
+st.stop()
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
