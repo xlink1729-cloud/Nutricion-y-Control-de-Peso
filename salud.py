@@ -7,6 +7,7 @@ import streamlit as st
 import bcrypt
 import base64
 import time
+import streamlit as st
 
 # --- CONFIGURACIÓN DE RATE LIMITING ---
 MAX_ATTEMPTS = 3
@@ -295,7 +296,7 @@ if not st.session_state.user:
                     else:
                         registrar_intento_fallido("login")
                         intentos_restantes = (
-                            MAX_ATTEMPTS - st.session_state.login_attempts
+                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
                         )
                         if intentos_restantes > 0:
                             st.error(
@@ -417,8 +418,11 @@ if not st.session_state.user:
                         registrar_intento_fallido("recuperar")
                         st.error(msg)
 
-    # Detiene la ejecución aquí para mostrar los formularios al usuario no autenticado
+    # Detiene la ejecución para no cargar el dashboard/app si no hay usuario
     st.stop()
+
+# --- A PARTIR DE AQUÍ VA EL CÓDIGO DE TU APP PRINCIPAL (DASHBOARD) ---
+#st.write(f"Bienvenido, {st.session_state.user}")
 
 # 2. FORMULARIO REGISTRO
 with tab_registro:
