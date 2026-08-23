@@ -6,6 +6,25 @@ import psycopg2
 import streamlit as st
 import bcrypt
 import base64
+import time
+
+# Inicializar variables de Rate Limiting
+if "login_attempts" not in st.session_state:
+    st.session_state.login_attempts = 0
+if "lockout_time" not in st.session_state:
+    st.session_state.lockout_time = 0
+
+MAX_ATTEMPTS = 3
+LOCKOUT_DURATION = 60  # Segundos de bloqueo
+
+def esta_bloqueado():
+    """Verifica si el usuario está bajo un periodo de enfriamiento."""
+    tiempo_actual = time.time()
+    if st.session_state.lockout_time > tiempo_actual:
+        tiempo_restante = int(st.session_state.lockout_time - tiempo_actual)
+        return True, tiempo_restante
+    return False, 0
+
 
 # Configuración de la página
 st.set_page_config(
@@ -244,12 +263,28 @@ if not st.session_state.user:
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
             submit_login = st.form_submit_button("INGRESAR", use_container_width=True)
             if submit_login:
-                usuario_valido = verificar_usuario(email_input, password_input)
-                if usuario_valido:
-                    st.session_state.user = usuario_valido
-                    st.rerun()
+        bloqueado, segundos_restantes = esta_bloqueado()
+        
+        if bloqueado:
+            st.error(f"Demasiados intentos fallidos. Inténtalo de nuevo en {segundos_restantes} segundos.")
+        else:
+            usuario_valido = verificar_usuario(email_input, password_input)
+            
+            if usuario_valido:
+                # Reiniciar contadores al tener éxito
+                st.session_state.login_attempts = 0
+                st.session_state.lockout_time = 0
+                st.session_state.user = usuario_valido
+                st.rerun()
+            else:
+                st.session_state.login_attempts += 1
+                
+                if st.session_state.login_attempts >= MAX_ATTEMPTS:
+                    st.session_state.lockout_time = time.time() + LOCKOUT_DURATION
+                    st.error(f"Límite de intentos superado. Has sido bloqueado por {LOCKOUT_DURATION} segundos.")
                 else:
-                    st.error("Correo o contraseña incorrectos.")
+                    intentos_restantes = MAX_ATTEMPTS - st.session_state.login_attempts
+                    st.error(f"Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}")
 
     with tab_registro:
         with st.form("registro_form"):
