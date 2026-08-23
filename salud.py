@@ -313,14 +313,10 @@ if not st.session_state.user:
     # --- RECUPERAR ---
     with tab_recuperar:
         with st.form("recuperar_form"):
-            st.markdown(
-                """
-                <div class="glass-logo-container">
-                    <img src="static/logo.jpg" class="glass-logo" alt="NutriTrack Logo">
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            # Centrado del logo usando columnas nativas
+            _, col_logo, _ = st.columns([1, 2, 1])
+            with col_logo:
+                st.image("static/logo.jpg", use_container_width=True)
 
             email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
             pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
