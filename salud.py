@@ -120,132 +120,178 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN ---
+# --- CONTROL DE SESIÓN CON INTERFAZ MODERNA ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# Si NO hay sesión iniciada, mostramos las pestañas y detenemos la ejecución aquí mismo
 if not st.session_state.user:
+    # CSS Personalizado para un Look Premium y Moderno
     st.markdown(
-        "<h2 style='text-align: center;'>🥗 NutriTrack & Recetas</h2>",
+        """
+        <style>
+        /* Ocultar elementos predeterminados de Streamlit */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        
+        /* Contenedor Principal Centrado */
+        .main .block-container {
+            max-width: 520px;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+        
+        /* Estilizado del Encabezado */
+        .login-header {
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-bottom: 1rem;
+        }
+        .login-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.2rem;
+        }
+        .login-subtitle {
+            color: #6B7280;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        /* Rediseño de las Pestañas (Tabs) */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+            background-color: #F3F4F6;
+            padding: 6px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            height: 42px;
+            border-radius: 8px;
+            border: none;
+            color: #4B5563;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-grow: 1;
+            justify-content: center;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #FFFFFF !important;
+            color: #059669 !important;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Botones Primarios */
+        .stButton > button {
+            border-radius: 10px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .stButton > button:hover {
+            opacity: 0.95;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        </style>
+        """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3 = st.columns([1, 1.5, 1])
 
-    with col2:
-        tab_login, tab_registro, tab_recuperar = st.tabs(
-            ["🔑 Iniciar Sesión", "📝 Registrarme", "❓ ¿Olvidaste tu contraseña?"]
-        )
+    # Encabezado Principal
+    st.markdown(
+        """
+        <div class="login-header">
+            <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🥗</div>
+            <div class="login-title">NutriTrack</div>
+            <div class="login-subtitle">Gestión nutricional y recetas inteligentes</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        with tab_login:
-            with st.form("login_form"):
-                email_input = st.text_input(
-                    "Correo electrónico", key="login_email"
+    # Pestañas Estilizadas
+    tab_login, tab_registro, tab_recuperar = st.tabs(
+        ["Iniciar Sesión", "Crear Cuenta", "Recuperar"]
+    )
+
+    # --- TAB INICIAR SESIÓN ---
+    with tab_login:
+        with st.form("login_form", clear_on_submit=False):
+            st.text_input("Correo electrónico", placeholder="tu@email.com", key="login_email")
+            st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
+            
+            st.write("")
+            submit_login = st.form_submit_button("Ingresar a mi cuenta", use_container_width=True)
+
+            if submit_login:
+                usuario_valido = verificar_usuario(
+                    st.session_state.login_email, st.session_state.login_pass
                 )
-                password_input = st.text_input(
-                    "Contraseña", type="password", key="login_pass"
-                )
-                submit_login = st.form_submit_button(
-                    "Entrar", use_container_width=True
-                )
-
-                if submit_login:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
-                    )
-                    if usuario_valido:
-                        st.session_state.user = usuario_valido
-                        st.success(
-                            f"¡Bienvenido de vuelta, {usuario_valido['nombre']}!"
-                        )
-                        st.rerun()
-                    else:
-                        st.error("Correo o contraseña incorrectos.")
-
-        # --- TAB REGISTRO ---
-        with tab_registro:
-            with st.form("registro_form"):
-                nombre_nuevo = st.text_input("Nombre completo")
-                email_nuevo = st.text_input(
-                    "Correo electrónico", key="reg_email"
-                )
-                password_nuevo = st.text_input(
-                    "Crea una contraseña", type="password", key="reg_pass"
-                )
-                pin_nuevo = st.text_input(
-                    "PIN de seguridad (4 dígitos para recuperar tu cuenta)",
-                    max_chars=4,
-                    type="password",
-                    key="reg_pin",
-                )
-                submit_registro = st.form_submit_button(
-                    "Crear Cuenta", use_container_width=True
-                )
-
-                if submit_registro:
-                    if (
-                        not nombre_nuevo
-                        or not email_nuevo
-                        or not password_nuevo
-                        or not pin_nuevo
-                    ):
-                        st.warning("Por favor, completa todos los campos.")
-                    else:
-                        exito, msj = registrar_nuevo_usuario(
-                            nombre_nuevo,
-                            email_nuevo,
-                            password_nuevo,
-                            pin_nuevo,
-                        )
-                        if exito:
-                            st.success(
-                                "¡Cuenta creada con éxito! Ve a 'Iniciar"
-                                " Sesión'."
-                            )
-                        else:
-                            st.error(f"Error al registrar: {msj}")
-
-        # --- TAB RECUPERAR ---
-        with tab_recuperar:
-            st.subheader("🔑 Reestablecer Contraseña")
-            st.caption(
-                "Ingresa tus datos y tu PIN de 4 dígitos para definir una nueva"
-                " contraseña."
-            )
-
-            email_recuperar = st.text_input(
-                "Correo electrónico", key="rec_email"
-            )
-            pin_recuperar = st.text_input(
-                "PIN de seguridad", max_chars=4, type="password", key="rec_pin"
-            )
-            nueva_pw = st.text_input(
-                "Nueva contraseña", type="password", key="rec_pw1"
-            )
-            confirmar_pw = st.text_input(
-                "Confirmar nueva contraseña", type="password", key="rec_pw2"
-            )
-
-            if st.button("🔄 Actualizar Contraseña", use_container_width=True):
-                if (
-                    not email_recuperar
-                    or not pin_recuperar
-                    or not nueva_pw
-                    or not confirmar_pw
-                ):
-                    st.warning("Por favor completa todos los campos.")
-                elif nueva_pw != confirmar_pw:
-                    st.error("Las contraseñas no coinciden.")
+                if usuario_valido:
+                    st.session_state.user = usuario_valido
+                    st.success(f"¡Bienvenido de vuelta, {usuario_valido['nombre']}!")
+                    st.rerun()
                 else:
-                    exito, msj = cambiar_password_db(
-                        email_recuperar, pin_recuperar, nueva_pw
+                    st.error("Correo o contraseña incorrectos.")
+
+    # --- TAB REGISTRO ---
+    with tab_registro:
+        with st.form("registro_form", clear_on_submit=False):
+            nombre_nuevo = st.text_input("Nombre completo", placeholder="Ej. Carlos Mendoza")
+            email_nuevo = st.text_input("Correo electrónico", placeholder="tu@email.com", key="reg_email")
+            password_nuevo = st.text_input("Crea una contraseña", type="password", placeholder="••••••••", key="reg_pass")
+            pin_nuevo = st.text_input(
+                "PIN de seguridad (4 dígitos)",
+                max_chars=4,
+                type="password",
+                placeholder="1234",
+                key="reg_pin",
+            )
+            
+            st.write("")
+            submit_registro = st.form_submit_button("Registrarme", use_container_width=True)
+
+            if submit_registro:
+                if not nombre_nuevo or not email_nuevo or not password_nuevo or not pin_nuevo:
+                    st.warning("Por favor, completa todos los campos.")
+                else:
+                    exito, msj = registrar_nuevo_usuario(
+                        nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
                     )
                     if exito:
-                        st.success(msj)
+                        st.success("¡Cuenta creada con éxito! Ya puedes iniciar sesión.")
                     else:
-                        st.error(msj)
+                        st.error(f"Error al registrar: {msj}")
 
-    # 🔴 CORRECCIÓN 1: Detener la ejecución si no hay usuario autenticado
+    # --- TAB RECUPERAR ---
+    with tab_recuperar:
+        st.caption("Ingresa tu correo y PIN de seguridad para definir una nueva contraseña.")
+        
+        email_recuperar = st.text_input("Correo electrónico", placeholder="tu@email.com", key="rec_email")
+        pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
+        nueva_pw = st.text_input("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
+        confirmar_pw = st.text_input("Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
+
+        st.write("")
+        if st.button("Actualizar Contraseña", use_container_width=True):
+            if not email_recuperar or not pin_recuperar or not nueva_pw or not confirmar_pw:
+                st.warning("Por favor completa todos los campos.")
+            elif nueva_pw != confirmar_pw:
+                st.error("Las contraseñas no coinciden.")
+            else:
+                exito, msj = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
+                if exito:
+                    st.success(msj)
+                else:
+                    st.error(msj)
+
+    # Detener la ejecución para usuarios no autenticados
     st.stop()
 
 
