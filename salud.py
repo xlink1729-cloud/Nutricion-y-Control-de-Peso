@@ -120,7 +120,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON ESTILO GLASSMORPHISM ---
+# --- CONTROL DE SESIÓN CON ESTILO GLASSMORPHISM Y LOGO ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -143,8 +143,8 @@ if not st.session_state.user:
         /* 3. Centrado del Contenedor */
         .main .block-container {
             max-width: 420px;
-            padding-top: 4rem;
-            padding-bottom: 4rem;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
         }
 
         /* 4. Tarjeta Glassmorphism (Efecto Cristal) */
@@ -158,7 +158,25 @@ if not st.session_state.user:
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* 5. Título de la App dentro de la tarjeta */
+        /* 5. Estilo para el Logo */
+        .glass-logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .glass-logo {
+            width: 85px;
+            height: 85px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 6. Título de la App dentro de la tarjeta */
         .glass-title {
             text-align: center;
             color: #ffffff;
@@ -171,10 +189,10 @@ if not st.session_state.user:
             text-align: center;
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.85rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* 6. Pestañas Translúcidas */
+        /* 7. Pestañas Translúcidas */
         .stTabs [data-baseweb="tab-list"] {
             gap: 4px;
             background-color: rgba(0, 0, 0, 0.2);
@@ -198,7 +216,7 @@ if not st.session_state.user:
             color: #ffffff !important;
         }
 
-        /* 7. Inputs de Texto Estilo Minimalista */
+        /* 8. Inputs de Texto Estilo Minimalista */
         .stTextInput > label {
             color: rgba(255, 255, 255, 0.8) !important;
             font-size: 0.85rem !important;
@@ -215,7 +233,7 @@ if not st.session_state.user:
             box-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
         }
 
-        /* 8. Botón con Degradado Vibrante */
+        /* 9. Botón con Degradado Vibrante */
         .stButton > button {
             width: 100%;
             border-radius: 12px !important;
@@ -247,6 +265,15 @@ if not st.session_state.user:
     # --- INICIAR SESIÓN ---
     with tab_login:
         with st.form("login_form"):
+            # Renderizado del Logo desde la carpeta static/
+            st.markdown(
+                """
+                <div class="glass-logo-container">
+                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             st.markdown('<div class="glass-title">NutriTrack</div>', unsafe_allow_html=True)
             st.markdown('<div class="glass-subtitle">Ingresa a tu cuenta</div>', unsafe_allow_html=True)
 
@@ -267,6 +294,14 @@ if not st.session_state.user:
     # --- REGISTRO ---
     with tab_registro:
         with st.form("registro_form"):
+            st.markdown(
+                """
+                <div class="glass-logo-container">
+                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             st.markdown('<div class="glass-title">Crear Cuenta</div>', unsafe_allow_html=True)
             st.markdown('<div class="glass-subtitle">Únete a NutriTrack</div>', unsafe_allow_html=True)
 
@@ -298,6 +333,14 @@ if not st.session_state.user:
     # --- RECUPERAR ---
     with tab_recuperar:
         with st.form("recuperar_form"):
+            st.markdown(
+                """
+                <div class="glass-logo-container">
+                    <img src="app/static/logo.png" class="glass-logo" alt="Logo">
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             st.markdown('<div class="glass-title">Recuperar</div>', unsafe_allow_html=True)
             st.markdown('<div class="glass-subtitle">Reestablece tu contraseña</div>', unsafe_allow_html=True)
 
