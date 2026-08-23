@@ -106,6 +106,19 @@ def execute_db(query, params=None):
     finally:
         conn.close()
 
+def guardar_receta_db(categoria, tiempo, cuerpo_receta):
+    user_id = st.session_state.user["id"]
+    try:
+        execute_db(
+            """
+            INSERT INTO recetas (user_id, categoria, tiempo, cuerpo)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, categoria, tiempo, cuerpo_receta),
+        )
+        st.success("¡Receta guardada exitosamente en tu cuenta!")
+    except Exception as e:
+        st.error(f"Error al guardar la receta: {e}")
 
 # --- CONTROL DE SESIÓN ---
 if "user" not in st.session_state:
@@ -192,7 +205,7 @@ if not st.session_state.user:
                         else:
                             st.error(f"Error al registrar: {msj}")
 
-# --- TAB RECUPERAR ---
+        # --- TAB RECUPERAR ---
         with tab_recuperar:
             st.subheader("🔑 Reestablecer Contraseña")
             st.caption(
@@ -232,19 +245,8 @@ if not st.session_state.user:
                     else:
                         st.error(msj)
 
-def guardar_receta_db(categoria, tiempo, cuerpo_receta):
-    user_id = st.session_state.user["id"]
-    try:
-        execute_db(
-            """
-            INSERT INTO recetas (user_id, categoria, tiempo, cuerpo)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (user_id, categoria, tiempo, cuerpo_receta),
-        )
-        st.success("¡Receta guardada exitosamente en tu cuenta!")
-    except Exception as e:
-        st.error(f"Error al guardar la receta: {e}")
+    # 🔴 CORRECCIÓN 1: Detener la ejecución si no hay usuario autenticado
+    st.stop()
 
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
@@ -253,7 +255,6 @@ st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
 if st.sidebar.button("🚪 Cerrar Sesión"):
     st.session_state.user = None
     st.rerun()
-
 
 st.title("🥗 NutriTrack & Generador de Recetas")
 st.write(
