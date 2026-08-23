@@ -120,132 +120,159 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON INTERFAZ MODERNA ---
+# --- CONTROL DE SESIÓN CON ESTILO GLASSMORPHISM ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # CSS Personalizado para un Look Premium y Moderno
     st.markdown(
         """
         <style>
-        /* Ocultar elementos predeterminados de Streamlit */
+        /* 1. Ocultar elementos nativos de Streamlit */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
+        header {visibility: hidden;}
         
-        /* Contenedor Principal Centrado */
-        .main .block-container {
-            max-width: 520px;
-            padding-top: 3rem;
-            padding-bottom: 3rem;
-        }
-        
-        /* Estilizado del Encabezado */
-        .login-header {
-            text-align: center;
-            padding: 1.5rem 0;
-            margin-bottom: 1rem;
-        }
-        .login-title {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.2rem;
-        }
-        .login-subtitle {
-            color: #6B7280;
-            font-size: 0.95rem;
-            font-weight: 400;
+        /* 2. Fondo Global Oscuro con Gradiente Radial */
+        .stApp {
+            background: radial-gradient(circle at 20% 20%, #4a154b 0%, #111827 50%),
+                        radial-gradient(circle at 80% 80%, #1e1b4b 0%, #000000 100%);
+            background-attachment: fixed;
         }
 
-        /* Rediseño de las Pestañas (Tabs) */
+        /* 3. Centrado del Contenedor */
+        .main .block-container {
+            max-width: 420px;
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+
+        /* 4. Tarjeta Glassmorphism (Efecto Cristal) */
+        [data-testid="stForm"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            border-radius: 24px !important;
+            padding: 2.5rem 2rem !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* 5. Título de la App dentro de la tarjeta */
+        .glass-title {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.2rem;
+        }
+        .glass-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 6. Pestañas Translúcidas */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-            background-color: #F3F4F6;
-            padding: 6px;
+            gap: 4px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 4px;
             border-radius: 12px;
             margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .stTabs [data-baseweb="tab"] {
-            height: 42px;
+            height: 38px;
             border-radius: 8px;
             border: none;
-            color: #4B5563;
-            font-weight: 600;
-            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            font-size: 0.85rem;
             flex-grow: 1;
             justify-content: center;
         }
         .stTabs [aria-selected="true"] {
-            background-color: #FFFFFF !important;
-            color: #059669 !important;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
         }
 
-        /* Botones Primarios */
+        /* 7. Inputs de Texto Estilo Minimalista */
+        .stTextInput > label {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 0.85rem !important;
+        }
+        .stTextInput input {
+            background-color: rgba(255, 255, 255, 0.07) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 10px !important;
+            padding: 0.6rem 1rem !important;
+        }
+        .stTextInput input:focus {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
+        }
+
+        /* 8. Botón con Degradado Vibrante */
         .stButton > button {
-            border-radius: 10px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 0.6rem 1rem;
-            transition: all 0.3s ease;
+            width: 100%;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #4c1d95 0%, #2563eb 50%, #3b82f6 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0.75rem 1rem !important;
+            margin-top: 1rem;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
         }
         .stButton > button:hover {
-            opacity: 0.95;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # Encabezado Principal
-    st.markdown(
-        """
-        <div class="login-header">
-            <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🥗</div>
-            <div class="login-title">NutriTrack</div>
-            <div class="login-subtitle">Gestión nutricional y recetas inteligentes</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Pestañas Estilizadas
+    # Pestañas Superiores
     tab_login, tab_registro, tab_recuperar = st.tabs(
-        ["Iniciar Sesión", "Crear Cuenta", "Recuperar"]
+        ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
 
-    # --- TAB INICIAR SESIÓN ---
+    # --- INICIAR SESIÓN ---
     with tab_login:
-        with st.form("login_form", clear_on_submit=False):
-            st.text_input("Correo electrónico", placeholder="tu@email.com", key="login_email")
-            st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
+        with st.form("login_form"):
+            st.markdown('<div class="glass-title">NutriTrack</div>', unsafe_allow_html=True)
+            st.markdown('<div class="glass-subtitle">Ingresa a tu cuenta</div>', unsafe_allow_html=True)
+
+            email_input = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
+            password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
             
-            st.write("")
-            submit_login = st.form_submit_button("Ingresar a mi cuenta", use_container_width=True)
+            submit_login = st.form_submit_button("LOGIN", use_container_width=True)
 
             if submit_login:
-                usuario_valido = verificar_usuario(
-                    st.session_state.login_email, st.session_state.login_pass
-                )
+                usuario_valido = verificar_usuario(email_input, password_input)
                 if usuario_valido:
                     st.session_state.user = usuario_valido
-                    st.success(f"¡Bienvenido de vuelta, {usuario_valido['nombre']}!")
+                    st.success(f"¡Bienvenido, {usuario_valido['nombre']}!")
                     st.rerun()
                 else:
                     st.error("Correo o contraseña incorrectos.")
 
-    # --- TAB REGISTRO ---
+    # --- REGISTRO ---
     with tab_registro:
-        with st.form("registro_form", clear_on_submit=False):
-            nombre_nuevo = st.text_input("Nombre completo", placeholder="Ej. Carlos Mendoza")
-            email_nuevo = st.text_input("Correo electrónico", placeholder="tu@email.com", key="reg_email")
-            password_nuevo = st.text_input("Crea una contraseña", type="password", placeholder="••••••••", key="reg_pass")
+        with st.form("registro_form"):
+            st.markdown('<div class="glass-title">Crear Cuenta</div>', unsafe_allow_html=True)
+            st.markdown('<div class="glass-subtitle">Únete a NutriTrack</div>', unsafe_allow_html=True)
+
+            nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
+            email_nuevo = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
+            password_nuevo = st.text_input("Contraseña", type="password", placeholder="••••••••", key="reg_pass")
             pin_nuevo = st.text_input(
                 "PIN de seguridad (4 dígitos)",
                 max_chars=4,
@@ -254,44 +281,46 @@ if not st.session_state.user:
                 key="reg_pin",
             )
             
-            st.write("")
-            submit_registro = st.form_submit_button("Registrarme", use_container_width=True)
+            submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
 
             if submit_registro:
                 if not nombre_nuevo or not email_nuevo or not password_nuevo or not pin_nuevo:
-                    st.warning("Por favor, completa todos los campos.")
+                    st.warning("Por favor completa todos los campos.")
                 else:
                     exito, msj = registrar_nuevo_usuario(
                         nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
                     )
                     if exito:
-                        st.success("¡Cuenta creada con éxito! Ya puedes iniciar sesión.")
+                        st.success("¡Cuenta creada! Ve a 'INICIAR SESIÓN'.")
                     else:
                         st.error(f"Error al registrar: {msj}")
 
-    # --- TAB RECUPERAR ---
+    # --- RECUPERAR ---
     with tab_recuperar:
-        st.caption("Ingresa tu correo y PIN de seguridad para definir una nueva contraseña.")
-        
-        email_recuperar = st.text_input("Correo electrónico", placeholder="tu@email.com", key="rec_email")
-        pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
-        nueva_pw = st.text_input("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
-        confirmar_pw = st.text_input("Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
+        with st.form("recuperar_form"):
+            st.markdown('<div class="glass-title">Recuperar</div>', unsafe_allow_html=True)
+            st.markdown('<div class="glass-subtitle">Reestablece tu contraseña</div>', unsafe_allow_html=True)
 
-        st.write("")
-        if st.button("Actualizar Contraseña", use_container_width=True):
-            if not email_recuperar or not pin_recuperar or not nueva_pw or not confirmar_pw:
-                st.warning("Por favor completa todos los campos.")
-            elif nueva_pw != confirmar_pw:
-                st.error("Las contraseñas no coinciden.")
-            else:
-                exito, msj = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
-                if exito:
-                    st.success(msj)
+            email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
+            pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
+            nueva_pw = st.text_input("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
+            confirmar_pw = st.text_input("Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
+
+            submit_recuperar = st.form_submit_button("ACTUALIZAR CONTRASEÑA", use_container_width=True)
+
+            if submit_recuperar:
+                if not email_recuperar or not pin_recuperar or not nueva_pw or not confirmar_pw:
+                    st.warning("Por favor completa todos los campos.")
+                elif nueva_pw != confirmar_pw:
+                    st.error("Las contraseñas no coinciden.")
                 else:
-                    st.error(msj)
+                    exito, msj = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
+                    if exito:
+                        st.success(msj)
+                    else:
+                        st.error(msj)
 
-    # Detener la ejecución para usuarios no autenticados
+    # Detener ejecución si no hay sesión activa
     st.stop()
 
 
