@@ -316,7 +316,7 @@ if not st.session_state.user:
             st.markdown(
                 """
                 <div class="glass-logo-container">
-                    <img src="app/static/logo.png" class="glass-logo" alt="NutriTrack Logo">
+                    <img src="app/static/logo.jpg" class="glass-logo" alt="NutriTrack Logo">
                 </div>
                 """,
                 unsafe_allow_html=True,
