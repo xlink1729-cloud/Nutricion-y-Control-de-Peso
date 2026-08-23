@@ -263,28 +263,28 @@ if not st.session_state.user:
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
             submit_login = st.form_submit_button("INGRESAR", use_container_width=True)
             if submit_login:
-        bloqueado, segundos_restantes = esta_bloqueado()
-        
-        if bloqueado:
-            st.error(f"Demasiados intentos fallidos. Inténtalo de nuevo en {segundos_restantes} segundos.")
-        else:
-            usuario_valido = verificar_usuario(email_input, password_input)
-            
-            if usuario_valido:
-                # Reiniciar contadores al tener éxito
-                st.session_state.login_attempts = 0
-                st.session_state.lockout_time = 0
-                st.session_state.user = usuario_valido
-                st.rerun()
-            else:
-                st.session_state.login_attempts += 1
-                
-                if st.session_state.login_attempts >= MAX_ATTEMPTS:
-                    st.session_state.lockout_time = time.time() + LOCKOUT_DURATION
-                    st.error(f"Límite de intentos superado. Has sido bloqueado por {LOCKOUT_DURATION} segundos.")
+                bloqueado, segundos_restantes = esta_bloqueado()
+
+                if bloqueado:
+                    st.error(f"Demasiados intentos fallidos. Inténtalo de nuevo en {segundos_restantes} segundos.")
                 else:
-                    intentos_restantes = MAX_ATTEMPTS - st.session_state.login_attempts
-                    st.error(f"Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}")
+                    usuario_valido = verificar_usuario(email_input, password_input)
+
+                    if usuario_valido:
+                        # Reiniciar contadores al tener éxito
+                        st.session_state.login_attempts = 0
+                        st.session_state.lockout_time = 0
+                        st.session_state.user = usuario_valido
+                        st.rerun()
+                    else:
+                        st.session_state.login_attempts += 1
+
+                        if st.session_state.login_attempts >= MAX_ATTEMPTS:
+                            st.session_state.lockout_time = time.time() + LOCKOUT_DURATION
+                            st.error(f"Límite de intentos superado. Has sido bloqueado por {LOCKOUT_DURATION} segundos.")
+                        else:
+                            intentos_restantes = MAX_ATTEMPTS - st.session_state.login_attempts
+                            st.error(f"Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}")
 
     with tab_registro:
         with st.form("registro_form"):
