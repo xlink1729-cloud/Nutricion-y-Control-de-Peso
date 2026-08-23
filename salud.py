@@ -218,10 +218,10 @@ if not st.session_state.user:
         unsafe_allow_html=True,
     )
 
-    # --- LOGO EXTERNO CENTRADO ---
-    col_l1, col_l2, col_l3 = st.columns([1, 1.2, 1])
+    # --- LOGO EXTERNO CENTRADO Y COMPACTO ---
+    col_l1, col_l2, col_l3 = st.columns([2, 1, 2])
     with col_l2:
-        st.image("static/logo.jpg", use_container_width=True)
+        st.image("static/logo.jpg", width=120)
 
     # --- PESTAÑAS DE NAVEGACIÓN ---
     tab_login, tab_registro, tab_recuperar = st.tabs(
