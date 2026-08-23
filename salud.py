@@ -416,9 +416,8 @@ if not st.session_state.user:
                     else:
                         registrar_intento_fallido("recuperar")
                         st.error(msg)
+st.stop()
 
-    st.stop()
-    
 # 2. FORMULARIO REGISTRO
 with tab_registro:
     with st.form("registro_form"):
