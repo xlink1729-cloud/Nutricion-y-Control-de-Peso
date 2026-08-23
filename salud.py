@@ -120,7 +120,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN PULIDO Y COMPACTO ---
+# --- CONTROL DE SESIÓN PERFECCIONADO ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -136,27 +136,40 @@ if not st.session_state.user:
             background-attachment: fixed;
         }
 
-        /* Enmarcar TODO el contenido en un bloque central */
+        /* Fuerza a que TODO (logo + pestañas + formulario) viva en un bloque central */
         .main .block-container {
-            max-width: 420px !important;
-            padding-top: 2rem !important;
+            max-width: 400px !important;
+            padding-top: 1.5rem !important;
             padding-bottom: 2rem !important;
             margin: auto;
         }
 
-        /* Estilizado de Pestañas */
+        /* Marco del logo fuera del formulario pero alineado */
+        [data-testid="stImage"] {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+        [data-testid="stImage"] img {
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            background-color: #1a1a1a; /* Da contraste si el borde de la imagen es oscuro */
+        }
+
+        /* Pestañas integradas al ancho de la tarjeta */
         .stTabs [data-baseweb="tab-list"] {
             gap: 4px;
             background-color: rgba(0, 0, 0, 0.4);
             padding: 4px;
             border-radius: 12px;
+            margin-top: 1rem;
             margin-bottom: 1rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 100%;
         }
         .stTabs [data-baseweb="tab"] {
-            height: 38px;
+            height: 36px;
             border-radius: 8px;
-            border: none;
             color: rgba(255, 255, 255, 0.6);
             font-weight: 600;
             font-size: 0.8rem;
@@ -164,31 +177,21 @@ if not st.session_state.user:
             justify-content: center;
         }
         .stTabs [aria-selected="true"] {
-            background-color: rgba(16, 185, 129, 0.25) !important;
+            background-color: rgba(16, 185, 129, 0.3) !important;
             color: #ffffff !important;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-        }
-        
-        /* Quitar la barra roja nativa de Streamlit en la pestaña activa */
-        .stTabs [data-baseweb="tab-highlight-title"] {
-            display: none;
+            border: 1px solid rgba(16, 185, 129, 0.5);
         }
 
-        /* Estilizado del formulario */
+        /* Formularios */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 20px !important;
-            padding: 1.8rem 1.5rem !important;
+            padding: 1.5rem !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Inputs y Botón */
-        .stTextInput > label {
-            color: rgba(255, 255, 255, 0.85) !important;
-            font-size: 0.85rem !important;
-        }
         .stTextInput input {
             background-color: rgba(255, 255, 255, 0.07) !important;
             color: #ffffff !important;
@@ -203,85 +206,48 @@ if not st.session_state.user:
             color: white !important;
             border: none !important;
             padding: 0.65rem 1rem !important;
-            margin-top: 0.5rem;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # --- PESTAÑAS DENTRO DEL BLOQUE CENTRAL ---
+    # 1. LOGO CENTRADO (Fuera del formulario)
+    st.image("static/logo.jpg", width=120)
+
+    # 2. PESTAÑAS Y FORMULARIOS
     tab_login, tab_registro, tab_recuperar = st.tabs(
         ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
     )
 
     with tab_login:
         with st.form("login_form"):
-            col1, col2, col3 = st.columns([1, 1.2, 1])
-            with col2:
-                st.image("static/logo.jpg", width=110)
-
             email_input = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
             password_input = st.text_input("Contraseña", type="password", placeholder="••••••••", key="login_pass")
-            
             submit_login = st.form_submit_button("INGRESAR", use_container_width=True)
-
             if submit_login:
                 usuario_valido = verificar_usuario(email_input, password_input)
                 if usuario_valido:
                     st.session_state.user = usuario_valido
-                    st.success(f"¡Bienvenido, {usuario_valido['nombre']}!")
                     st.rerun()
                 else:
                     st.error("Correo o contraseña incorrectos.")
 
     with tab_registro:
         with st.form("registro_form"):
-            col1, col2, col3 = st.columns([1, 1.2, 1])
-            with col2:
-                st.image("static/logo.jpg", width=110)
-
             nombre_nuevo = st.text_input("Nombre completo", placeholder="Tu nombre")
             email_nuevo = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
             password_nuevo = st.text_input("Contraseña", type="password", placeholder="••••••••", key="reg_pass")
             pin_nuevo = st.text_input("PIN de seguridad (4 dígitos)", max_chars=4, type="password", placeholder="1234", key="reg_pin")
-            
             submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
-
-            if submit_registro:
-                if not nombre_nuevo or not email_nuevo or not password_nuevo or not pin_nuevo:
-                    st.warning("Por favor completa todos los campos.")
-                else:
-                    exito, msj = registrar_nuevo_usuario(nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo)
-                    if exito:
-                        st.success("¡Cuenta creada! Ve a 'INICIAR SESIÓN'.")
-                    else:
-                        st.error(f"Error al registrar: {msj}")
 
     with tab_recuperar:
         with st.form("recuperar_form"):
-            col1, col2, col3 = st.columns([1, 1.2, 1])
-            with col2:
-                st.image("static/logo.jpg", width=110)
-
             email_recuperar = st.text_input("Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
             pin_recuperar = st.text_input("PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
             nueva_pw = st.text_input("Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
             confirmar_pw = st.text_input("Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
-
             submit_recuperar = st.form_submit_button("ACTUALIZAR CONTRASEÑA", use_container_width=True)
-
-            if submit_recuperar:
-                if not email_recuperar or not pin_recuperar or not nueva_pw or not confirmar_pw:
-                    st.warning("Por favor completa todos los campos.")
-                elif nueva_pw != confirmar_pw:
-                    st.error("Las contraseñas no coinciden.")
-                else:
-                    exito, msj = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
-                    if exito:
-                        st.success(msj)
-                    else:
-                        st.error(msj)
 
     st.stop()
 
