@@ -198,52 +198,47 @@ if not st.session_state.user:
             border-radius: 12px;
         }
 
-        /* --- CONTENEDOR DE PESTAÑAS --- */
+        /* --- STYLING DE PESTAÑAS (FORZADO BRUTO) --- */
         .stTabs [data-baseweb="tab-list"] {
             gap: 6px;
-            background-color: rgba(0, 0, 0, 0.5) !important;
+            background-color: rgba(0, 0, 0, 0.4) !important;
             padding: 6px;
             border-radius: 12px;
             margin-bottom: 1.2rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
         }
-        .stTabs [data-baseweb="tab"] {
-            height: 40px;
-            border-radius: 8px;
-            flex-grow: 1;
-            justify-content: center;
-        }
 
-        /* TEXTO EN PESTAÑAS NO SELECCIONADAS (BLANCO VISIBLE) */
-        .stTabs [data-baseweb="tab"] *, 
-        .stTabs button[data-baseweb="tab"] p,
-        .stTabs button[data-baseweb="tab"] div,
-        .stTabs button[data-baseweb="tab"] span {
+        /* FUERZA ABSOLUTA DE COLOR BLANCO EN CUALQUIER ELEMENTO DENTRO DE LAS PESTAÑAS */
+        .stTabs [data-baseweb="tab"],
+        .stTabs [data-baseweb="tab"] *,
+        .stTabs [data-testid="stMarkdownContainer"] p {
             color: #ffffff !important;
-            opacity: 0.85 !important;
+            -webkit-text-fill-color: #ffffff !important;
+            opacity: 0.9 !important;
             font-weight: 600 !important;
-            font-size: 0.82rem !important;
         }
 
-        /* EFFECTO HOVER EN PESTAÑAS */
-        .stTabs [data-baseweb="tab"]:hover * {
-            color: #ffffff !important;
-            opacity: 1 !important;
-        }
-
-        /* /* PESTAÑA SELECCIONADA (SINTAXIS CORREGIDA) */
-        .stTabs button[aria-selected="true"] {
+        /* PESTAÑA ACTIVA / SELECCIONADA */
+        .stTabs [aria-selected="true"] {
             background-color: #059669 !important;
             border-radius: 8px !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
-        .stTabs button[aria-selected="true"] *,
-        .stTabs button[aria-selected="true"] p,
-        .stTabs button[aria-selected="true"] span {
+
+        .stTabs [aria-selected="true"] *,
+        .stTabs [aria-selected="true"] [data-testid="stMarkdownContainer"] p {
             color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
             opacity: 1 !important;
             font-weight: 800 !important;
+        }
+
+        /* OCULTA LA LÍNEA ROJA DE SELECCIÓN POR DEFECTO DE STREAMLIT */
+        .stTabs [data-baseweb="tab-highlight-title"],
+        .stTabs [data-baseweb="tab-border"] {
+            background-color: transparent !important;
+            display: none !important;
         }
 
         /* --- FORMULARIO --- */
@@ -256,7 +251,7 @@ if not st.session_state.user:
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- ETIQUETAS DE TEXTO (TITULOS SOBRE LAS CAJAS) --- */
+        /* --- ETIQUETAS DE TEXTO SOBRE CAJAS --- */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             color: #ffffff !important;
@@ -268,11 +263,12 @@ if not st.session_state.user:
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
             color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
             border-radius: 10px !important;
         }
 
-        /* AUTOCOMPLETADO DEL NAVEGADOR */
+        /* AUTOCOMPLETADO DEL NAVEGADOR EN CAJAS DE TEXTO */
         .stTextInput input:-webkit-autofill,
         .stTextInput input:-webkit-autofill:hover, 
         .stTextInput input:-webkit-autofill:focus {
@@ -295,6 +291,7 @@ if not st.session_state.user:
         """,
         unsafe_allow_html=True,
     )
+    
     try:
         with open("static/logo.jpg", "rb") as img_file:
             img_b64 = base64.b64encode(img_file.read()).decode()
