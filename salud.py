@@ -199,12 +199,21 @@ if not st.session_state.user:
         }
         .stTabs [data-baseweb="tab-list"] {
             gap: 6px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.4) !important;
             padding: 6px;
             border-radius: 12px;
             margin-bottom: 1.2rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
+        }
+        /* FUERZA TEXTO BLANCO EN PESTAÑAS NO SELECCIONADAS */
+        .stTabs button[data-baseweb="tab"],
+        .stTabs button[data-baseweb="tab"] *,
+        .stTabs button[data-baseweb="tab"] p,
+        .stTabs button[data-baseweb="tab"] div {
+            color: #ffffff !important;
+            opacity: 0.8 !important;
+            font-weight: 600 !important;
         }
         .stTabs [data-baseweb="tab"] {
             height: 40px;
@@ -223,15 +232,17 @@ if not st.session_state.user:
         .stTabs [data-baseweb="tab"]:hover p {
             color: #ffffff !important;
         }
-        /* Pestaña activa (seleccionada) */
-        .stTabs [aria-selected="true"] {
+        * PESTAÑA SELECCIONADA (DESTACADA CON FONDO Y 100% OPACO) */
+        .stTabs button[aria-selected="true"] {
             background-color: #059669 !important;
+            border-radius: 8px !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
-        .stTabs [aria-selected="true"] p,
-        .stTabs [aria-selected="true"] span {
+        .stTabs button[aria-selected="true"] *,
+        .stTabs button[aria-selected="true"] p {
             color: #ffffff !important;
-            font-weight: 700 !important;
+            opacity: 1 !important;
+            font-weight: 800 !important;
         }
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.04) !important;
