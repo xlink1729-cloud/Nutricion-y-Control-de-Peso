@@ -197,23 +197,16 @@ if not st.session_state.user:
             display: block;
             border-radius: 12px;
         }
+
+        /* --- CONTENEDOR DE PESTAÑAS --- */
         .stTabs [data-baseweb="tab-list"] {
             gap: 6px;
-            background-color: rgba(0, 0, 0, 0.4) !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
             padding: 6px;
             border-radius: 12px;
             margin-bottom: 1.2rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
-        }
-        /* FUERZA TEXTO BLANCO EN PESTAÑAS NO SELECCIONADAS */
-        .stTabs button[data-baseweb="tab"],
-        .stTabs button[data-baseweb="tab"] *,
-        .stTabs button[data-baseweb="tab"] p,
-        .stTabs button[data-baseweb="tab"] div {
-            color: #ffffff !important;
-            opacity: 0.8 !important;
-            font-weight: 600 !important;
         }
         .stTabs [data-baseweb="tab"] {
             height: 40px;
@@ -221,29 +214,39 @@ if not st.session_state.user:
             flex-grow: 1;
             justify-content: center;
         }
-        /* Texto en blanco claro para pestañas inactivas */
-        .stTabs [data-baseweb="tab"] p,
-        .stTabs [data-baseweb="tab"] span {
-            color: rgba(255, 255, 255, 0.8) !important;
+
+        /* TEXTO EN PESTAÑAS NO SELECCIONADAS (BLANCO VISIBLE) */
+        .stTabs [data-baseweb="tab"] *, 
+        .stTabs button[data-baseweb="tab"] p,
+        .stTabs button[data-baseweb="tab"] div,
+        .stTabs button[data-baseweb="tab"] span {
+            color: #ffffff !important;
+            opacity: 0.85 !important;
             font-weight: 600 !important;
             font-size: 0.82rem !important;
         }
-        /* Efecto al pasar el cursor */
-        .stTabs [data-baseweb="tab"]:hover p {
+
+        /* EFFECTO HOVER EN PESTAÑAS */
+        .stTabs [data-baseweb="tab"]:hover * {
             color: #ffffff !important;
+            opacity: 1 !important;
         }
-        * PESTAÑA SELECCIONADA (DESTACADA CON FONDO Y 100% OPACO) */
+
+        /* /* PESTAÑA SELECCIONADA (SINTAXIS CORREGIDA) */
         .stTabs button[aria-selected="true"] {
             background-color: #059669 !important;
             border-radius: 8px !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
         .stTabs button[aria-selected="true"] *,
-        .stTabs button[aria-selected="true"] p {
+        .stTabs button[aria-selected="true"] p,
+        .stTabs button[aria-selected="true"] span {
             color: #ffffff !important;
             opacity: 1 !important;
             font-weight: 800 !important;
         }
+
+        /* --- FORMULARIO --- */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(16px);
@@ -253,14 +256,14 @@ if not st.session_state.user:
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* --- CORRECCIÓN DE NOMBRES Y ETIQUETAS DE TEXTO --- */
+        /* --- ETIQUETAS DE TEXTO (TITULOS SOBRE LAS CAJAS) --- */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* --- CORRECCIÓN DE LAS CAJAS DE TEXTO (FONDO BLANCO Y TEXTO NEGRO) --- */
+        /* --- CAJAS DE TEXTO (FONDO BLANCO Y TEXTO NEGRO) --- */
         .stTextInput input,
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
@@ -269,7 +272,7 @@ if not st.session_state.user:
             border-radius: 10px !important;
         }
 
-        /* FUERZA EL TEXTO NEGRO EN CASO DE AUTOCOMPLETADO DEL NAVEGADOR */
+        /* AUTOCOMPLETADO DEL NAVEGADOR */
         .stTextInput input:-webkit-autofill,
         .stTextInput input:-webkit-autofill:hover, 
         .stTextInput input:-webkit-autofill:focus {
@@ -278,6 +281,7 @@ if not st.session_state.user:
             transition: background-color 5000s ease-in-out 0s;
         }
 
+        /* --- BOTONES --- */
         .stButton > button {
             width: 100%;
             border-radius: 10px !important;
@@ -291,7 +295,6 @@ if not st.session_state.user:
         """,
         unsafe_allow_html=True,
     )
-
     try:
         with open("static/logo.jpg", "rb") as img_file:
             img_b64 = base64.b64encode(img_file.read()).decode()
