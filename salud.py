@@ -228,12 +228,31 @@ if not st.session_state.user:
             padding: 1.5rem !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
+
+        /* --- CORRECCIÓN DE NOMBRES Y ETIQUETAS DE TEXTO --- */
+        [data-testid="stWidgetLabel"] label, 
+        .stTextInput label {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
+        /* --- CORRECCIÓN DE LAS CAJAS DE TEXTO --- */
         .stTextInput input {
             background-color: rgba(255, 255, 255, 0.07) !important;
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             border-radius: 10px !important;
         }
+
+        /* EVITA EL FONDO BLANCO CUANDO EL NAVEGADOR AUTOCOMPLETA DATOS */
+        .stTextInput input:-webkit-autofill,
+        .stTextInput input:-webkit-autofill:hover, 
+        .stTextInput input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
         .stButton > button {
             width: 100%;
             border-radius: 10px !important;
