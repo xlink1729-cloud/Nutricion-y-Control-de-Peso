@@ -65,7 +65,7 @@ def registrar_nuevo_usuario(nombre, email, password, pin):
     try:
         execute_db(
             """
-            INSERT INTO usuarios (nombre, email, password_hash, pin_seguridad)
+            INSERT INTO usuarios (nombre, email, password, pin_seguridad)
             VALUES (%s, %s, %s, %s)
             """,
             (nombre, email, hashed_pw, pin),
@@ -93,7 +93,7 @@ def cambiar_password_db(email, pin, nueva_password):
         execute_db(
             """
             UPDATE usuarios 
-            SET password_hash = %s 
+            SET password = %s 
             WHERE LOWER(email) = LOWER(%s)
             """,
             (hashed_pw, email),
