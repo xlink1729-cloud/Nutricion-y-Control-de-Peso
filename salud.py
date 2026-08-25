@@ -198,27 +198,40 @@ if not st.session_state.user:
             border-radius: 12px;
         }
         .stTabs [data-baseweb="tab-list"] {
-            gap: 4px;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding: 4px;
+            gap: 6px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 6px;
             border-radius: 12px;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
         }
         .stTabs [data-baseweb="tab"] {
-            height: 38px;
+            height: 40px;
             border-radius: 8px;
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 600;
-            font-size: 0.8rem;
             flex-grow: 1;
             justify-content: center;
         }
-        .stTabs [aria-selected="true"] {
-            background-color: rgba(16, 185, 129, 0.3) !important;
+        /* Texto en blanco claro para pestañas inactivas */
+        .stTabs [data-baseweb="tab"] p,
+        .stTabs [data-baseweb="tab"] span {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600 !important;
+            font-size: 0.82rem !important;
+        }
+        /* Efecto al pasar el cursor */
+        .stTabs [data-baseweb="tab"]:hover p {
             color: #ffffff !important;
-            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+        /* Pestaña activa (seleccionada) */
+        .stTabs [aria-selected="true"] {
+            background-color: #059669 !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+        .stTabs [aria-selected="true"] p,
+        .stTabs [aria-selected="true"] span {
+            color: #ffffff !important;
+            font-weight: 700 !important;
         }
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.04) !important;
