@@ -249,20 +249,21 @@ if not st.session_state.user:
             font-weight: 600 !important;
         }
 
-        /* --- CORRECCIÓN DE LAS CAJAS DE TEXTO --- */
-        .stTextInput input {
-            background-color: rgba(255, 255, 255, 0.07) !important;
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        /* --- CORRECCIÓN DE LAS CAJAS DE TEXTO (FONDO BLANCO Y TEXTO NEGRO) --- */
+        .stTextInput input,
+        div[data-baseweb="input"] input {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
             border-radius: 10px !important;
         }
 
-        /* EVITA EL FONDO BLANCO CUANDO EL NAVEGADOR AUTOCOMPLETA DATOS */
+        /* FUERZA EL TEXTO NEGRO EN CASO DE AUTOCOMPLETADO DEL NAVEGADOR */
         .stTextInput input:-webkit-autofill,
         .stTextInput input:-webkit-autofill:hover, 
         .stTextInput input:-webkit-autofill:focus {
-            -webkit-text-fill-color: #ffffff !important;
-            -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+            -webkit-text-fill-color: #000000 !important;
+            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
             transition: background-color 5000s ease-in-out 0s;
         }
 
