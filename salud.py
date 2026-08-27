@@ -1195,17 +1195,17 @@ elif opcion == "🍳 Generador de Recetas":
     with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
         col_h1, col_h2, col_h3 = st.columns(3)
         with col_h1:
-            hora_inicio = st.time_input("Hora de entrada:", value=time(7, 0))
+            hora_inicio = st.time_input("Hora de entrada:", value=datetime.time(7, 0))
         with col_h2:
-            hora_salida = st.time_input("Hora de salida:", value=time(19, 0))
+            hora_salida = st.time_input("Hora de salida:", value=datetime.time(19, 0))
         with col_h3:
-            hora_comida = st.time_input("Hora de comida:", value=time(12, 0))
+            hora_comida = st.time_input("Hora de comida:", value=datetime.time(12, 0))
 
         col_h4, col_h5, col_h6, col_h7 = st.columns(4)
         with col_h4:
             hora_licuado = st.time_input(
-                "Licuado / Al despertar:", value=time(5, 10)
-            )
+                "Licuado / Al despertar:", value=datetime.time(5, 10)  
+                )
         with col_h5:
             hora_desayuno = st.time_input("Desayuno:", value=time(7, 30))
         with col_h6:
