@@ -1,4 +1,5 @@
-from datetime import datetime, time
+import datetime
+from datetime import time
 from google import genai
 import pandas as pd
 import plotly.express as px
