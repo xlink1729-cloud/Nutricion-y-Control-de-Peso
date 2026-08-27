@@ -1191,27 +1191,27 @@ elif opcion == "🍳 Generador de Recetas":
         "Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales."
     )
 
-    # 1. CONFIGURACIÓN DE JORNADA LABORAL
+# 1. CONFIGURACIÓN DE JORNADA LABORAL
     with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
         col_h1, col_h2, col_h3 = st.columns(3)
         with col_h1:
-            hora_inicio = st.time_input("Hora de entrada:", value=time(7, 0))
+            hora_inicio = st.time_input("Hora de entrada:", value=datetime.time(7, 0))
         with col_h2:
-            hora_salida = st.time_input("Hora de salida:", value=time(19, 0))
+            hora_salida = st.time_input("Hora de salida:", value=datetime.time(19, 0))
         with col_h3:
-            hora_comida = st.time_input("Hora de comida:", value=time(12, 0))
+            hora_comida = st.time_input("Hora de comida:", value=datetime.time(12, 0))
 
         col_h4, col_h5, col_h6, col_h7 = st.columns(4)
         with col_h4:
-            hora_licuado = st.time_input("Licuado / Al despertar:", value=time(5, 10))
+            hora_licuado = st.time_input("Licuado / Al despertar:", value=datetime.time(5, 10))
         with col_h5:
-            hora_desayuno = st.time_input("Desayuno:", value=time(7, 30))
+            hora_desayuno = st.time_input("Desayuno:", value=datetime.time(7, 30))
         with col_h6:
             hora_col2 = st.time_input(
-                "Colación Tarde (Media Tarde):", value=time(16, 30)
+                "Colación Tarde (Media Tarde):", value=datetime.time(16, 30)
             )
         with col_h7:
-            hora_cena = st.time_input("Cena:", value=time(20, 0))
+            hora_cena = st.time_input("Cena:", value=datetime.time(20, 0))
 
         opcion_comedor = st.checkbox(
             "Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)",
