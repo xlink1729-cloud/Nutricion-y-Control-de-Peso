@@ -1726,23 +1726,41 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
         with st.chat_message("assistant"):
             with st.spinner("Analizando tu comida..."):
                 try:
-                    # Prompt del sistema para guiar a Gemini a actuar como un Coach Nutricional
+                    # 1. Obtener datos del usuario activo
+                    meta_calorias = st.session_state.user.get("meta_calorias", 2000) # Reemplaza por la clave real de tu dict de usuario
+                    calorias_hoy_previas = st.session_state.get("calorias_acumuladas_hoy", 0) # Reemplaza por tu variable de acumulado diario
+
+                    # 2. System Instruction completo y dinámico
                     system_instruction = (
-                        "Eres un Coach Nutricional empático, práctico y directo. "
-                        "Cuando el usuario te diga lo que comió, debes:\n"
-                        "1. Confirmar el registro.\n"
-                        "2. Dar un estimado aproximado de calorías (kcal) y proteína (g).\n"
-                        "3. Dar un breve consejo o feedback motivacional sobre si tiene margen para sus siguientes comidas.\n"
-                        "Mantén la respuesta corta (máximo 3-4 oraciones) y tono amigable."
+                        "Eres un Coach Nutricional empático, práctico y preciso. "
+                        "Tu tarea es analizar la comida registrada por el usuario, calcular sus macros y compararlos contra sus métricas diarias personales.\n\n"
+                        "Sigue estrictamente esta estructura de respuesta:\n"
+                        "1. Confirmar brevemente el registro.\n"
+                        "2. Dar un desglose estimado de macronutrientes: Calorías (kcal), Proteína (g), Carbohidratos (g) y Grasas (g).\n"
+                        "3. Balance Calórico Diario:\n"
+                        "   - Calcula las calorías totales acumuladas sumando las calorías de esta comida a las calorías previas ingresadas.\n"
+                        "   - Compara el total acumulado contra la Meta Diaria del usuario.\n"
+                        "   - Si el total es MENOR o IGUAL a la meta: Indica exactamente cuántas kcal le RESTAN para el día.\n"
+                        "   - Si el total SUPERA la meta: Indica claramente por cuántas kcal se EXCEDIÓ y da un consejo amable para ajustar la siguiente comida o el día de mañana.\n"
+                        "4. Breve recomendación nutricional sobre los ingredientes (ej. impacto de aderezos, azúcares o calidad de la proteína).\n"
+                        "Mantén un tono motivacional y directo."
                     )
-                    
+
+                    # 3. Contexto específico enviado a la API
+                    prompt_con_contexto = (
+                        f"[PERFIL DE CONSUMO DEL USUARIO HOY]\n"
+                        f"- Meta diaria de calorías: {meta_calorias} kcal\n"
+                        f"- Calorías consumidas previamente hoy: {calorias_hoy_previas} kcal\n\n"
+                        f"[COMIDA REGISTRADA]: {prompt}"
+                    )
+
                     response = client.models.generate_content(
                         model="gemini-3.6-flash",
-                        contents=f"{system_instruction}\n\nEntrada del usuario: {prompt}"
+                        contents=f"{system_instruction}\n\n{prompt_con_contexto}"
                     )
-                    
-                    respuesta_txt = response.text
-                    st.markdown(respuesta_txt)
+
+                    respuesta_coach = response.text
+                    st.markdown(respuesta_coach)
                     
                     # Guardar respuesta en el historial
                     st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_txt})
