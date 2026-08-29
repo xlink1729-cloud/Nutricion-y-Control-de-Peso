@@ -278,15 +278,45 @@ if not st.session_state.user:
             transition: background-color 5000s ease-in-out 0s;
         }
 
-        /* --- BOTONES --- */
-        .stButton > button {
-            width: 100%;
+        /* --- BOTONES (CORREGIDO PARA MÓVILES) --- */
+        div.stButton > button,
+        div[data-testid="stFormSubmitButton"] > button {
+            width: 100% !important;
             border-radius: 10px !important;
             font-weight: 600 !important;
             background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
-            color: white !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
             border: none !important;
             padding: 0.65rem 1rem !important;
+            
+            /* Anular comportamiento predeterminado de iOS Safari / Chrome Android */
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        /* EVITAR QUE SE VUELVA BLANCO EN CELULARES AL TOCAR O ENFOCAR */
+        div.stButton > button:hover,
+        div.stButton > button:focus,
+        div.stButton > button:active,
+        div[data-testid="stFormSubmitButton"] > button:hover,
+        div[data-testid="stFormSubmitButton"] > button:focus,
+        div[data-testid="stFormSubmitButton"] > button:active {
+            background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* FORZAR TEXTO BLANCO EN CONTENEDORES INTERNOS DEL BOTÓN */
+        div.stButton > button *,
+        div[data-testid="stFormSubmitButton"] > button * {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
         }
         </style>
         """,
