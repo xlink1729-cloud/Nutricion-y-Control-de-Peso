@@ -487,7 +487,7 @@ opcion = st.sidebar.radio(
         "🏠 Dashboard Principal",
         "📊 Control de Peso y Músculo",
         "📉 Registro Diario de Peso",
-        "🥤 Licuados 5:00 AM (L-J)",
+        "🥤 Generador de Licuados",
         "🥗 Registro de Alimentación",
         "🍳 Generador de Recetas",
         "🛒 Lista de Compras",
@@ -952,17 +952,17 @@ elif opcion == "📉 Registro Diario de Peso":
             st.info("Aún no hay registros diarios. Utiliza el formulario de la izquierda para comenzar.")
 
 # ==========================================
-# MÓDULO 3: LICUADOS 5:00 AM
+# MÓDULO 3: LICUADOS
 # ==========================================
-elif opcion == "🥤 Licuados 5:00 AM (L-J)":
-    st.header("🥤 Planificador de Licuados para el Despertar (5:10 AM)")
+elif opcion == "🥤 Generador de Licuados":
+    st.header("🥤 Planificador de Licuados")
     frutas_disponibles = st.text_input(
         "🍎 Frutas disponibles en casa esta semana:",
         "Manzana, papaya, fresas congeladas, peras, plátano",
     )
-    if st.button("🥤 Generar Plan de Licuados (Lunes a Jueves)"):
+    if st.button("🥤 Generar Plan de Licuados"):
         try:
-            prompt = f"Crea un plan de 4 licuados para despertar usando estas frutas: {frutas_disponibles}."
+            prompt = f"Crea un plan de licuados usando estas frutas: {frutas_disponibles}."
             response = client.models.generate_content(
                 model="gemini-3.7-flash", contents=prompt
             )
