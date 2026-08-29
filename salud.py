@@ -1150,7 +1150,7 @@ elif opcion == "🥗 Registro de Alimentación":
                             """
                             
                             response = client.models.generate_content(
-                                model="gemini-3.7-flash", contents=prompt_calorias
+                                model="gemini-3.6-flash", contents=prompt_calorias
                             )
                             texto_respuesta = response.text.strip()
                             
@@ -1457,7 +1457,7 @@ elif opcion == "🍳 Generador de Recetas":
 
             with st.spinner("Optimizando plan con Gemini..."):
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=prompt
+                    model="gemini-3.6-flash", contents=prompt
                 )
                 receta_texto = response.text
 
@@ -1737,7 +1737,7 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                     )
                     
                     response = client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-3.6-flash",
                         contents=f"{system_instruction}\n\nEntrada del usuario: {prompt}"
                     )
                     
