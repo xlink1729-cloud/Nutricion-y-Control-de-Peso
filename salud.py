@@ -1726,11 +1726,19 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
         with st.chat_message("assistant"):
             with st.spinner("Analizando tu comida..."):
                 try:
-                    # 1. Obtener datos del usuario activo
-                    meta_calorias = st.session_state.user.get("meta_calorias", 2000) # Reemplaza por la clave real de tu dict de usuario
-                    calorias_hoy_previas = st.session_state.get("calorias_acumuladas_hoy", 0) # Reemplaza por tu variable de acumulado diario
+                    # 1. Obtener datos de meta de la DB del usuario de manera segura
+                    perfil_db = run_query(
+                        "SELECT meta_kcal FROM control_peso WHERE user_id = %s ORDER BY fecha DESC LIMIT 1",
+                        (user_id,)
+                    )
+                    meta_calorias = perfil_db[0][0] if perfil_db else 2000
 
-                    # 2. System Instruction completo y dinámico
+                    # 2. Sumar consumo de calorías registradas en el día
+                    calorias_hoy_previas = 0
+                    if "diario_alimentos" in st.session_state and not st.session_state.diario_alimentos.empty:
+                        calorias_hoy_previas = int(st.session_state.diario_alimentos["Kcal"].sum())
+
+                    # 3. System Instruction completo y dinámico
                     system_instruction = (
                         "Eres un Coach Nutricional empático, práctico y preciso. "
                         "Tu tarea es analizar la comida registrada por el usuario, calcular sus macros y compararlos contra sus métricas diarias personales.\n\n"
@@ -1746,7 +1754,7 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                         "Mantén un tono motivacional y directo."
                     )
 
-                    # 3. Contexto específico enviado a la API
+                    # 4. Contexto específico enviado a la API
                     prompt_con_contexto = (
                         f"[PERFIL DE CONSUMO DEL USUARIO HOY]\n"
                         f"- Meta diaria de calorías: {meta_calorias} kcal\n"
@@ -1762,7 +1770,7 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                     respuesta_coach = response.text
                     st.markdown(respuesta_coach)
                     
-                    # Guardar respuesta en el historial
-                    st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_txt})
+                    # Guardar respuesta en el historial corrigiendo el nombre de la variable
+                    st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_coach})
                 except Exception as e:
                     st.error(f"Error al conectar con el asistente: {e}")
