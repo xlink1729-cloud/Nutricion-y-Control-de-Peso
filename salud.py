@@ -1475,27 +1475,127 @@ elif opcion == "🍳 Generador de Recetas":
             guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
 
 # ==========================================
-# MÓDULO 6: LISTA DE COMPRAS
+# MÓDULO 6: LISTA DE COMPRAS POR PASILLOS
 # ==========================================
 elif opcion == "🛒 Lista de Compras":
     st.header("🛒 Tu Lista de Supermercado")
 
-    nuevo_item = st.text_input("Agregar ingrediente o elemento al super:")
-    if st.button("Añadir a la lista"):
-        if nuevo_item:
-            st.session_state.lista_compras.append(nuevo_item)
-            st.success(f"'{nuevo_item}' agregado.")
+    # Inicializar estado en sesión si no existe
+    if "comprados_set" not in st.session_state:
+        st.session_state.comprados_set = set()
 
-    st.subheader("Lista pendiente:")
-    if st.session_state.lista_compras:
-        for idx, item in enumerate(st.session_state.lista_compras, 1):
-            st.write(f"{idx}. {item}")
+    # --- 1. FORMULARIO: AGREGAR INGREDIENTE O ELEMENTO ---
+    with st.form("form_agregar_super", clear_on_submit=True):
+        nuevo_item = st.text_input(
+            "Agregar ingrediente o elemento al super:",
+            placeholder="Ej. Jabón de trastes, Manzanas, Pechuga de pollo..."
+        )
+        col_cat, col_btn = st.columns([2, 1])
+        with col_cat:
+            categoria_item = st.selectbox(
+                "Categoría / Pasillo:",
+                [
+                    "🥦 Frutas y Verduras",
+                    "🥩 Carnes y Proteínas",
+                    "🥛 Lácteos y Refrigerados",
+                    "🥫 Abarrotes y Despensa",
+                    "🧹 Limpieza y Hogar",
+                    "🛒 Otros / General"
+                ]
+            )
+        with col_btn:
+            st.write("") # Espaciador para alinear el botón
+            st.write("")
+            btn_add = st.form_submit_button("Añadir a la lista", use_container_width=True)
 
-        if st.button("🗑️ Limpiar lista"):
-            st.session_state.lista_compras = []
+    if btn_add and nuevo_item.strip():
+        try:
+            execute_db(
+                """
+                INSERT INTO lista_compras (user_id, item, categoria, comprado)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (user_id, nuevo_item.strip(), categoria_item, False)
+            )
+            st.success(f"'{nuevo_item.strip()}' agregado a {categoria_item}.")
             st.rerun()
-    else:
+        except Exception as e:
+            st.error(f"Error al guardar elemento: {e}")
+
+    st.markdown("---")
+
+    # --- 2. LISTA PENDIENTE ORGANIZADA POR PASILLOS ---
+    st.subheader("Lista pendiente:")
+
+    # Consultar base de datos
+    items_db = run_query(
+        """
+        SELECT id, item, categoria, comprado 
+        FROM lista_compras 
+        WHERE user_id = %s 
+        ORDER BY categoria ASC, id ASC
+        """,
+        (user_id,)
+    )
+
+    if not items_db:
         st.info("Tu lista de compras está vacía.")
+    else:
+        # Agrupar elementos por categoría
+        from collections import defaultdict
+        agrupados = defaultdict(list)
+        for row in items_db:
+            item_id, item_nombre, item_cat, item_comprado = row
+            agrupados[item_cat].append({
+                "id": item_id,
+                "nombre": item_nombre,
+                "comprado": item_comprado
+            })
+
+        # Desplegar categorías y elementos con checkboxes interactivos
+        for categoria, elementos in agrupados.items():
+            st.markdown(f"#### {categoria}")
+            for elem in elementos:
+                elem_id = elem["id"]
+                elem_nombre = elem["nombre"]
+                esta_comprado = elem["comprado"]
+
+                # Formato tachado si ya está marcado como comprado
+                label = f"~~{elem_nombre}~~" if esta_comprado else elem_nombre
+                
+                check = st.checkbox(
+                    label, 
+                    value=esta_comprado, 
+                    key=f"check_super_{elem_id}"
+                )
+
+                # Actualizar estado en la BD si el usuario interactúa
+                if check != esta_comprado:
+                    execute_db(
+                        "UPDATE lista_compras SET comprado = %s WHERE id = %s AND user_id = %s",
+                        (check, elem_id, user_id)
+                    )
+                    st.rerun()
+
+        st.markdown("---")
+        
+        # Opciones de limpieza
+        col_clean1, col_clean2 = st.columns(2)
+        with col_clean1:
+            if st.button("🧹 Limpiar elementos marcados", use_container_width=True):
+                execute_db(
+                    "DELETE FROM lista_compras WHERE user_id = %s AND comprado = True",
+                    (user_id,)
+                )
+                st.rerun()
+                
+        with col_clean2:
+            if st.button("🗑️ Vaciar lista completa", use_container_width=True):
+                execute_db(
+                    "DELETE FROM lista_compras WHERE user_id = %s",
+                    (user_id,)
+                )
+                st.rerun()
 
 # ==========================================
 # MÓDULO 7: HÁBITOS Y CUMPLIMIENTO DIARIO
