@@ -1287,101 +1287,125 @@ elif opcion == "🍳 Generador de Recetas":
     plan_actual = st.session_state.plan_nutriologa_horarios
 
     # 3. SELECCIÓN DE MODALIDAD Y OPCIÓN DE COMEDOR
-    st.markdown("---")
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        opciones_tiempo = ["📌 Menú Completo del Día"] + list(
-            plan_actual.keys()
-        )
-        tiempo_comida = st.selectbox(
-            "Selecciona el tiempo de comida:", opciones_tiempo
-        )
-    with col_t2:
-        modalidades = [
-            "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
-            "🏠 En Casa / Home Office (Cocinando al momento)",
-            "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
-            "🏬 Comedor de Empresa (Selección inteligente de menú)",
-        ]
-        idx_def = 3 if opcion_comedor else 0
-        modalidad_trabajo = st.selectbox(
-            "Entorno y Modalidad de tu día:", modalidades, index=idx_def
-        )
-
-    if "Comedor" in modalidad_trabajo:
-        opcion_comedor_elegida = st.radio(
-            "🍽️ Opciones disponibles en comedor:",
-            [
-                "🥗 Paquete Saludable / Ensaladas",
-                "🍲 Comida del Día / Paquete General",
-            ],
-            horizontal=True,
-        )
-    else:
-        opcion_comedor_elegida = "N/A"
-
-    # 4. GUSTOS Y RESTRICCIONES POR CATEGORÍA
-    st.markdown("---")
-    st.subheader("⚙️ Gustos y Restricciones por Categoría")
-
-    tab_prot, tab_veg, tab_frutas = st.tabs(
-        [
-            "🥩 Proteínas y Carnes",
-            "🥦 Verduras y Acompañamientos",
-            "🍎 Frutas",
-        ]
+st.markdown("---")
+col_t1, col_t2 = st.columns(2)
+with col_t1:
+    opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
+    tiempo_comida = st.selectbox(
+        "Selecciona el tiempo de comida:", opciones_tiempo
+    )
+with col_t2:
+    modalidades = [
+        "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
+        "🏠 En Casa / Home Office (Cocinando al momento)",
+        "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
+        "🏬 Comedor de Empresa (Selección inteligente de menú)",
+    ]
+    idx_def = 3 if opcion_comedor else 0
+    modalidad_trabajo = st.selectbox(
+        "Entorno y Modalidad de tu día:", modalidades, index=idx_def
     )
 
-    with tab_prot:
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            fav_prot = st.text_input(
-                "💚 Proteínas preferidas:",
-                "Pollo, queso panela, atún, huevo",
-                key="fav_p",
-            )
-        with col_p2:
-            no_prot = st.text_input(
-                "❌ Proteínas a evitar:", "Pescado, cerdo, mariscos", key="no_p"
-            )
+if "Comedor" in modalidad_trabajo:
+    opcion_comedor_elegida = st.radio(
+        "🍽️ Opciones disponibles en comedor:",
+        [
+            "🥗 Paquete Saludable / Ensaladas",
+            "🍲 Comida del Día / Paquete General",
+        ],
+        horizontal=True,
+    )
+else:
+    opcion_comedor_elegida = "N/A"
 
-    with tab_veg:
-        col_v1, col_v2 = st.columns(2)
-        with col_v1:
-            fav_veg = st.text_input(
-                "💚 Verduras / Cereales preferidos:",
-                "Jitomate, aguacate, tortillas, avena",
-                key="fav_v",
-            )
-        with col_v2:
-            no_veg = st.text_input(
-                "❌ Verduras / Cereales a evitar:",
-                "Cilantro, calabacita, mayonesa",
-                key="no_v",
-            )
+# ==========================================
+# 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS
+# ==========================================
+st.markdown("---")
+st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
-    with tab_frutas:
-        col_f1, col_f2 = st.columns(2)
-        with col_f1:
-            fav_frutas = st.text_input(
-                "💚 Frutas preferidas:", "Plátano, manzana, fresas", key="fav_f"
-            )
-        with col_f2:
-            no_frutas = st.text_input(
-                "❌ Frutas a evitar:", "Papaya, melón", key="no_f"
-            )
+# Catálogo predefinido según grupos equivalentes
+OPCIONES_ALIMENTOS = {
+    "Proteínas": ["Pollo", "Pechuga de pavo", "Atún", "Huevo", "Queso panela", "Queso cottage", "Carne de res magra", "Cerdo", "Pescado", "Mariscos"],
+    "Verduras": ["Brócoli", "Espinacas", "Jitomate", "Cebolla", "Calabacita", "Zanahoria", "Pepino", "Champiñones", "Lechuga", "Pimiento", "Cilantro"],
+    "Frutas": ["Manzana", "Plátano", "Fresas", "Papaya", "Melón", "Naranja", "Uvas", "Piña", "Mango", "Arándanos"],
+    "Cereales": ["Avena", "Arroz integral", "Pan integral", "Tortilla de maíz", "Camote", "Papa", "Pasta integral", "Quinoa"],
+    "Leguminosas": ["Frijoles", "Lentejas", "Garbanzos", "Habas", "Edamames"],
+    "Grasas y Lácteos": ["Aguacate", "Aceite de oliva", "Nueces", "Almendras", "Leche descremada", "Yogur griego", "Mantequilla de maní", "Mayonesa"]
+}
 
-    alimentos_favoritos = f"Proteínas: {fav_prot} | Verduras/Cereales: {fav_veg} | Frutas: {fav_frutas}"
-    alimentos_no_gustan = f"Proteínas: {no_prot} | Verduras/Cereales: {no_veg} | Frutas: {no_frutas}"
+tab_prot, tab_veg, tab_frut, tab_cer, tab_leg, tab_gras = st.tabs([
+    "🥩 Proteínas",
+    "🥦 Verduras",
+    "🍎 Frutas",
+    "🌾 Cereales",
+    "🫘 Leguminosas",
+    "🥑 Grasas y Lácteos"
+])
 
-    # 5. GENERACIÓN CON GEMINI
-    if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
-        try:
-            duracion_jornada = (
-                hora_salida.hour + hora_salida.minute / 60
-            ) - (hora_inicio.hour + hora_inicio.minute / 60)
-            if duracion_jornada < 0:
-                duracion_jornada += 24
+with tab_prot:
+    col_p1, col_p2 = st.columns(2)
+    with col_p1:
+        fav_p = st.multiselect("💚 Proteínas preferidas:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pollo", "Queso panela", "Atún", "Huevo"], key="fav_p")
+    with col_p2:
+        no_p = st.multiselect("❌ Proteínas a evitar:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pescado", "Cerdo", "Mariscos"], key="no_p")
+
+with tab_veg:
+    col_v1, col_v2 = st.columns(2)
+    with col_v1:
+        fav_v = st.multiselect("💚 Verduras preferidas:", OPCIONES_ALIMENTOS["Verduras"], default=["Jitomate"], key="fav_v")
+    with col_v2:
+        no_v = st.multiselect("❌ Verduras a evitar:", OPCIONES_ALIMENTOS["Verduras"], default=["Cilantro", "Calabacita"], key="no_v")
+
+with tab_frut:
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        fav_f = st.multiselect("💚 Frutas preferidas:", OPCIONES_ALIMENTOS["Frutas"], default=["Plátano", "Manzana", "Fresas"], key="fav_f")
+    with col_f2:
+        no_f = st.multiselect("❌ Frutas a evitar:", OPCIONES_ALIMENTOS["Frutas"], default=["Papaya", "Melón"], key="no_f")
+
+with tab_cer:
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        fav_c = st.multiselect("💚 Cereales/Tubérculos preferidos:", OPCIONES_ALIMENTOS["Cereales"], default=["Tortilla de maíz", "Avena"], key="fav_c")
+    with col_c2:
+        no_c = st.multiselect("❌ Cereales/Tubérculos a evitar:", OPCIONES_ALIMENTOS["Cereales"], key="no_c")
+
+with tab_leg:
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        fav_l = st.multiselect("💚 Leguminosas preferidas:", OPCIONES_ALIMENTOS["Leguminosas"], default=["Frijoles", "Lentejas"], key="fav_l")
+    with col_l2:
+        no_l = st.multiselect("❌ Leguminosas a evitar:", OPCIONES_ALIMENTOS["Leguminosas"], key="no_l")
+
+with tab_gras:
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        fav_g = st.multiselect("💚 Grasas/Lácteos preferidos:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Aguacate"], key="fav_g")
+    with col_g2:
+        no_g = st.multiselect("❌ Grasas/Lácteos a evitar:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Mayonesa"], key="no_g")
+
+# Mantenemos las mismas variables formateadas para que NO se rompa el prompt de Gemini que ya tenías configurado
+alimentos_favoritos = (
+    f"Proteínas: {', '.join(fav_p)} | Verduras: {', '.join(fav_v)} | "
+    f"Frutas: {', '.join(fav_f)} | Cereales: {', '.join(fav_c)} | "
+    f"Leguminosas: {', '.join(fav_l)} | Grasas/Lácteos: {', '.join(fav_g)}"
+)
+
+alimentos_no_gustan = (
+    f"Proteínas: {', '.join(no_p)} | Verduras: {', '.join(no_v)} | "
+    f"Frutas: {', '.join(no_f)} | Cereales: {', '.join(no_c)} | "
+    f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
+)
+
+# 5. GENERACIÓN CON GEMINI
+if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
+    try:
+        duracion_jornada = (
+            hora_salida.hour + hora_salida.minute / 60
+        ) - (hora_inicio.hour + hora_inicio.minute / 60)
+        if duracion_jornada < 0:
+            duracion_jornada += 24
 
             contexto_rutina = f"""
             - Horario laboral: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
