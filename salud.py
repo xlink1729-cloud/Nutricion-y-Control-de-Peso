@@ -1221,18 +1221,40 @@ elif opcion == "🥗 Registro de Alimentación":
 elif opcion == "🍳 Generador de Recetas":
     st.header("🍳 Generador de Recetas y Plan según Jornada")
     st.write(
-        "Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales."
+        "Configura tus horarios de trabajo o escuela para adaptar tus comidas y porciones a tus turnos reales."
     )
 
-    # 1. CONFIGURACIÓN DE JORNADA LABORAL
-    with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
+    # 1. CONFIGURACIÓN DE JORNADA (TRABAJO / ESCUELA) Y CONDICIÓN
+    with st.expander("⏰ Configurar mi Jornada (Escuela / Trabajo) y Condición", expanded=True):
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            tipo_actividad = st.radio(
+                "📌 Tipo de ocupación principal:",
+                ["🏢 Laboral (Trabajo)", "🎓 Escolar (Estudiante)", "🔄 Mixto (Escuela y Trabajo)"],
+                horizontal=True
+            )
+        with col_c2:
+            condicion_especial = st.selectbox(
+                "🧬 Condición Especial / Perfil del Usuario:",
+                [
+                    "🟢 Estándar (Control y mantenimiento general)",
+                    "🏋️ Deportista / Alto Rendimiento (Aumento de proteína y carbohidratos de rápida absorción)",
+                    "🤰 Embarazo / Lactancia (Mayor densidad nutrimental y control de náuseas/saciedad)",
+                    "🔥 Pérdida de Grasa (Déficit / Enfoque en saciedad volumétrica)",
+                    "⚡ Día de Exámenes / Alta Carga Mental (Enfoque en salud cognitiva y energía sostenida)"
+                ]
+            )
+
+        st.markdown("---")
         col_h1, col_h2, col_h3 = st.columns(3)
         with col_h1:
-            hora_inicio = st.time_input("Hora de entrada:", value=datetime.time(7, 0))
+            label_inicio = "Hora de entrada a clases:" if "Escolar" in tipo_actividad else "Hora de entrada:"
+            hora_inicio = st.time_input(label_inicio, value=datetime.time(7, 0))
         with col_h2:
-            hora_salida = st.time_input("Hora de salida:", value=datetime.time(19, 0))
+            label_salida = "Hora de salida de clases:" if "Escolar" in tipo_actividad else "Hora de salida:"
+            hora_salida = st.time_input(label_salida, value=datetime.time(19, 0))
         with col_h3:
-            hora_comida = st.time_input("Hora de comida:", value=datetime.time(12, 0))
+            hora_comida = st.time_input("Hora de comida / receso:", value=datetime.time(12, 0))
 
         col_h4, col_h5, col_h6, col_h7 = st.columns(4)
         with col_h4:
@@ -1240,14 +1262,12 @@ elif opcion == "🍳 Generador de Recetas":
         with col_h5:
             hora_desayuno = st.time_input("Desayuno:", value=datetime.time(7, 30))
         with col_h6:
-            hora_col2 = st.time_input(
-                "Colación Tarde (Media Tarde):", value=datetime.time(16, 30)
-            )
+            hora_col2 = st.time_input("Colación Tarde (Media Tarde):", value=datetime.time(16, 30))
         with col_h7:
             hora_cena = st.time_input("Cena:", value=datetime.time(20, 0))
 
         opcion_comedor = st.checkbox(
-            "Tengo opción de Comedor de Empresa (Paquete Saludable / Ensaladas)",
+            "Tengo opción de Comedor de Empresa / Cafetería Escolar",
             value=True,
         )
 
@@ -1297,18 +1317,19 @@ elif opcion == "🍳 Generador de Recetas":
     with col_t2:
         modalidades = [
             "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
+            "🎓 Escuela / Universidad (Aulas, recesos cortos, mochilas)",
             "🏠 En Casa / Home Office (Cocinando al momento)",
             "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
-            "🏬 Comedor de Empresa (Selección inteligente de menú)",
+            "🏬 Comedor de Empresa / Cafetería (Selección inteligente)",
         ]
-        idx_def = 3 if opcion_comedor else 0
+        idx_def = 4 if opcion_comedor else 0
         modalidad_trabajo = st.selectbox(
             "Entorno y Modalidad de tu día:", modalidades, index=idx_def
         )
 
-    if "Comedor" in modalidad_trabajo:
+    if "Comedor" in modalidad_trabajo or "Cafetería" in modalidad_trabajo:
         opcion_comedor_elegida = st.radio(
-            "🍽️ Opciones disponibles en comedor:",
+            "🍽️ Opciones disponibles en comedor/cafetería:",
             [
                 "🥗 Paquete Saludable / Ensaladas",
                 "🍲 Comida del Día / Paquete General",
@@ -1394,7 +1415,7 @@ elif opcion == "🍳 Generador de Recetas":
         f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
     )
 
-    # 5. GENERACIÓN CON GEMINI Y AUTO-GENERACIÓN DE LISTA DE SUPERMERCADO
+    # 5. GENERACIÓN CON GEMINI Y CREACIÓN AUTOMÁTICA DE LISTA DE SUPERMERCADO
     if st.button("🍳 Generar Plan / Guía y Crear Lista de Compras", use_container_width=True):
         try:
             import json
@@ -1407,25 +1428,31 @@ elif opcion == "🍳 Generador de Recetas":
                 duracion_jornada += 24
 
             contexto_rutina = f"""
-            - Horario laboral: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
+            - Tipo de Jornada: {tipo_actividad}
+            - Horario activo: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
             - Al despertar: {hora_licuado.strftime('%I:%M %p')}
             - Desayuno: {hora_desayuno.strftime('%I:%M %p')}
-            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Comedor: {opcion_comedor_elegida})
+            - Comida principal: {hora_comida.strftime('%I:%M %p')} (Comedor/Cafetería: {opcion_comedor_elegida})
             - Colación 2 (Tarde): {hora_col2.strftime('%I:%M %p')}
             - Cena: {hora_cena.strftime('%I:%M %p')}
             """
 
-            reglas_prompt = """
-            REGLAS CRÍTICAS:
-            1. Control del antojo de tarde a las 4:30 PM con alimentos portables y saciantes.
-            2. Grasas saludables únicamente (Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray).
-            3. Al FINAL de tu respuesta, DEBES incluir obligatoriamente un bloque JSON delimitado por ```json ... ``` con la lista exacta de ingredientes necesarios para preparar las recetas del plan. Usar exactamente estas categorías: '🥩 Carnes y Proteínas', '🥦 Frutas y Verduras', '🌾 Cereales y Panadería', '🥛 Lácteos y Refrigerados', '🥫 Abarrotes y Despensa'.
-            
+            reglas_prompt = f"""
+            REGLAS CRÍTICAS DE SALUD Y ADAPTACIÓN:
+            1. CONDICIÓN ESPECIAL DEL USUARIO: '{condicion_especial}'. 
+               - Si es Deportista: Aumentar la carga proteica total y agregar carbohidratos de rápida/mediana absorción pre o post entreno.
+               - Si es Embarazo/Lactancia: Asegurar densidad nutricional (hierro, ácido fólico, calcio), porciones ligeras fáciles de digerir y prevenir nauseas o pesadez.
+               - Si es Día de Exámenes/Estudiante: Incluir grasas saludables (omega 3, frutos secos) que favorezcan el enfoque cognitivo y eviten picos de glucosa en el aula.
+            2. MODALIDAD Y ENTORNO: '{modalidad_trabajo}'. Considera facilidades de transporte, empaque y refrigeración.
+            3. Control del antojo de tarde a las 4:30 PM con alimentos portables y saciantes.
+            4. Grasas saludables únicamente (Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray).
+            5. Al FINAL de tu respuesta, DEBES incluir OBLIGATORIAMENTE un bloque JSON delimitado por ```json ... ``` con la lista exacta de ingredientes requeridos para las recetas. Usar exclusivamente estas categorías: '🥩 Carnes y Proteínas', '🥦 Frutas y Verduras', '🌾 Cereales y Panadería', '🥛 Lácteos y Refrigerados', '🥫 Abarrotes y Despensa'.
+
             Ejemplo del bloque final en JSON:
             ```json
             [
-              {"item": "200g Pechuga de pollo", "categoria": "🥩 Carnes y Proteínas"},
-              {"item": "1 pieza de Aguacate", "categoria": "🥦 Frutas y Verduras"}
+              {{"item": "200g Pechuga de pollo", "categoria": "🥩 Carnes y Proteínas"}},
+              {{"item": "1 pieza de Aguacate", "categoria": "🥦 Frutas y Verduras"}}
             ]
             ```
             """
@@ -1439,7 +1466,6 @@ elif opcion == "🍳 Generador de Recetas":
                 prompt = f"""
                 Actúa como Nutriólogo Experto. Diseña un cronograma de alimentación optimizado:
                 RUTINA DE HORARIOS: {contexto_rutina}
-                Modalidad: '{modalidad_trabajo}'
                 PORCIONES: {resumen_plan}
                 PREFERENCIAS: Le gustan: {alimentos_favoritos} | EXCLUIR: {alimentos_no_gustan}
                 {reglas_prompt}
@@ -1451,30 +1477,29 @@ elif opcion == "🍳 Generador de Recetas":
                 prompt = f"""
                 Actúa como Nutriólogo Asesor. Diseña la receta/guía para '{tiempo_comida}'.
                 RUTINA: {contexto_rutina}
-                MODALIDAD: '{modalidad_trabajo}' (Comedor: {opcion_comedor_elegida})
                 PORCIONES: {porciones_str}
                 PREFERENCIAS: Le gustan: {alimentos_favoritos} | EXCLUIR: {alimentos_no_gustan}
                 {reglas_prompt}
                 """
 
-            with st.spinner("Generando menú y calculando lista de compras..."):
+            with st.spinner("Generando menú personalizado y enviando lista de compras al supermercado..."):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
                 receta_texto = response.text
 
-            # Separar texto explicativo de la estructura JSON
+            # Extracción del bloque JSON e inserción automática a la DB
             match = re.search(r"```json\s*(.*?)\s*```", receta_texto, re.DOTALL)
             
             if match:
                 json_str = match.group(1)
                 ingredientes = json.loads(json_str)
                 
-                # Ocultar el bloque JSON visualmente del texto de la receta
+                # Ocultar el bloque JSON del texto visible en pantalla
                 receta_limpia = re.sub(r"```json\s*.*?\s*```", "", receta_texto, flags=re.DOTALL)
                 st.session_state["ultima_receta"] = receta_limpia
                 
-                # Auto-insertar a la base de datos de Neon en 'lista_compras'
+                # Insertar ítems automáticamente en Neon PostgreSQL
                 for ing in ingredientes:
                     execute_db(
                         """
