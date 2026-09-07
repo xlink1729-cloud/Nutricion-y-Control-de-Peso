@@ -1251,7 +1251,7 @@ elif opcion == "🍳 Generador de Recetas":
             value=True,
         )
 
-    # 2. PLAN BASE RESTRUCTURADO (Ajuste de puentes de saciedad)
+    # 2. PLAN BASE RESTRUCTURADO
     if "plan_nutriologa_horarios" not in st.session_state:
         st.session_state.plan_nutriologa_horarios = {
             "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
@@ -1318,7 +1318,7 @@ elif opcion == "🍳 Generador de Recetas":
     else:
         opcion_comedor_elegida = "N/A"
 
-    # 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS (Propuesta SMAE Nutrióloga)
+    # 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS
     st.markdown("---")
     st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
@@ -1394,9 +1394,12 @@ elif opcion == "🍳 Generador de Recetas":
         f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
     )
 
-    # 5. GENERACIÓN CON GEMINI
-    if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
+    # 5. GENERACIÓN CON GEMINI Y AUTO-GENERACIÓN DE LISTA DE SUPERMERCADO
+    if st.button("🍳 Generar Plan / Guía y Crear Lista de Compras", use_container_width=True):
         try:
+            import json
+            import re
+
             duracion_jornada = (
                 hora_salida.hour + hora_salida.minute / 60
             ) - (hora_inicio.hour + hora_inicio.minute / 60)
@@ -1413,119 +1416,91 @@ elif opcion == "🍳 Generador de Recetas":
             """
 
             reglas_prompt = """
-            REGLAS DE PREPARACIÓN Y SACIEDAD CRÍTICAS:
-            1. CONTROL DEL ANTOJO DE TARDE (5:00 PM):
-               El usuario suele experimentar picos de hambre por la tarde y recurrir a ultraprocesados por falta de saciedad y practicidad.
-               La Colación 2 (4:30 PM) DEBE ser highly portable (fácil de comer en oficina o trayecto) y combinar carbohidratos de lenta absorción, 
-               grasa saludable y proteína. Debe estar diseñada explícitamente para erradicar el deseo de comer pan dulce o galletas.
-
-            2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites refinados.
-            3. COCINADO: Priorizar métodos como plancha, vapor, horno o air fryer. Evitar aderezos comerciales.
-            4. FORMATO DE INGREDIENTES: Al final de cada receta, incluye una sección clara llamada '### INGREDIENTES' en lista de viñetas con el formato 'Ingrediente - Categoría' (Ej. - 200g Pechuga de pollo - 🥩 Carnes y Proteínas).
+            REGLAS CRÍTICAS:
+            1. Control del antojo de tarde a las 4:30 PM con alimentos portables y saciantes.
+            2. Grasas saludables únicamente (Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray).
+            3. Al FINAL de tu respuesta, DEBES incluir obligatoriamente un bloque JSON delimitado por ```json ... ``` con la lista exacta de ingredientes necesarios para preparar las recetas del plan. Usar exactamente estas categorías: '🥩 Carnes y Proteínas', '🥦 Frutas y Verduras', '🌾 Cereales y Panadería', '🥛 Lácteos y Refrigerados', '🥫 Abarrotes y Despensa'.
+            
+            Ejemplo del bloque final en JSON:
+            ```json
+            [
+              {"item": "200g Pechuga de pollo", "categoria": "🥩 Carnes y Proteínas"},
+              {"item": "1 pieza de Aguacate", "categoria": "🥦 Frutas y Verduras"}
+            ]
+            ```
             """
 
             if tiempo_comida == "📌 Menú Completo del Día":
                 resumen_plan = ""
                 for t_nombre, t_datos in plan_actual.items():
-                    porciones_t = ", ".join(
-                        [f"{cant} {grp}" for grp, cant in t_datos.items()]
-                    )
+                    porciones_t = ", ".join([f"{cant} {grp}" for grp, cant in t_datos.items()])
                     resumen_plan += f"- **{t_nombre}**: {porciones_t}\n"
 
                 prompt = f"""
-                Actúa como Nutriólogo Experto. Diseña un cronograma de alimentación optimizado para la jornada:
-
-                RUTINA DE HORARIOS:
-                {contexto_rutina}
+                Actúa como Nutriólogo Experto. Diseña un cronograma de alimentación optimizado:
+                RUTINA DE HORARIOS: {contexto_rutina}
                 Modalidad: '{modalidad_trabajo}'
-
-                PORCIONES DE LA NUTRIÓLOGA:
-                {resumen_plan}
-
-                PREFERENCIAS:
-                - Le gustan: {alimentos_favoritos}
-                - EXCLUIR (No incluir bajo ningún concepto): {alimentos_no_gustan}
-
+                PORCIONES: {resumen_plan}
+                PREFERENCIAS: Le gustan: {alimentos_favoritos} | EXCLUIR: {alimentos_no_gustan}
                 {reglas_prompt}
-
-                INSTRUCCIONES:
-                1. Presenta un cronograma por horas de cada tiempo de comida.
-                2. Para la Colación de las {hora_col2.strftime('%I:%M %p')}, redacta una opción saciante y portable.
-                3. Da explicaciones claras para ajustar la comida de comedor ('{opcion_comedor_elegida}') controlando las porciones indicadas.
                 """
             else:
                 datos_comida = plan_actual[tiempo_comida].copy()
-                porciones_str = ", ".join(
-                    [
-                        f"{cant} porción(es) de {grupo}"
-                        for grupo, cant in datos_comida.items()
-                    ]
-                )
+                porciones_str = ", ".join([f"{cant} porción(es) de {grupo}" for grupo, cant in datos_comida.items()])
 
                 prompt = f"""
                 Actúa como Nutriólogo Asesor. Diseña la receta/guía para '{tiempo_comida}'.
-
                 RUTINA: {contexto_rutina}
                 MODALIDAD: '{modalidad_trabajo}' (Comedor: {opcion_comedor_elegida})
                 PORCIONES: {porciones_str}
-                GUSTOS: {alimentos_favoritos}
-                EXCLUIR: {alimentos_no_gustan}
-
+                PREFERENCIAS: Le gustan: {alimentos_favoritos} | EXCLUIR: {alimentos_no_gustan}
                 {reglas_prompt}
-
-                Si es la Colación 2, enfatiza que la preparación debe ser sustanciosa y rica en proteína/grasa saludable para aguantar la tarde.
                 """
 
-            with st.spinner("Optimizando plan con Gemini..."):
+            with st.spinner("Generando menú y calculando lista de compras..."):
                 response = client.models.generate_content(
                     model="gemini-3.6-flash", contents=prompt
                 )
                 receta_texto = response.text
 
-            st.session_state["ultima_receta"] = receta_texto
+            # Separar texto explicativo de la estructura JSON
+            match = re.search(r"```json\s*(.*?)\s*```", receta_texto, re.DOTALL)
+            
+            if match:
+                json_str = match.group(1)
+                ingredientes = json.loads(json_str)
+                
+                # Ocultar el bloque JSON visualmente del texto de la receta
+                receta_limpia = re.sub(r"```json\s*.*?\s*```", "", receta_texto, flags=re.DOTALL)
+                st.session_state["ultima_receta"] = receta_limpia
+                
+                # Auto-insertar a la base de datos de Neon en 'lista_compras'
+                for ing in ingredientes:
+                    execute_db(
+                        """
+                        INSERT INTO lista_compras (user_id, item, categoria, comprado)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (user_id, ing.get("item"), ing.get("categoria", "Otros"), False)
+                    )
+                st.toast("🛒 ¡Lista de supermercado generada e insertada automáticamente!", icon="✅")
+            else:
+                st.session_state["ultima_receta"] = receta_texto
 
         except Exception as e:
-            st.error(f"Error al conectar con Gemini: {e}")
+            st.error(f"Error al procesar el plan o guardar en la base de datos: {e}")
 
-    # 6. MOSTRAR RESULTADO Y GUARDAR
+    # 6. MOSTRAR RESULTADO DE LA RECETA
     if "ultima_receta" in st.session_state:
         st.markdown("---")
         st.markdown(st.session_state["ultima_receta"])
         
-        col_b1, col_b2 = st.columns(2)
-        
-        with col_b1:
-            if st.button("💾 Guardar esta receta en mi cuenta", use_container_width=True):
-                try:
-                    guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
-                    st.success("¡Receta guardada con éxito en tu base de datos!")
-                except Exception as e:
-                    st.error(f"Error al guardar receta: {e}")
-
-        with col_b2:
-            if st.button("🛒 Cargar ingredientes a la Lista de Compras", use_container_width=True):
-                try:
-                    # Extraer alimentos de la selección actual para cargarlos a la tabla 'lista_compras'
-                    items_a_insertar = []
-                    
-                    for item in fav_p: items_a_insertar.append((item, "🥩 Carnes y Proteínas"))
-                    for item in fav_v: items_a_insertar.append((item, "🥦 Frutas y Verduras"))
-                    for item in fav_f: items_a_insertar.append((item, "🥦 Frutas y Verduras"))
-                    for item in fav_c: items_a_insertar.append((item, "🥫 Abarrotes y Despensa"))
-                    for item in fav_l: items_a_insertar.append((item, "🥫 Abarrotes y Despensa"))
-                    for item in fav_g: items_a_insertar.append((item, "🥛 Lácteos y Refrigerados"))
-
-                    for item_nombre, item_cat in items_a_insertar:
-                        execute_db(
-                            """
-                            INSERT INTO lista_compras (user_id, item, categoria, comprado)
-                            VALUES (%s, %s, %s, %s)
-                            """,
-                            (user_id, item_nombre, item_cat, False)
-                        )
-                    st.success("¡Ingredientes agregados a tu Lista de Compras en Neon!")
-                except Exception as e:
-                    st.error(f"Error al sincronizar con la lista de compras: {e}")
+        if st.button("💾 Guardar esta receta en mis favoritas", use_container_width=True):
+            try:
+                guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
+                st.success("¡Receta guardada con éxito en tu base de datos!")
+            except Exception as e:
+                st.error(f"Error al guardar receta: {e}")
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS POR PASILLOS
