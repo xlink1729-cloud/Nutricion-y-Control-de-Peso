@@ -1224,7 +1224,7 @@ elif opcion == "🍳 Generador de Recetas":
         "Configura tus horarios de trabajo para adaptar tus comidas y porciones a tus turnos reales."
     )
 
-# 1. CONFIGURACIÓN DE JORNADA LABORAL
+    # 1. CONFIGURACIÓN DE JORNADA LABORAL
     with st.expander("⏰ Configurar mi Jornada Laboral y Rutina", expanded=True):
         col_h1, col_h2, col_h3 = st.columns(3)
         with col_h1:
@@ -1287,125 +1287,121 @@ elif opcion == "🍳 Generador de Recetas":
     plan_actual = st.session_state.plan_nutriologa_horarios
 
     # 3. SELECCIÓN DE MODALIDAD Y OPCIÓN DE COMEDOR
-st.markdown("---")
-col_t1, col_t2 = st.columns(2)
-with col_t1:
-    opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
-    tiempo_comida = st.selectbox(
-        "Selecciona el tiempo de comida:", opciones_tiempo
+    st.markdown("---")
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        opciones_tiempo = ["📌 Menú Completo del Día"] + list(plan_actual.keys())
+        tiempo_comida = st.selectbox(
+            "Selecciona el tiempo de comida:", opciones_tiempo
+        )
+    with col_t2:
+        modalidades = [
+            "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
+            "🏠 En Casa / Home Office (Cocinando al momento)",
+            "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
+            "🏬 Comedor de Empresa (Selección inteligente de menú)",
+        ]
+        idx_def = 3 if opcion_comedor else 0
+        modalidad_trabajo = st.selectbox(
+            "Entorno y Modalidad de tu día:", modalidades, index=idx_def
+        )
+
+    if "Comedor" in modalidad_trabajo:
+        opcion_comedor_elegida = st.radio(
+            "🍽️ Opciones disponibles en comedor:",
+            [
+                "🥗 Paquete Saludable / Ensaladas",
+                "🍲 Comida del Día / Paquete General",
+            ],
+            horizontal=True,
+        )
+    else:
+        opcion_comedor_elegida = "N/A"
+
+    # 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS (Propuesta SMAE Nutrióloga)
+    st.markdown("---")
+    st.subheader("⚙️ Gustos y Restricciones por Categoría")
+
+    OPCIONES_ALIMENTOS = {
+        "Proteínas": ["Pollo", "Pechuga de pavo", "Atún", "Huevo", "Queso panela", "Queso cottage", "Carne de res magra", "Cerdo", "Pescado", "Mariscos"],
+        "Verduras": ["Brócoli", "Espinacas", "Jitomate", "Cebolla", "Calabacita", "Zanahoria", "Pepino", "Champiñones", "Lechuga", "Pimiento", "Cilantro"],
+        "Frutas": ["Manzana", "Plátano", "Fresas", "Papaya", "Melón", "Naranja", "Uvas", "Piña", "Mango", "Arándanos"],
+        "Cereales": ["Avena", "Arroz integral", "Pan integral", "Tortilla de maíz", "Camote", "Papa", "Pasta integral", "Quinoa"],
+        "Leguminosas": ["Frijoles", "Lentejas", "Garbanzos", "Habas", "Edamames"],
+        "Grasas y Lácteos": ["Aguacate", "Aceite de oliva", "Nueces", "Almendras", "Leche descremada", "Yogur griego", "Mantequilla de maní", "Mayonesa"]
+    }
+
+    tab_prot, tab_veg, tab_frut, tab_cer, tab_leg, tab_gras = st.tabs([
+        "🥩 Proteínas",
+        "🥦 Verduras",
+        "🍎 Frutas",
+        "🌾 Cereales",
+        "🫘 Leguminosas",
+        "🥑 Grasas y Lácteos"
+    ])
+
+    with tab_prot:
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            fav_p = st.multiselect("💚 Proteínas preferidas:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pollo", "Queso panela", "Atún", "Huevo"], key="fav_p")
+        with col_p2:
+            no_p = st.multiselect("❌ Proteínas a evitar:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pescado", "Cerdo", "Mariscos"], key="no_p")
+
+    with tab_veg:
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            fav_v = st.multiselect("💚 Verduras preferidas:", OPCIONES_ALIMENTOS["Verduras"], default=["Jitomate"], key="fav_v")
+        with col_v2:
+            no_v = st.multiselect("❌ Verduras a evitar:", OPCIONES_ALIMENTOS["Verduras"], default=["Cilantro", "Calabacita"], key="no_v")
+
+    with tab_frut:
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            fav_f = st.multiselect("💚 Frutas preferidas:", OPCIONES_ALIMENTOS["Frutas"], default=["Plátano", "Manzana", "Fresas"], key="fav_f")
+        with col_f2:
+            no_f = st.multiselect("❌ Frutas a evitar:", OPCIONES_ALIMENTOS["Frutas"], default=["Papaya", "Melón"], key="no_f")
+
+    with tab_cer:
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            fav_c = st.multiselect("💚 Cereales/Tubérculos preferidos:", OPCIONES_ALIMENTOS["Cereales"], default=["Tortilla de maíz", "Avena"], key="fav_c")
+        with col_c2:
+            no_c = st.multiselect("❌ Cereales/Tubérculos a evitar:", OPCIONES_ALIMENTOS["Cereales"], key="no_c")
+
+    with tab_leg:
+        col_l1, col_l2 = st.columns(2)
+        with col_l1:
+            fav_l = st.multiselect("💚 Leguminosas preferidas:", OPCIONES_ALIMENTOS["Leguminosas"], default=["Frijoles", "Lentejas"], key="fav_l")
+        with col_l2:
+            no_l = st.multiselect("❌ Leguminosas a evitar:", OPCIONES_ALIMENTOS["Leguminosas"], key="no_l")
+
+    with tab_gras:
+        col_g1, col_g2 = st.columns(2)
+        with col_g1:
+            fav_g = st.multiselect("💚 Grasas/Lácteos preferidos:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Aguacate"], key="fav_g")
+        with col_g2:
+            no_g = st.multiselect("❌ Grasas/Lácteos a evitar:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Mayonesa"], key="no_g")
+
+    alimentos_favoritos = (
+        f"Proteínas: {', '.join(fav_p)} | Verduras: {', '.join(fav_v)} | "
+        f"Frutas: {', '.join(fav_f)} | Cereales: {', '.join(fav_c)} | "
+        f"Leguminosas: {', '.join(fav_l)} | Grasas/Lácteos: {', '.join(fav_g)}"
     )
-with col_t2:
-    modalidades = [
-        "🏢 Oficina / Campo (Trabajo Mixto - Práctico para llevar)",
-        "🏠 En Casa / Home Office (Cocinando al momento)",
-        "🛠️ Campo Total / Trabajo Móvil (Sin microondas / En hielera)",
-        "🏬 Comedor de Empresa (Selección inteligente de menú)",
-    ]
-    idx_def = 3 if opcion_comedor else 0
-    modalidad_trabajo = st.selectbox(
-        "Entorno y Modalidad de tu día:", modalidades, index=idx_def
+
+    alimentos_no_gustan = (
+        f"Proteínas: {', '.join(no_p)} | Verduras: {', '.join(no_v)} | "
+        f"Frutas: {', '.join(no_f)} | Cereales: {', '.join(no_c)} | "
+        f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
     )
 
-if "Comedor" in modalidad_trabajo:
-    opcion_comedor_elegida = st.radio(
-        "🍽️ Opciones disponibles en comedor:",
-        [
-            "🥗 Paquete Saludable / Ensaladas",
-            "🍲 Comida del Día / Paquete General",
-        ],
-        horizontal=True,
-    )
-else:
-    opcion_comedor_elegida = "N/A"
-
-# ==========================================
-# 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS
-# ==========================================
-st.markdown("---")
-st.subheader("⚙️ Gustos y Restricciones por Categoría")
-
-# Catálogo predefinido según grupos equivalentes
-OPCIONES_ALIMENTOS = {
-    "Proteínas": ["Pollo", "Pechuga de pavo", "Atún", "Huevo", "Queso panela", "Queso cottage", "Carne de res magra", "Cerdo", "Pescado", "Mariscos"],
-    "Verduras": ["Brócoli", "Espinacas", "Jitomate", "Cebolla", "Calabacita", "Zanahoria", "Pepino", "Champiñones", "Lechuga", "Pimiento", "Cilantro"],
-    "Frutas": ["Manzana", "Plátano", "Fresas", "Papaya", "Melón", "Naranja", "Uvas", "Piña", "Mango", "Arándanos"],
-    "Cereales": ["Avena", "Arroz integral", "Pan integral", "Tortilla de maíz", "Camote", "Papa", "Pasta integral", "Quinoa"],
-    "Leguminosas": ["Frijoles", "Lentejas", "Garbanzos", "Habas", "Edamames"],
-    "Grasas y Lácteos": ["Aguacate", "Aceite de oliva", "Nueces", "Almendras", "Leche descremada", "Yogur griego", "Mantequilla de maní", "Mayonesa"]
-}
-
-tab_prot, tab_veg, tab_frut, tab_cer, tab_leg, tab_gras = st.tabs([
-    "🥩 Proteínas",
-    "🥦 Verduras",
-    "🍎 Frutas",
-    "🌾 Cereales",
-    "🫘 Leguminosas",
-    "🥑 Grasas y Lácteos"
-])
-
-with tab_prot:
-    col_p1, col_p2 = st.columns(2)
-    with col_p1:
-        fav_p = st.multiselect("💚 Proteínas preferidas:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pollo", "Queso panela", "Atún", "Huevo"], key="fav_p")
-    with col_p2:
-        no_p = st.multiselect("❌ Proteínas a evitar:", OPCIONES_ALIMENTOS["Proteínas"], default=["Pescado", "Cerdo", "Mariscos"], key="no_p")
-
-with tab_veg:
-    col_v1, col_v2 = st.columns(2)
-    with col_v1:
-        fav_v = st.multiselect("💚 Verduras preferidas:", OPCIONES_ALIMENTOS["Verduras"], default=["Jitomate"], key="fav_v")
-    with col_v2:
-        no_v = st.multiselect("❌ Verduras a evitar:", OPCIONES_ALIMENTOS["Verduras"], default=["Cilantro", "Calabacita"], key="no_v")
-
-with tab_frut:
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        fav_f = st.multiselect("💚 Frutas preferidas:", OPCIONES_ALIMENTOS["Frutas"], default=["Plátano", "Manzana", "Fresas"], key="fav_f")
-    with col_f2:
-        no_f = st.multiselect("❌ Frutas a evitar:", OPCIONES_ALIMENTOS["Frutas"], default=["Papaya", "Melón"], key="no_f")
-
-with tab_cer:
-    col_c1, col_c2 = st.columns(2)
-    with col_c1:
-        fav_c = st.multiselect("💚 Cereales/Tubérculos preferidos:", OPCIONES_ALIMENTOS["Cereales"], default=["Tortilla de maíz", "Avena"], key="fav_c")
-    with col_c2:
-        no_c = st.multiselect("❌ Cereales/Tubérculos a evitar:", OPCIONES_ALIMENTOS["Cereales"], key="no_c")
-
-with tab_leg:
-    col_l1, col_l2 = st.columns(2)
-    with col_l1:
-        fav_l = st.multiselect("💚 Leguminosas preferidas:", OPCIONES_ALIMENTOS["Leguminosas"], default=["Frijoles", "Lentejas"], key="fav_l")
-    with col_l2:
-        no_l = st.multiselect("❌ Leguminosas a evitar:", OPCIONES_ALIMENTOS["Leguminosas"], key="no_l")
-
-with tab_gras:
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        fav_g = st.multiselect("💚 Grasas/Lácteos preferidos:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Aguacate"], key="fav_g")
-    with col_g2:
-        no_g = st.multiselect("❌ Grasas/Lácteos a evitar:", OPCIONES_ALIMENTOS["Grasas y Lácteos"], default=["Mayonesa"], key="no_g")
-
-# Mantenemos las mismas variables formateadas para que NO se rompa el prompt de Gemini que ya tenías configurado
-alimentos_favoritos = (
-    f"Proteínas: {', '.join(fav_p)} | Verduras: {', '.join(fav_v)} | "
-    f"Frutas: {', '.join(fav_f)} | Cereales: {', '.join(fav_c)} | "
-    f"Leguminosas: {', '.join(fav_l)} | Grasas/Lácteos: {', '.join(fav_g)}"
-)
-
-alimentos_no_gustan = (
-    f"Proteínas: {', '.join(no_p)} | Verduras: {', '.join(no_v)} | "
-    f"Frutas: {', '.join(no_f)} | Cereales: {', '.join(no_c)} | "
-    f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
-)
-
-# 5. GENERACIÓN CON GEMINI
-if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
-    try:
-        duracion_jornada = (
-            hora_salida.hour + hora_salida.minute / 60
-        ) - (hora_inicio.hour + hora_inicio.minute / 60)
-        if duracion_jornada < 0:
-            duracion_jornada += 24
+    # 5. GENERACIÓN CON GEMINI
+    if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=True):
+        try:
+            duracion_jornada = (
+                hora_salida.hour + hora_salida.minute / 60
+            ) - (hora_inicio.hour + hora_inicio.minute / 60)
+            if duracion_jornada < 0:
+                duracion_jornada += 24
 
             contexto_rutina = f"""
             - Horario laboral: {hora_inicio.strftime('%I:%M %p')} a {hora_salida.strftime('%I:%M %p')} ({duracion_jornada:.1f} hrs)
@@ -1425,6 +1421,7 @@ if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=T
 
             2. GRASAS SALUDABLES: Usar únicamente Aceite de Oliva Extra Virgen, Aceite de Aguacate o Spray. Prohibidos aceites refinados.
             3. COCINADO: Priorizar métodos como plancha, vapor, horno o air fryer. Evitar aderezos comerciales.
+            4. FORMATO DE INGREDIENTES: Al final de cada receta, incluye una sección clara llamada '### INGREDIENTES' en lista de viñetas con el formato 'Ingrediente - Categoría' (Ej. - 200g Pechuga de pollo - 🥩 Carnes y Proteínas).
             """
 
             if tiempo_comida == "📌 Menú Completo del Día":
@@ -1490,13 +1487,45 @@ if st.button("🍳 Generar Plan / Guía de Alimentación", use_container_width=T
         except Exception as e:
             st.error(f"Error al conectar con Gemini: {e}")
 
+    # 6. MOSTRAR RESULTADO Y GUARDAR
     if "ultima_receta" in st.session_state:
         st.markdown("---")
         st.markdown(st.session_state["ultima_receta"])
         
-        # Botón para guardar en la base de datos de Neon que ya tienes configurada
-        if st.button("💾 Guardar esta receta en mi cuenta"):
-            guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
+        col_b1, col_b2 = st.columns(2)
+        
+        with col_b1:
+            if st.button("💾 Guardar esta receta en mi cuenta", use_container_width=True):
+                try:
+                    guardar_receta_db("General", tiempo_comida, st.session_state["ultima_receta"])
+                    st.success("¡Receta guardada con éxito en tu base de datos!")
+                except Exception as e:
+                    st.error(f"Error al guardar receta: {e}")
+
+        with col_b2:
+            if st.button("🛒 Cargar ingredientes a la Lista de Compras", use_container_width=True):
+                try:
+                    # Extraer alimentos de la selección actual para cargarlos a la tabla 'lista_compras'
+                    items_a_insertar = []
+                    
+                    for item in fav_p: items_a_insertar.append((item, "🥩 Carnes y Proteínas"))
+                    for item in fav_v: items_a_insertar.append((item, "🥦 Frutas y Verduras"))
+                    for item in fav_f: items_a_insertar.append((item, "🥦 Frutas y Verduras"))
+                    for item in fav_c: items_a_insertar.append((item, "🥫 Abarrotes y Despensa"))
+                    for item in fav_l: items_a_insertar.append((item, "🥫 Abarrotes y Despensa"))
+                    for item in fav_g: items_a_insertar.append((item, "🥛 Lácteos y Refrigerados"))
+
+                    for item_nombre, item_cat in items_a_insertar:
+                        execute_db(
+                            """
+                            INSERT INTO lista_compras (user_id, item, categoria, comprado)
+                            VALUES (%s, %s, %s, %s)
+                            """,
+                            (user_id, item_nombre, item_cat, False)
+                        )
+                    st.success("¡Ingredientes agregados a tu Lista de Compras en Neon!")
+                except Exception as e:
+                    st.error(f"Error al sincronizar con la lista de compras: {e}")
 
 # ==========================================
 # MÓDULO 6: LISTA DE COMPRAS POR PASILLOS
