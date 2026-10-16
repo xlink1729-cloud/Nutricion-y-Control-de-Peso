@@ -157,40 +157,46 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON CENTRADO Y LOGO OPTIMIZADO ---
+# --- CONTROL DE SESIÓN CON CENTRADO Y LOGO OPTIMIZADO PARA VITA COACH ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # --- CSS DE STREAMLIT ---
+    # --- CSS DE STREAMLIT ALINEADO A VITA COACH ---
     st.markdown(
         """
         <style>
         #MainMenu, footer, header {visibility: hidden;}
+        
+        /* FONDO PRINCIPAL EN TONOS AZUL TEAL Y VERDE MENTA */
         .stApp {
-            background: radial-gradient(circle at 20% 20%, #064e3b 0%, #111827 50%),
-                        radial-gradient(circle at 80% 80%, #022c22 0%, #000000 100%);
+            background: radial-gradient(circle at 20% 20%, #0d5c63 0%, #0B3B4F 50%),
+                        radial-gradient(circle at 80% 80%, #062f3a 0%, #041d24 100%);
             background-attachment: fixed;
         }
+        
         .main .block-container {
-            max-width: 420px !important;
+            max-width: 450px !important;
             padding-top: 2rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
         }
+
+        /* CARD Y TAMAÑO AMPLIADO DEL LOGO */
         .logo-card-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
         }
         .logo-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            max-width: 150px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 14px;
+            border-radius: 22px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            max-width: 220px; /* Tamaño optimizado para que luzca el logo */
             text-align: center;
+            border: 1px solid rgba(46, 204, 113, 0.3);
         }
         .logo-card img {
             width: 100%;
@@ -199,18 +205,17 @@ if not st.session_state.user:
             border-radius: 12px;
         }
 
-        /* --- STYLING DE PESTAÑAS (FORZADO BRUTO) --- */
+        /* STYLING DE PESTAÑAS (FORZADO BRUTO CON PALETA VITA COACH) */
         .stTabs [data-baseweb="tab-list"] {
             gap: 6px;
-            background-color: rgba(0, 0, 0, 0.4) !important;
+            background-color: rgba(11, 59, 79, 0.6) !important;
             padding: 6px;
-            border-radius: 12px;
+            border-radius: 14px;
             margin-bottom: 1.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             width: 100%;
         }
 
-        /* FUERZA ABSOLUTA DE COLOR BLANCO EN CUALQUIER ELEMENTO DENTRO DE LAS PESTAÑAS */
         .stTabs [data-baseweb="tab"],
         .stTabs [data-baseweb="tab"] *,
         .stTabs [data-testid="stMarkdownContainer"] p {
@@ -220,11 +225,12 @@ if not st.session_state.user:
             font-weight: 600 !important;
         }
 
-        /* PESTAÑA ACTIVA / SELECCIONADA */
+        /* PESTAÑA ACTIVA CON VERDE MENTA (#10B981) */
         .stTabs [aria-selected="true"] {
-            background-color: #059669 !important;
-            border-radius: 8px !important;
+            background-color: #10B981 !important;
+            border-radius: 10px !important;
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
         }
 
         .stTabs [aria-selected="true"] *,
@@ -235,84 +241,87 @@ if not st.session_state.user:
             font-weight: 800 !important;
         }
 
-        /* OCULTA LA LÍNEA ROJA DE SELECCIÓN POR DEFECTO DE STREAMLIT */
+        /* OCULTA LÍNEA DE SELECCIÓN POR DEFECTO */
         .stTabs [data-baseweb="tab-highlight-title"],
         .stTabs [data-baseweb="tab-border"] {
             background-color: transparent !important;
             display: none !important;
         }
 
-        /* --- FORMULARIO --- */
+        /* CONTENEDOR DEL FORMULARIO GLASSMORPHISM */
         [data-testid="stForm"] {
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px !important;
-            padding: 1.5rem !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            background: rgba(255, 255, 255, 0.06) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 22px !important;
+            padding: 1.8rem !important;
+            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.4);
         }
 
-        /* --- ETIQUETAS DE TEXTO SOBRE CAJAS --- */
+        /* ETIQUETAS DE CAMPOS DE TEXTO */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
 
-        /* --- CAJAS DE TEXTO (FONDO BLANCO Y TEXTO NEGRO) --- */
+        /* CAJAS DE ENTRADA DE TEXTO */
         .stTextInput input,
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: #0B3B4F !important;
+            -webkit-text-fill-color: #0B3B4F !important;
+            border: 1px solid #10B981 !important;
             border-radius: 10px !important;
+            font-weight: 500 !important;
         }
 
-        /* AUTOCOMPLETADO DEL NAVEGADOR EN CAJAS DE TEXTO */
+        /* AUTOCOMPLETADO DEL NAVEGADOR */
         .stTextInput input:-webkit-autofill,
         .stTextInput input:-webkit-autofill:hover, 
         .stTextInput input:-webkit-autofill:focus {
-            -webkit-text-fill-color: #000000 !important;
+            -webkit-text-fill-color: #0B3B4F !important;
             -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
             transition: background-color 5000s ease-in-out 0s;
         }
 
-        /* --- BOTONES (CORREGIDO PARA MÓVILES) --- */
+        /* BOTONES PRINCIPALES (VERDE CON DEGRADADO) */
         div.stButton > button,
         div[data-testid="stFormSubmitButton"] > button {
             width: 100% !important;
-            border-radius: 10px !important;
-            font-weight: 600 !important;
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            padding: 0.65rem 1rem !important;
+            padding: 0.75rem 1rem !important;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35) !important;
+            transition: all 0.3s ease !important;
             
-            /* Anular comportamiento predeterminado de iOS Safari / Chrome Android */
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
             appearance: none !important;
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* EVITAR QUE SE VUELVA BLANCO EN CELULARES AL TOCAR O ENFOCAR */
+        /* HOVER / TOUCH EN BOTÓN CON TONO NARANJA DE ACCENTO DE VITA COACH */
         div.stButton > button:hover,
         div.stButton > button:focus,
         div.stButton > button:active,
         div[data-testid="stFormSubmitButton"] > button:hover,
         div[data-testid="stFormSubmitButton"] > button:focus,
         div[data-testid="stFormSubmitButton"] > button:active {
-            background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+            background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            box-shadow: none !important;
+            box-shadow: 0 8px 22px rgba(243, 156, 18, 0.45) !important;
             outline: none !important;
+            transform: translateY(-2px) !important;
         }
 
-        /* FORZAR TEXTO BLANCO EN CONTENEDORES INTERNOS DEL BOTÓN */
         div.stButton > button *,
         div[data-testid="stFormSubmitButton"] > button * {
             color: #ffffff !important;
@@ -326,7 +335,7 @@ if not st.session_state.user:
     try:
         with open("static/vitacoach.jpg", "rb") as img_file:
             img_b64 = base64.b64encode(img_file.read()).decode()
-        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="NutriTrack"></div></div>'
+        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="VITA COACH"></div></div>'
     except Exception:
         logo_html = ""
 
