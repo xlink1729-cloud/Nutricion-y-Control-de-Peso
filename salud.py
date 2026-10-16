@@ -324,7 +324,7 @@ if not st.session_state.user:
     )
     
     try:
-        with open("static/logo.jpg", "rb") as img_file:
+        with open("static/vitacoach.jpg", "rb") as img_file:
             img_b64 = base64.b64encode(img_file.read()).decode()
         logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="NutriTrack"></div></div>'
     except Exception:
