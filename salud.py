@@ -156,12 +156,12 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN ESTILO MINIMALISTA "MEMBER LOGIN" ---
+# --- CONTROL DE SESIÓN ESTILO MINIMALISTA CENTRADO "MEMBER LOGIN" ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # --- CSS MINIMALISTA CON BARRAS MÁS PEQUEÑAS Y CENTRADAS ---
+    # --- CSS MINIMALISTA CON ANCHO RESTRINGIDO Y CENTRADO COMPLETO ---
     st.markdown(
         """
         <style>
@@ -173,20 +173,20 @@ if not st.session_state.user:
             background-attachment: fixed !important;
         }
         
-        /* ANCHO MÁXIMO CONTROLADO PARA BARRAS MÁS COMPACTAS */
+        /* RESTRICCIÓN DE ANCHO CENTRAL TOTAL (320px) PARA TODO EL CONTENIDO */
         .main .block-container {
-            max-width: 340px !important;
-            padding-top: 3rem !important;
+            max-width: 320px !important;
+            padding-top: 3.5rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
         }
 
-        /* LOGO Y DIBUJO CENTRADO */
+        /* CONTENEDOR DEL LOGO PROPORCIONAL Y CENTRADO */
         .logo-card-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
             width: 100%;
         }
         .logo-card {
@@ -194,7 +194,8 @@ if not st.session_state.user:
             padding: 0px !important;
             box-shadow: none !important;
             border: none !important;
-            max-width: 160px;
+            width: 100%;
+            max-width: 180px;
             text-align: center;
         }
         .logo-card img {
@@ -206,12 +207,12 @@ if not st.session_state.user:
             filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
         }
 
-        /* PESTAÑAS DENTRO DEL ANCHO RESTRINGIDO */
+        /* PESTAÑAS (INICIAR SESIÓN / REGISTRARSE / RECUPERAR) CENTRADAS */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
+            gap: 12px !important;
             background-color: transparent !important;
-            padding: 0px;
-            margin-bottom: 1.2rem;
+            padding: 0px !important;
+            margin-bottom: 1.5rem !important;
             border: none !important;
             justify-content: center !important;
             width: 100% !important;
@@ -223,11 +224,11 @@ if not st.session_state.user:
             color: rgba(255, 255, 255, 0.8) !important;
             -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
             font-size: 0.85rem !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
             letter-spacing: 0.5px;
         }
 
-        /* PESTAÑA SELECCIONADA */
+        /* PESTAÑA ACTIVA CON LÍNEA INFERIOR BLANCA */
         .stTabs [aria-selected="true"] {
             background-color: transparent !important;
             border-bottom: 2px solid #ffffff !important;
@@ -249,7 +250,7 @@ if not st.session_state.user:
             display: none !important;
         }
 
-        /* CONTENEDOR DEL FORMULARIO TRANSPARENTE Y RESTRINGIDO */
+        /* CONTENEDOR DEL FORMULARIO SIN BORDES Y AJUSTADO A 320px */
         [data-testid="stForm"] {
             background: transparent !important;
             border: none !important;
@@ -258,13 +259,13 @@ if not st.session_state.user:
             width: 100% !important;
         }
 
-        /* OCULTAR ETIQUETAS */
+        /* OCULTAR LAS ETIQUETAS SUPERIORES DE LOS INPUTS */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             display: none !important;
         }
 
-        /* BARRAS DE TEXTO MÁS DELGADAS Y COMPACTAS */
+        /* BARRAS DE TEXTO (INPUTS) COMPACTAS Y CENTRADAS DE 320px */
         .stTextInput input,
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
@@ -275,7 +276,8 @@ if not st.session_state.user:
             padding: 8px 18px !important;
             height: 42px !important;
             font-size: 0.95rem !important;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18) !important;
+            width: 100% !important;
         }
 
         .stTextInput input::placeholder {
@@ -286,9 +288,10 @@ if not st.session_state.user:
         div[data-baseweb="input"] {
             border-radius: 25px !important;
             background-color: #ffffff !important;
+            width: 100% !important;
         }
 
-        /* BOTÓN COMPACTO (INGRESAR / SIGN IN) */
+        /* BOTÓN INICIAR SESIÓN EN VERDE LIMA DESTACADO */
         div.stButton > button,
         div[data-testid="stFormSubmitButton"] > button {
             width: 100% !important;
@@ -302,9 +305,9 @@ if not st.session_state.user:
             border: none !important;
             height: 44px !important;
             padding: 0px 15px !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
             transition: all 0.2s ease !important;
-            margin-top: 8px !important;
+            margin-top: 10px !important;
             
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -321,7 +324,7 @@ if not st.session_state.user:
             background: #8cb812 !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
             transform: translateY(-1px) !important;
         }
 
@@ -348,6 +351,165 @@ if not st.session_state.user:
         ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
     )
 
+    # 1. FORMULARIO LOGIN
+    with tab_login:
+        with st.form("login_form"):
+            email_input = st.text_input(
+                "Correo electrónico",
+                placeholder="email",
+                key="login_email",
+            )
+            password_input = st.text_input(
+                "Contraseña",
+                type="password",
+                placeholder="password",
+                key="login_pass",
+            )
+            submit_login = st.form_submit_button(
+                "SIGN IN", use_container_width=True
+            )
+
+            if submit_login:
+                bloqueado, segs = esta_bloqueado("login")
+                if bloqueado:
+                    st.error(
+                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
+                    )
+                else:
+                    usuario_valido = verificar_usuario(
+                        email_input, password_input
+                    )
+                    if usuario_valido:
+                        resetear_intentos("login")
+                        st.session_state.user = usuario_valido
+                        st.rerun()
+                    else:
+                        registrar_intento_fallido("login")
+                        intentos_restantes = (
+                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
+                        )
+                        if intentos_restantes > 0:
+                            st.error(
+                                "Credenciales incorrectas. Intentos restantes:"
+                                f" {intentos_restantes}"
+                            )
+                        else:
+                            st.error(
+                                "Límite superado. Bloqueado por"
+                                f" {LOCKOUT_DURATION}s."
+                            )
+
+    # 2. FORMULARIO REGISTRO
+    with tab_registro:
+        with st.form("registro_form"):
+            nombre_nuevo = st.text_input(
+                "Nombre completo", placeholder="Nombre completo"
+            )
+            email_nuevo = st.text_input(
+                "Correo electrónico",
+                placeholder="email",
+                key="reg_email",
+            )
+            password_nuevo = st.text_input(
+                "Contraseña",
+                type="password",
+                placeholder="password",
+                key="reg_pass",
+            )
+            pin_nuevo = st.text_input(
+                "PIN de seguridad (4 dígitos)",
+                max_chars=4,
+                type="password",
+                placeholder="PIN (4 dígitos)",
+                key="reg_pin",
+            )
+            submit_registro = st.form_submit_button(
+                "REGISTRARME", use_container_width=True
+            )
+
+            if submit_registro:
+                bloqueado, segs = esta_bloqueado("registro")
+                if bloqueado:
+                    st.error(
+                        f"Límite de solicitudes de registro. Reintenta en"
+                        f" {segs}s."
+                    )
+                else:
+                    if (
+                        nombre_nuevo
+                        and email_nuevo
+                        and password_nuevo
+                        and len(pin_nuevo) == 4
+                    ):
+                        exito, msg = registrar_nuevo_usuario(
+                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
+                        )
+                        if exito:
+                            resetear_intentos("registro")
+                            st.success(
+                                "¡Cuenta creada! Ahora puedes iniciar sesión."
+                            )
+                        else:
+                            registrar_intento_fallido("registro")
+                            st.error(f"Error al registrar: {msg}")
+                    else:
+                        registrar_intento_fallido("registro")
+                        st.error(
+                            "Por favor completa todos los campos correctamente."
+                        )
+
+    # 3. FORMULARIO RECUPERAR
+    with tab_recuperar:
+        with st.form("recuperar_form"):
+            email_recuperar = st.text_input(
+                "Correo electrónico",
+                placeholder="email",
+                key="rec_email",
+            )
+            pin_recuperar = st.text_input(
+                "PIN de seguridad",
+                max_chars=4,
+                type="password",
+                placeholder="PIN",
+                key="rec_pin",
+            )
+            nueva_pw = st.text_input(
+                "Nueva contraseña",
+                type="password",
+                placeholder="nueva contraseña",
+                key="rec_pw1",
+            )
+            confirmar_pw = st.text_input(
+                "Confirmar contraseña",
+                type="password",
+                placeholder="confirmar contraseña",
+                key="rec_pw2",
+            )
+            submit_recuperar = st.form_submit_button(
+                "ACTUALIZAR", use_container_width=True
+            )
+
+            if submit_recuperar:
+                bloqueado, segs = esta_bloqueado("recuperar")
+                if bloqueado:
+                    st.error(
+                        f"Bloqueo de seguridad activo. Reintenta en {segs}s."
+                    )
+                elif nueva_pw != confirmar_pw:
+                    st.error("Las contraseñas no coinciden.")
+                else:
+                    exito, msg = cambiar_password_db(
+                        email_recuperar, pin_recuperar, nueva_pw
+                    )
+                    if exito:
+                        resetear_intentos("recuperar")
+                        st.success(msg)
+                    else:
+                        registrar_intento_fallido("recuperar")
+                        st.error(msg)
+
+    st.stop()
+    
     # 1. FORMULARIO LOGIN
     with tab_login:
         with st.form("login_form"):
