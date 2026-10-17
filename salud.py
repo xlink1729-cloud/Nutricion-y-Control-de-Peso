@@ -156,673 +156,193 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN ESTILO TARJETA FLOTANTE Y PALETA VITA COACH ---
+# --- CONTROL DE SESIÓN ESTILO TARJETA COMPACTA VITA COACH ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
-if not st.session_state.user:
-    # --- CSS DE ESTILO TARJETA BLANCA FLOTANTE CON COLORES VITA COACH ---
-    st.markdown(
-        """
+def mostrar_login():
+    st.markdown("""
         <style>
-        #MainMenu, footer, header {visibility: hidden;}
-        
-        /* FONDO GENERAL EN DEGRADADO TEAL / AZUL PROFUNDO */
         .stApp {
-            background: radial-gradient(circle at 50% 30%, #0d5c63 0%, #0B3B4F 60%, #041d24 100%) !important;
-            background-attachment: fixed !important;
+            background: radial-gradient(circle at 20% 20%, #0d5c63 0%, #0B3B4F 50%),
+                        radial-gradient(circle at 80% 80%, #062f3a 0%, #041d24 100%);
+            background-attachment: fixed;
         }
-        
-        /* ANCHO MÁXIMO ESTRECHO PARA LA TARJETA CENTRAL */
-        .main .block-container {
-            max-width: 410px !important;
-            padding-top: 3rem !important;
-            padding-bottom: 2rem !important;
-            margin: 0 auto !important;
+        header {visibility: hidden;}
+
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 0rem !important;
+            max-width: 480px !important;
         }
 
-        /* LOGO / AVATAR SUPERIOR CIRCULAR */
-        .logo-card-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: -35px; /* Solapa ligeramente el logo sobre la tarjeta blanca */
-            position: relative;
-            z-index: 10;
-            width: 100%;
-        }
-        .logo-card {
-            background: #ffffff;
-            padding: 8px;
-            border-radius: 50%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            width: 85px;
-            height: 85px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid #10B981; /* Verde menta Vita Coach */
-        }
-        .logo-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 50%;
+        /* TARJETA FLOTANTE GLASSMORPHISM */
+        div[data-testid="stForm"] {
+            background: rgba(11, 59, 79, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 25px;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            padding: 25px 30px 30px 30px;
+            max-width: 420px;
+            margin: auto;
         }
 
-        /* TARJETA BLANCA CONTENEDORA DE LOS FORMULARIOS */
-        [data-testid="stForm"] {
-            background: #ffffff !important;
-            border-radius: 30px !important;
-            padding: 3.5rem 2.2rem 2.2rem 2.2rem !important; /* Espacio superior extra para el logo */
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4) !important;
-            border: none !important;
-        }
-
-        /* PESTAÑAS SUPERIORES ESTILIZADAS */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px !important;
-            background-color: #f1f5f9 !important;
-            padding: 5px !important;
-            border-radius: 16px !important;
-            margin-bottom: 1.2rem !important;
-            justify-content: center !important;
-        }
-
-        .stTabs [data-baseweb="tab"],
-        .stTabs [data-baseweb="tab"] *,
-        .stTabs [data-testid="stMarkdownContainer"] p {
-            color: #64748b !important;
-            -webkit-text-fill-color: #64748b !important;
-            font-size: 0.8rem !important;
+        div[data-testid="stForm"] label,
+        div[data-testid="stForm"] label p {
+            color: #ffffff !important;
             font-weight: 600 !important;
+            font-size: 0.9rem !important;
         }
 
-        .stTabs [aria-selected="true"] {
-            background-color: #10B981 !important;
-            border-radius: 12px !important;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
-        }
-
-        .stTabs [aria-selected="true"] *,
-        .stTabs [aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+        /* BARRAS DE TEXTO COMPACTAS Y ESTILIZADAS */
+        div[data-testid="stForm"] input {
+            background-color: rgba(6, 47, 58, 0.9) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
-            font-weight: 700 !important;
-        }
-
-        .stTabs [data-baseweb="tab-highlight-title"],
-        .stTabs [data-baseweb="tab-border"] {
-            display: none !important;
-        }
-
-        /* OCULTAR ETIQUETAS NATIVAS */
-        [data-testid="stWidgetLabel"] label, 
-        .stTextInput label {
-            display: none !important;
-        }
-
-        /* CAMPOS DE TEXTO GRIS CLARO OVALADOS (ESTILO REFERENCIA) */
-        .stTextInput input,
-        div[data-baseweb="input"] input {
-            background-color: #e2e8f0 !important;
-            color: #1e293b !important;
-            -webkit-text-fill-color: #1e293b !important;
-            border: none !important;
-            border-radius: 25px !important;
-            padding: 10px 20px !important;
-            height: 45px !important;
+            border: 1px solid rgba(16, 185, 129, 0.4) !important;
+            border-radius: 10px !important;
+            height: 40px !important;
             font-size: 0.95rem !important;
-            box-shadow: none !important;
+        }
+        
+        div[data-testid="stForm"] input::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
         }
 
-        .stTextInput input::placeholder {
-            color: #94a3b8 !important;
-            -webkit-text-fill-color: #94a3b8 !important;
-        }
-
-        div[data-baseweb="input"] {
-            border-radius: 25px !important;
-            background-color: #e2e8f0 !important;
-            border: none !important;
-        }
-
-        /* BOTÓN PRINCIPAL VERDE MENTA VIBRANTE */
-        div.stButton > button,
-        div[data-testid="stFormSubmitButton"] > button {
-            width: 100% !important;
-            border-radius: 25px !important;
-            font-weight: 700 !important;
-            font-size: 0.95rem !important;
-            letter-spacing: 1px !important;
+        /* BOTÓN PRINCIPAL VERDE MENTA */
+        div[data-testid="stForm"] button[type="submit"] {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            height: 46px !important;
-            padding: 0px 15px !important;
-            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4) !important;
-            transition: all 0.2s ease !important;
-            margin-top: 10px !important;
-            
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            appearance: none !important;
-            -webkit-tap-highlight-color: transparent !important;
+            border-radius: 14px !important;
+            padding: 8px 18px !important;
+            font-weight: bold !important;
+            width: 100% !important;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.35) !important;
+            transition: all 0.3s ease !important;
+            margin-top: 15px;
+        }
+        
+        div[data-testid="stForm"] button[type="submit"]:hover {
+            background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.45) !important;
         }
 
-        div.stButton > button:hover,
-        div.stButton > button:focus,
-        div.stButton > button:active,
-        div[data-testid="stFormSubmitButton"] > button:hover,
-        div[data-testid="stFormSubmitButton"] > button:focus,
-        div[data-testid="stFormSubmitButton"] > button:active {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            box-shadow: 0 8px 22px rgba(16, 185, 129, 0.6) !important;
-            transform: translateY(-1px) !important;
+        /* PESTAÑAS */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+            justify-content: center;
+            background-color: rgba(6, 47, 58, 0.6);
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
-
-        div.stButton > button *,
-        div[data-testid="stFormSubmitButton"] > button * {
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
+        .stTabs [data-baseweb="tab"] {
+            color: white !important;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #10B981 !important;
+            border-radius: 8px !important;
         }
         </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    
-    try:
-        with open("static/vitacoach.jpg", "rb") as img_file:
-            img_b64 = base64.b64encode(img_file.read()).decode()
-        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="VITA COACH"></div></div>'
-    except Exception:
-        logo_html = ""
+    """, unsafe_allow_html=True)
 
-    st.markdown(logo_html, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-    tab_login, tab_registro, tab_recuperar = st.tabs(
-        ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
-    )
+    with col2:
+        # LOGO CENTRADO Y BIEN PROPORCIONADO
+        col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+        with col_img2:
+            try: 
+                st.image("static/vitacoach.jpg", use_container_width=True)
+            except Exception: 
+                try:
+                    st.image("static/logo.png", use_container_width=True)
+                except Exception:
+                    pass
 
-    # 1. FORMULARIO LOGIN
-    with tab_login:
-        with st.form("login_form"):
-            email_input = st.text_input(
-                "Correo electrónico",
-                placeholder="Username",
-                key="login_email",
-            )
-            password_input = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="********",
-                key="login_pass",
-            )
-            submit_login = st.form_submit_button(
-                "LOGIN", use_container_width=True
-            )
-
-            if submit_login:
-                bloqueado, segs = esta_bloqueado("login")
-                if bloqueado:
-                    st.error(
-                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
-                    )
-                else:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
-                    )
-                    if usuario_valido:
-                        resetear_intentos("login")
-                        st.session_state.user = usuario_valido
-                        st.rerun()
+        with st.form("form_auth"):
+            st.markdown("<h2 style='text-align: center; color: white; margin-bottom: 12px; font-weight: 800; letter-spacing: 1px;'>VITA COACH</h2>", unsafe_allow_html=True)
+            tab_log, tab_reg, tab_rec = st.tabs(["🔑 Iniciar Sesión", "📝 Crear Cuenta", "🔄 Recuperar"])
+            
+            with tab_log:
+                email_input = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
+                password_input = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="login_pass")
+                submit_login = st.form_submit_button("LOGIN", use_container_width=True)
+                
+                if submit_login:
+                    bloqueado, segs = esta_bloqueado("login")
+                    if bloqueado:
+                        st.error(f"Demasiados intentos fallidos. Reintenta en {segs}s.")
                     else:
-                        registrar_intento_fallido("login")
-                        intentos_restantes = (
-                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
-                        )
-                        if intentos_restantes > 0:
-                            st.error(
-                                "Credenciales incorrectas. Intentos restantes:"
-                                f" {intentos_restantes}"
-                            )
+                        usuario_valido = verificar_usuario(email_input, password_input)
+                        if usuario_valido:
+                            resetear_intentos("login")
+                            st.session_state.user = usuario_valido
+                            st.rerun()
                         else:
-                            st.error(
-                                "Límite superado. Bloqueado por"
-                                f" {LOCKOUT_DURATION}s."
-                            )
+                            registrar_intento_fallido("login")
+                            intentos_restantes = MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
+                            if intentos_restantes > 0:
+                                st.error(f"Credenciales incorrectas. Intentos restantes: {intentos_restantes}")
+                            else:
+                                st.error(f"Límite superado. Bloqueado por {LOCKOUT_DURATION}s.")
 
-    # 2. FORMULARIO REGISTRO
-    with tab_registro:
-        with st.form("registro_form"):
-            nombre_nuevo = st.text_input(
-                "Nombre completo", placeholder="Nombre completo"
-            )
-            email_nuevo = st.text_input(
-                "Correo electrónico",
-                placeholder="Email",
-                key="reg_email",
-            )
-            password_nuevo = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="Contraseña",
-                key="reg_pass",
-            )
-            pin_nuevo = st.text_input(
-                "PIN de seguridad (4 dígitos)",
-                max_chars=4,
-                type="password",
-                placeholder="PIN (4 dígitos)",
-                key="reg_pin",
-            )
-            submit_registro = st.form_submit_button(
-                "REGISTRARME", use_container_width=True
-            )
-
-            if submit_registro:
-                bloqueado, segs = esta_bloqueado("registro")
-                if bloqueado:
-                    st.error(
-                        f"Límite de solicitudes de registro. Reintenta en"
-                        f" {segs}s."
-                    )
-                else:
-                    if (
-                        nombre_nuevo
-                        and email_nuevo
-                        and password_nuevo
-                        and len(pin_nuevo) == 4
-                    ):
-                        exito, msg = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
-                        )
-                        if exito:
-                            resetear_intentos("registro")
-                            st.success(
-                                "¡Cuenta creada! Ahora puedes iniciar sesión."
-                            )
+            with tab_reg:
+                nombre_nuevo = st.text_input("👤 Nombre completo", placeholder="Tu nombre", key="reg_nombre")
+                email_nuevo = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
+                password_nuevo = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="reg_pass")
+                pin_nuevo = st.text_input("🔢 PIN de seguridad (4 dígitos)", max_chars=4, type="password", placeholder="1234", key="reg_pin")
+                submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
+                
+                if submit_registro:
+                    bloqueado, segs = esta_bloqueado("registro")
+                    if bloqueado:
+                        st.error(f"Límite de solicitudes. Reintenta en {segs}s.")
+                    else:
+                        if nombre_nuevo and email_nuevo and password_nuevo and len(pin_nuevo) == 4:
+                            exito, msg = registrar_nuevo_usuario(nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo)
+                            if exito:
+                                resetear_intentos("registro")
+                                st.success("¡Cuenta creada! Ahora puedes iniciar sesión.")
+                            else:
+                                registrar_intento_fallido("registro")
+                                st.error(f"Error al registrar: {msg}")
                         else:
                             registrar_intento_fallido("registro")
-                            st.error(f"Error al registrar: {msg}")
+                            st.error("Por favor completa todos los campos correctamente.")
+
+            with tab_rec:
+                email_recuperar = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
+                pin_recuperar = st.text_input("🔢 PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
+                nueva_pw = st.text_input("🔒 Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
+                confirmar_pw = st.text_input("🔒 Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
+                submit_recuperar = st.form_submit_button("ACTUALIZAR", use_container_width=True)
+
+                if submit_recuperar:
+                    bloqueado, segs = esta_bloqueado("recuperar")
+                    if bloqueado:
+                        st.error(f"Bloqueo de seguridad activo. Reintenta en {segs}s.")
+                    elif nueva_pw != confirmar_pw:
+                        st.error("Las contraseñas no coinciden.")
                     else:
-                        registrar_intento_fallido("registro")
-                        st.error(
-                            "Por favor completa todos los campos correctamente."
-                        )
-
-    # 3. FORMULARIO RECUPERAR
-    with tab_recuperar:
-        with st.form("recuperar_form"):
-            email_recuperar = st.text_input(
-                "Correo electrónico",
-                placeholder="Email registrado",
-                key="rec_email",
-            )
-            pin_recuperar = st.text_input(
-                "PIN de seguridad",
-                max_chars=4,
-                type="password",
-                placeholder="PIN",
-                key="rec_pin",
-            )
-            nueva_pw = st.text_input(
-                "Nueva contraseña",
-                type="password",
-                placeholder="Nueva contraseña",
-                key="rec_pw1",
-            )
-            confirmar_pw = st.text_input(
-                "Confirmar contraseña",
-                type="password",
-                placeholder="Confirmar contraseña",
-                key="rec_pw2",
-            )
-            submit_recuperar = st.form_submit_button(
-                "ACTUALIZAR", use_container_width=True
-            )
-
-            if submit_recuperar:
-                bloqueado, segs = esta_bloqueado("recuperar")
-                if bloqueado:
-                    st.error(
-                        f"Bloqueo de seguridad activo. Reintenta en {segs}s."
-                    )
-                elif nueva_pw != confirmar_pw:
-                    st.error("Las contraseñas no coinciden.")
-                else:
-                    exito, msg = cambiar_password_db(
-                        email_recuperar, pin_recuperar, nueva_pw
-                    )
-                    if exito:
-                        resetear_intentos("recuperar")
-                        st.success(msg)
-                    else:
-                        registrar_intento_fallido("recuperar")
-                        st.error(msg)
-
-    st.stop()
-    
-    # 1. FORMULARIO LOGIN
-    with tab_login:
-        with st.form("login_form"):
-            email_input = st.text_input(
-                "Correo electrónico",
-                placeholder="email",
-                key="login_email",
-            )
-            password_input = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="password",
-                key="login_pass",
-            )
-            submit_login = st.form_submit_button(
-                "SIGN IN", use_container_width=True
-            )
-
-            if submit_login:
-                bloqueado, segs = esta_bloqueado("login")
-                if bloqueado:
-                    st.error(
-                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
-                    )
-                else:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
-                    )
-                    if usuario_valido:
-                        resetear_intentos("login")
-                        st.session_state.user = usuario_valido
-                        st.rerun()
-                    else:
-                        registrar_intento_fallido("login")
-                        intentos_restantes = (
-                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
-                        )
-                        if intentos_restantes > 0:
-                            st.error(
-                                "Credenciales incorrectas. Intentos restantes:"
-                                f" {intentos_restantes}"
-                            )
-                        else:
-                            st.error(
-                                "Límite superado. Bloqueado por"
-                                f" {LOCKOUT_DURATION}s."
-                            )
-
-    # 2. FORMULARIO REGISTRO
-    with tab_registro:
-        with st.form("registro_form"):
-            nombre_nuevo = st.text_input(
-                "Nombre completo", placeholder="Nombre completo"
-            )
-            email_nuevo = st.text_input(
-                "Correo electrónico",
-                placeholder="email",
-                key="reg_email",
-            )
-            password_nuevo = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="password",
-                key="reg_pass",
-            )
-            pin_nuevo = st.text_input(
-                "PIN de seguridad (4 dígitos)",
-                max_chars=4,
-                type="password",
-                placeholder="PIN (4 dígitos)",
-                key="reg_pin",
-            )
-            submit_registro = st.form_submit_button(
-                "REGISTRARME", use_container_width=True
-            )
-
-            if submit_registro:
-                bloqueado, segs = esta_bloqueado("registro")
-                if bloqueado:
-                    st.error(
-                        f"Límite de solicitudes de registro. Reintenta en"
-                        f" {segs}s."
-                    )
-                else:
-                    if (
-                        nombre_nuevo
-                        and email_nuevo
-                        and password_nuevo
-                        and len(pin_nuevo) == 4
-                    ):
-                        exito, msg = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
-                        )
+                        exito, msg = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
                         if exito:
-                            resetear_intentos("registro")
-                            st.success(
-                                "¡Cuenta creada! Ahora puedes iniciar sesión."
-                            )
+                            resetear_intentos("recuperar")
+                            st.success(msg)
                         else:
-                            registrar_intento_fallido("registro")
-                            st.error(f"Error al registrar: {msg}")
-                    else:
-                        registrar_intento_fallido("registro")
-                        st.error(
-                            "Por favor completa todos los campos correctamente."
-                        )
+                            registrar_intento_fallido("recuperar")
+                            st.error(msg)
 
-    # 3. FORMULARIO RECUPERAR
-    with tab_recuperar:
-        with st.form("recuperar_form"):
-            email_recuperar = st.text_input(
-                "Correo electrónico",
-                placeholder="email",
-                key="rec_email",
-            )
-            pin_recuperar = st.text_input(
-                "PIN de seguridad",
-                max_chars=4,
-                type="password",
-                placeholder="PIN",
-                key="rec_pin",
-            )
-            nueva_pw = st.text_input(
-                "Nueva contraseña",
-                type="password",
-                placeholder="nueva contraseña",
-                key="rec_pw1",
-            )
-            confirmar_pw = st.text_input(
-                "Confirmar contraseña",
-                type="password",
-                placeholder="confirmar contraseña",
-                key="rec_pw2",
-            )
-            submit_recuperar = st.form_submit_button(
-                "ACTUALIZAR", use_container_width=True
-            )
-
-            if submit_recuperar:
-                bloqueado, segs = esta_bloqueado("recuperar")
-                if bloqueado:
-                    st.error(
-                        f"Bloqueo de seguridad activo. Reintenta en {segs}s."
-                    )
-                elif nueva_pw != confirmar_pw:
-                    st.error("Las contraseñas no coinciden.")
-                else:
-                    exito, msg = cambiar_password_db(
-                        email_recuperar, pin_recuperar, nueva_pw
-                    )
-                    if exito:
-                        resetear_intentos("recuperar")
-                        st.success(msg)
-                    else:
-                        registrar_intento_fallido("recuperar")
-                        st.error(msg)
-
-    st.stop()
-    
-    # 1. FORMULARIO LOGIN
-    with tab_login:
-        with st.form("login_form"):
-            email_input = st.text_input(
-                "Correo electrónico",
-                placeholder="ejemplo@correo.com",
-                key="login_email",
-            )
-            password_input = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="login_pass",
-            )
-            submit_login = st.form_submit_button(
-                "INGRESAR", use_container_width=True
-            )
-
-            if submit_login:
-                bloqueado, segs = esta_bloqueado("login")
-                if bloqueado:
-                    st.error(
-                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
-                    )
-                else:
-                    usuario_valido = verificar_usuario(
-                        email_input, password_input
-                    )
-                    if usuario_valido:
-                        resetear_intentos("login")
-                        st.session_state.user = usuario_valido
-                        st.rerun()
-                    else:
-                        registrar_intento_fallido("login")
-                        intentos_restantes = (
-                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
-                        )
-                        if intentos_restantes > 0:
-                            st.error(
-                                "Credenciales incorrectas. Intentos restantes:"
-                                f" {intentos_restantes}"
-                            )
-                        else:
-                            st.error(
-                                "Límite superado. Bloqueado por"
-                                f" {LOCKOUT_DURATION}s."
-                            )
-
-    # 2. FORMULARIO REGISTRO
-    with tab_registro:
-        with st.form("registro_form"):
-            nombre_nuevo = st.text_input(
-                "Nombre completo", placeholder="Tu nombre"
-            )
-            email_nuevo = st.text_input(
-                "Correo electrónico",
-                placeholder="ejemplo@correo.com",
-                key="reg_email",
-            )
-            password_nuevo = st.text_input(
-                "Contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="reg_pass",
-            )
-            pin_nuevo = st.text_input(
-                "PIN de seguridad (4 dígitos)",
-                max_chars=4,
-                type="password",
-                placeholder="1234",
-                key="reg_pin",
-            )
-            submit_registro = st.form_submit_button(
-                "REGISTRARME", use_container_width=True
-            )
-
-            if submit_registro:
-                bloqueado, segs = esta_bloqueado("registro")
-                if bloqueado:
-                    st.error(
-                        f"Límite de solicitudes de registro. Reintenta en"
-                        f" {segs}s."
-                    )
-                else:
-                    if (
-                        nombre_nuevo
-                        and email_nuevo
-                        and password_nuevo
-                        and len(pin_nuevo) == 4
-                    ):
-                        exito, msg = registrar_nuevo_usuario(
-                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
-                        )
-                        if exito:
-                            resetear_intentos("registro")
-                            st.success(
-                                "¡Cuenta creada! Ahora puedes iniciar sesión."
-                            )
-                        else:
-                            registrar_intento_fallido("registro")
-                            st.error(f"Error al registrar: {msg}")
-                    else:
-                        registrar_intento_fallido("registro")
-                        st.error(
-                            "Por favor completa todos los campos correctamente."
-                        )
-
-    # 3. FORMULARIO RECUPERAR
-    with tab_recuperar:
-        with st.form("recuperar_form"):
-            email_recuperar = st.text_input(
-                "Correo electrónico",
-                placeholder="ejemplo@correo.com",
-                key="rec_email",
-            )
-            pin_recuperar = st.text_input(
-                "PIN de seguridad",
-                max_chars=4,
-                type="password",
-                placeholder="1234",
-                key="rec_pin",
-            )
-            nueva_pw = st.text_input(
-                "Nueva contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="rec_pw1",
-            )
-            confirmar_pw = st.text_input(
-                "Confirmar contraseña",
-                type="password",
-                placeholder="••••••••",
-                key="rec_pw2",
-            )
-            submit_recuperar = st.form_submit_button(
-                "ACTUALIZAR CONTRASEÑA", use_container_width=True
-            )
-
-            if submit_recuperar:
-                bloqueado, segs = esta_bloqueado("recuperar")
-                if bloqueado:
-                    st.error(
-                        f"Bloqueo de seguridad activo. Reintenta en {segs}s."
-                    )
-                elif nueva_pw != confirmar_pw:
-                    st.error("Las contraseñas no coinciden.")
-                else:
-                    exito, msg = cambiar_password_db(
-                        email_recuperar, pin_recuperar, nueva_pw
-                    )
-                    if exito:
-                        resetear_intentos("recuperar")
-                        st.success(msg)
-                    else:
-                        registrar_intento_fallido("recuperar")
-                        st.error(msg)
-
-    # Detiene la ejecución para no cargar el dashboard/app si no hay usuario
+if not st.session_state.user:
+    mostrar_login()
     st.stop()
 
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
@@ -1124,7 +644,7 @@ elif opcion == "📊 Control de Peso y Músculo":
                     peso,
                     peso_meta,
                     objetivo,
-                    fecha_meta,  # psycopg2 gestionará None como NULL automáticamente
+                    fecha_meta,
                     round(kilos_diferencia, 1),
                     round(imc, 1),
                     diagnostico_imc,
@@ -1195,7 +715,7 @@ elif opcion == "📊 Control de Peso y Músculo":
                 "Aún no hay registros. Ingresa tus datos a la izquierda y"
                 " guarda tu perfil."
             )
-
+       
 # ==========================================
 # MÓDULO 2: REGISTRO DIARIO Y ANÁLISIS DE PESO
 # ==========================================
@@ -1244,16 +764,13 @@ elif opcion == "📉 Registro Diario de Peso":
             df["Fecha"] = pd.to_datetime(df["Fecha"])
             df["Peso (kg)"] = pd.to_numeric(df["Peso (kg)"])
             
-            # --- 1. MÉTRICAS BÁSICAS Y EXTREMOS ---
             p_actual = df.iloc[-1]["Peso (kg)"]
             p_min = df["Peso (kg)"].min()
             p_max = df["Peso (kg)"].max()
 
-            # Promedio últimos 7 días
             ultimos_7 = df.tail(7)
             prom_semanal = ultimos_7["Peso (kg)"].mean()
 
-            # --- 2. COMPARATIVA SEMANAL & CONCLUSIÓN EN TEXTO ---
             if len(df) >= 7:
                 previo_7 = df.iloc[-14:-7] if len(df) >= 14 else df.iloc[:-7]
                 prom_anterior = previo_7["Peso (kg)"].mean()
@@ -1272,7 +789,6 @@ elif opcion == "📉 Registro Diario de Peso":
                 mensaje_conclusion = f"💡 **Registra al menos 7 días** para calcular la diferencia semanal real. Tu promedio actual es de **{prom_semanal:.2f} kg**."
                 color_callout = "info"
 
-            # --- 3. MOSTRAR TARJETA DE CONCLUSIÓN DIRECTA ---
             if color_callout == "success":
                 st.success(mensaje_conclusion)
             elif color_callout == "warning":
@@ -1280,18 +796,15 @@ elif opcion == "📉 Registro Diario de Peso":
             else:
                 st.info(mensaje_conclusion)
 
-            # --- 4. MÉTRICAS CLAVE EN PANTALLA ---
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("⚖️ Peso Diario", f"{p_actual:.1f} kg")
             c2.metric("📅 Promedio Semanal", f"{prom_semanal:.2f} kg")
             c3.metric("📉 Mínimo Histórico", f"{p_min:.1f} kg")
             c4.metric("📈 Máximo Histórico", f"{p_max:.1f} kg")
 
-            # --- 5. GRÁFICA DE EVOLUCIÓN CON TENDENCIA MENSUAL ---
             st.markdown("---")
             st.markdown("##### 📈 Evolución y Tendencia")
 
-            # Asegurar cálculo numérico limpio para el promedio móvil
             df["Promedio Móvil"] = df["Peso (kg)"].rolling(window=7, min_periods=1).mean().astype(float)
 
             fig = px.line(
@@ -1304,7 +817,6 @@ elif opcion == "📉 Registro Diario de Peso":
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            # Tabla interactiva
             with st.expander("📋 Ver Historial de Datos"):
                 st.dataframe(df.sort_values("Fecha", ascending=False), use_container_width=True)
         else:
@@ -1340,15 +852,11 @@ elif opcion == "🥗 Registro de Alimentación":
     st.header("🥗 Registro de Alimentación")
     st.write("Elige tu método de registro preferido para el día de hoy.")
 
-    # Creación de Pestañas
     tab_porciones, tab_frecuentes = st.tabs([
         "📋 Porciones (Plan Nutrióloga)", 
         "⚡ Calorías y Comidas Frecuentes"
     ])
 
-    # ----------------------------------------------------
-    # PESTAÑA 1: PLAN DE PORCIONES DE LA NUTRIÓLOGA
-    # ----------------------------------------------------
     with tab_porciones:
         st.subheader("📋 Control por Equivalentes / Porciones")
         st.caption("Marca las porciones que vas consumiendo a lo largo del día según tu plan nutricional.")
@@ -1366,7 +874,6 @@ elif opcion == "🥗 Registro de Alimentación":
         if "porciones_hoy" not in st.session_state:
             st.session_state.porciones_hoy = {k: 0 for k in st.session_state.meta_porciones.keys()}
 
-        # Ajuste de metas de la nutrióloga
         with st.expander("⚙️ Configurar Metas Diarias de la Nutrióloga"):
             c_cfg = st.columns(2)
             for idx, (grupo, meta_val) in enumerate(st.session_state.meta_porciones.items()):
@@ -1377,7 +884,6 @@ elif opcion == "🥗 Registro de Alimentación":
 
         st.markdown("---")
 
-        # Botones de registro rápido
         col_reg1, col_reg2 = st.columns(2)
         for idx, (grupo, meta_val) in enumerate(st.session_state.meta_porciones.items()):
             col_actual = col_reg1 if idx % 2 == 0 else col_reg2
@@ -1410,9 +916,6 @@ elif opcion == "🥗 Registro de Alimentación":
             st.session_state.porciones_hoy = {k: 0 for k in st.session_state.meta_porciones.keys()}
             st.rerun()
 
-    # ----------------------------------------------------
-    # PESTAÑA 2: REGISTRO POR CALORÍAS Y REPETIR COMIDAS (CON IA)
-    # ----------------------------------------------------
     with tab_frecuentes:
         st.subheader("⚡ Registro Inteligente por Calorías")
         st.caption("Escribe lo que comiste en lenguaje natural y deja que la IA calcule las calorías y proteínas por ti.")
@@ -1428,7 +931,6 @@ elif opcion == "🥗 Registro de Alimentación":
                 columns=["Comida", "Alimento", "Kcal", "Proteína (g)"]
             )
 
-        # Botones de Carga Rápida
         st.markdown("##### 🔁 Repetir Comida Habitual")
         cols_frec = st.columns(len(st.session_state.comidas_frecuentes))
         for idx, item in enumerate(st.session_state.comidas_frecuentes):
@@ -1452,13 +954,11 @@ elif opcion == "🥗 Registro de Alimentación":
 
         st.markdown("---")
 
-        # Registro Asistido por IA
         col_f1, col_f2 = st.columns([1, 1])
         with col_f1:
             st.markdown("##### 🪄 Registro Asistido con IA")
             cat = st.selectbox("Categoría", ["Desayuno", "Comida", "Cena", "Snack"], key="cat_ia")
             
-            # Campo descriptivo libre
             desc_comida = st.text_area(
                 "¿Qué comiste?", 
                 placeholder="Ej. Sándwich de jamón con lechuga, jitomate, panela y mayonesa.",
@@ -1483,8 +983,7 @@ elif opcion == "🥗 Registro de Alimentación":
                             )
                             texto_respuesta = response.text.strip()
                             
-                            # Parsear la respuesta de la IA de forma segura
-                            kcal_calc = 350  # Valor por defecto si falla el parseo
+                            kcal_calc = 350
                             prot_calc = 20
                             
                             for linea in texto_respuesta.split('\n'):
@@ -1495,7 +994,6 @@ elif opcion == "🥗 Registro de Alimentación":
                                     digits = "".join(c for c in linea if c.isdigit())
                                     prot_calc = int(digits) if digits else 20
                             
-                            # Guardar directamente en el diario
                             nuevo_m = pd.DataFrame([{
                                 "Comida": cat, 
                                 "Alimento": desc_comida, 
@@ -1513,7 +1011,6 @@ elif opcion == "🥗 Registro de Alimentación":
                 else:
                     st.warning("Por favor escribe qué fue lo que comiste.")
 
-            # Opción por si prefieren meterlo a mano de forma tradicional
             with st.expander("📝 O ingresar manualmente (Sin IA)"):
                 nom_m = st.text_input("Nombre corto", placeholder="Ej. Pollo con arroz")
                 kc_m = st.number_input("Calorías (kcal)", min_value=0, value=350, key="kc_manual")
@@ -1553,7 +1050,6 @@ elif opcion == "🍳 Generador de Recetas":
         "Configura tus horarios de trabajo o escuela para adaptar tus comidas y porciones a tus turnos reales."
     )
 
-    # 1. CONFIGURACIÓN DE JORNADA (TRABAJO / ESCUELA) Y CONDICIÓN
     with st.expander("⏰ Configurar mi Jornada (Escuela / Trabajo) y Condición", expanded=True):
         col_c1, col_c2 = st.columns(2)
         with col_c1:
@@ -1600,7 +1096,6 @@ elif opcion == "🍳 Generador de Recetas":
             value=True,
         )
 
-    # 2. PLAN BASE RESTRUCTURADO
     if "plan_nutriologa_horarios" not in st.session_state:
         st.session_state.plan_nutriologa_horarios = {
             "Al despertar": {"Lácteos": 1, "Grasas c/ Prot": 1},
@@ -1635,7 +1130,6 @@ elif opcion == "🍳 Generador de Recetas":
 
     plan_actual = st.session_state.plan_nutriologa_horarios
 
-    # 3. SELECCIÓN DE MODALIDAD Y OPCIÓN DE COMEDOR
     st.markdown("---")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -1668,7 +1162,6 @@ elif opcion == "🍳 Generador de Recetas":
     else:
         opcion_comedor_elegida = "N/A"
 
-    # 4. GUSTOS Y RESTRICCIONES POR GRUPOS ALIMENTICIOS
     st.markdown("---")
     st.subheader("⚙️ Gustos y Restricciones por Categoría")
 
@@ -1744,7 +1237,6 @@ elif opcion == "🍳 Generador de Recetas":
         f"Leguminosas: {', '.join(no_l)} | Grasas/Lácteos: {', '.join(no_g)}"
     )
 
-    # 5. GENERACIÓN CON GEMINI Y CREACIÓN AUTOMÁTICA DE LISTA DE SUPERMERCADO
     if st.button("🍳 Generar Plan / Guía y Crear Lista de Compras", use_container_width=True):
         try:
             import json
@@ -1817,18 +1309,15 @@ elif opcion == "🍳 Generador de Recetas":
                 )
                 receta_texto = response.text
 
-            # Extracción del bloque JSON e inserción automática a la DB
             match = re.search(r"```json\s*(.*?)\s*```", receta_texto, re.DOTALL)
             
             if match:
                 json_str = match.group(1)
                 ingredientes = json.loads(json_str)
                 
-                # Ocultar el bloque JSON del texto visible en pantalla
                 receta_limpia = re.sub(r"```json\s*.*?\s*```", "", receta_texto, flags=re.DOTALL)
                 st.session_state["ultima_receta"] = receta_limpia
                 
-                # Insertar ítems automáticamente en Neon PostgreSQL
                 for ing in ingredientes:
                     execute_db(
                         """
@@ -1844,7 +1333,6 @@ elif opcion == "🍳 Generador de Recetas":
         except Exception as e:
             st.error(f"Error al procesar el plan o guardar en la base de datos: {e}")
 
-    # 6. MOSTRAR RESULTADO DE LA RECETA
     if "ultima_receta" in st.session_state:
         st.markdown("---")
         st.markdown(st.session_state["ultima_receta"])
@@ -1862,11 +1350,9 @@ elif opcion == "🍳 Generador de Recetas":
 elif opcion == "🛒 Lista de Compras":
     st.header("🛒 Tu Lista de Supermercado")
 
-    # Inicializar estado en sesión si no existe
     if "comprados_set" not in st.session_state:
         st.session_state.comprados_set = set()
 
-    # --- 1. FORMULARIO: AGREGAR INGREDIENTE O ELEMENTO ---
     with st.form("form_agregar_super", clear_on_submit=True):
         nuevo_item = st.text_input(
             "Agregar ingrediente o elemento al super:",
@@ -1886,7 +1372,7 @@ elif opcion == "🛒 Lista de Compras":
                 ]
             )
         with col_btn:
-            st.write("") # Espaciador para alinear el botón
+            st.write("") 
             st.write("")
             btn_add = st.form_submit_button("Añadir a la lista", use_container_width=True)
 
@@ -1906,10 +1392,8 @@ elif opcion == "🛒 Lista de Compras":
 
     st.markdown("---")
 
-    # --- 2. LISTA PENDIENTE ORGANIZADA POR PASILLOS ---
     st.subheader("Lista pendiente:")
 
-    # Consultar base de datos
     items_db = run_query(
         """
         SELECT id, item, categoria, comprado 
@@ -1923,7 +1407,6 @@ elif opcion == "🛒 Lista de Compras":
     if not items_db:
         st.info("Tu lista de compras está vacía.")
     else:
-        # Agrupar elementos por categoría
         from collections import defaultdict
         agrupados = defaultdict(list)
         for row in items_db:
@@ -1934,7 +1417,6 @@ elif opcion == "🛒 Lista de Compras":
                 "comprado": item_comprado
             })
 
-        # Desplegar categorías y elementos con checkboxes interactivos
         for categoria, elementos in agrupados.items():
             st.markdown(f"#### {categoria}")
             for elem in elementos:
@@ -1942,7 +1424,6 @@ elif opcion == "🛒 Lista de Compras":
                 elem_nombre = elem["nombre"]
                 esta_comprado = elem["comprado"]
 
-                # Formato tachado si ya está marcado como comprado
                 label = f"~~{elem_nombre}~~" if esta_comprado else elem_nombre
                 
                 check = st.checkbox(
@@ -1951,7 +1432,6 @@ elif opcion == "🛒 Lista de Compras":
                     key=f"check_super_{elem_id}"
                 )
 
-                # Actualizar estado en la BD si el usuario interactúa
                 if check != esta_comprado:
                     execute_db(
                         "UPDATE lista_compras SET comprado = %s WHERE id = %s AND user_id = %s",
@@ -1961,7 +1441,6 @@ elif opcion == "🛒 Lista de Compras":
 
         st.markdown("---")
         
-        # Opciones de limpieza
         col_clean1, col_clean2 = st.columns(2)
         with col_clean1:
             if st.button("🧹 Limpiar elementos marcados", use_container_width=True):
@@ -1986,7 +1465,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
     st.header("🔥 Registro de Hábitos Diarios")
     st.write("Marca tus hábitos cumplidos hoy para mantener y aumentar tu racha.")
 
-    # Inicializar registro de hábitos en st.session_state
     if "historial_habitos" not in st.session_state:
         st.session_state.historial_habitos = pd.DataFrame(
             columns=[
@@ -2001,14 +1479,12 @@ elif opcion == "🔥 Seguimiento de Hábitos":
             ]
         )
 
-    # 1. FECHA Y FORMULARIO DE CHECKLIST DIARIO
     col_check, col_racha = st.columns([1.2, 1.8])
 
     with col_check:
         st.subheader("📅 Checklist de Hoy")
         f_habito = st.date_input("Fecha", key="f_habito_input")
 
-        # Lista de hábitos con checkboxes
         h_agua = st.checkbox("💧 Tomé suficiente agua")
         h_nutricion = st.checkbox("🥗 Comí de acuerdo con mi objetivo")
         h_actividad = st.checkbox("🚶 Hice actividad física")
@@ -2020,7 +1496,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
         completados = sum([h_agua, h_nutricion, h_actividad, h_sueno, h_frutas, h_azucar])
 
         if st.button("💾 Guardar Hábitos de Hoy", use_container_width=True):
-            # Se considera "Día Cumplido" si realiza al menos 4 de los 6 hábitos
             cumplio_dia = completados >= 4
 
             nuevo_registro_h = pd.DataFrame(
@@ -2036,7 +1511,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
                 }]
             )
 
-            # Evitar duplicados del mismo día guardando el último registro
             st.session_state.historial_habitos = (
                 pd.concat([st.session_state.historial_habitos, nuevo_registro_h])
                 .drop_duplicates(subset=["Fecha"], keep="last")
@@ -2046,7 +1520,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
             st.success("¡Hábitos de hoy guardados!")
             st.rerun()
 
-    # 2. CÁLCULO DE RACHA ACTUAL Y ESTADÍSTICAS
     with col_racha:
         st.subheader("🔥 Tu Racha Actual")
 
@@ -2056,7 +1529,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
             df_h["Fecha"] = pd.to_datetime(df_h["Fecha"])
             df_h = df_h.sort_values("Fecha", ascending=False)
 
-            # Algoritmo para calcular la racha de días consecutivos cumplidos
             racha_actual = 0
             for idx, fila in df_h.iterrows():
                 if fila["Cumplido_Total"]:
@@ -2064,7 +1536,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
                 else:
                     break
 
-            # Despliegue visual destacado de la racha
             if racha_actual > 0:
                 st.markdown(
                     f"""
@@ -2080,7 +1551,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
 
             st.markdown("---")
 
-            # Métrica de porcentaje de efectividad mensual
             dias_totales = len(df_h)
             dias_exitosos = df_h["Cumplido_Total"].sum()
             pct_efectividad = (dias_exitosos / dias_totales) * 100 if dias_totales > 0 else 0
@@ -2089,7 +1559,6 @@ elif opcion == "🔥 Seguimiento de Hábitos":
             m_h1.metric("📊 Días Registrados", f"{dias_totales} días")
             m_h2.metric("🎯 Efectividad Total", f"{pct_efectividad:.0f}%")
 
-            # Mostrar tabla detallada del historial
             with st.expander("📋 Ver Historial Completo de Hábitos"):
                 st.dataframe(df_h, use_container_width=True)
         else:
@@ -2102,20 +1571,17 @@ elif opcion == "📈 Reporte Semanal":
     st.header("📈 Reporte Semanal de Progreso")
     st.write("Consulta el balance consolidado de tu última semana y la interpretación de tu evolución.")
 
-    # 1. EVALUAR SI HAY DATOS EN EL HISTORIAL DIARIO
     if "historial_diario" in st.session_state and not st.session_state.historial_diario.empty:
         df_p = st.session_state.historial_diario.copy()
         df_p["Fecha"] = pd.to_datetime(df_p["Fecha"])
         df_p = df_p.sort_values("Fecha")
 
-        # Tomar datos de los últimos 7 días registrados (o los disponibles)
         ultimos_7 = df_p.tail(7)
         
         peso_ini = ultimos_7.iloc[0]["Peso (kg)"]
         peso_fin = ultimos_7.iloc[-1]["Peso (kg)"]
         cambio_peso = peso_fin - peso_ini
 
-        # Obtener o simular promedios de hábitos / nutrición de la semana
         prom_kcal = 1940
         if "diario_alimentos" in st.session_state and not st.session_state.diario_alimentos.empty:
             tot_k = st.session_state.diario_alimentos["Kcal"].sum()
@@ -2125,14 +1591,12 @@ elif opcion == "📈 Reporte Semanal":
         prom_pasos = "7,820"
         prom_agua = "2.1 L"
 
-        # --- SECCIÓN: TARJETA RESUMEN "TU SEMANA" ---
         st.subheader("🗓️ Tu Semana")
         
         c1, c2, c3 = st.columns(3)
         c1.metric("⚖️ Peso Inicial", f"{peso_ini:.1f} kg")
         c2.metric("⚖️ Peso Final", f"{peso_fin:.1f} kg")
         
-        # Color del delta según si subió o bajó
         delta_str = f"{cambio_peso:+.1f} kg"
         c3.metric("📉 Cambio de Peso", f"{peso_fin:.1f} kg", delta=delta_str, delta_color="inverse")
 
@@ -2145,7 +1609,6 @@ elif opcion == "📈 Reporte Semanal":
 
         st.markdown("---")
 
-        # --- SECCIÓN: CONCLUSIÓN DE LA APP ---
         st.subheader("💡 Conclusión Semanal")
 
         if cambio_peso < 0:
@@ -2167,7 +1630,6 @@ elif opcion == "📈 Reporte Semanal":
             )
             st.info(conclusion_txt)
 
-        # Resumen gráfico semanal
         st.markdown("##### 📊 Tendencia de los Últimos 7 Días")
         fig_semana = px.line(
             ultimos_7,
@@ -2188,39 +1650,31 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
     st.header("🤖 Coach Personal de Nutrición")
     st.write("Escribe o dicta lo que comiste en lenguaje natural y la IA calculará tus macros y te dará feedback en tiempo real.")
 
-    # Inicializar historial de conversación del asistente
     if "chat_asistente" not in st.session_state:
         st.session_state.chat_asistente = []
 
-    # Mostrar mensajes previos del chat
     for mensaje in st.session_state.chat_asistente:
         with st.chat_message(mensaje["role"]):
             st.markdown(mensaje["content"])
 
-    # Entrada de texto del usuario
     if prompt := st.chat_input("Ejemplo: Hoy desayuné 2 huevos, 2 tortillas y un café con leche..."):
-        # Guardar y mostrar mensaje del usuario
         st.session_state.chat_asistente.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Generar respuesta con la API de Gemini
         with st.chat_message("assistant"):
             with st.spinner("Analizando tu comida..."):
                 try:
-                    # 1. Obtener datos de meta de la DB del usuario de manera segura
                     perfil_db = run_query(
                         "SELECT meta_kcal FROM control_peso WHERE user_id = %s ORDER BY fecha DESC LIMIT 1",
                         (user_id,)
                     )
                     meta_calorias = perfil_db[0][0] if perfil_db else 2000
 
-                    # 2. Sumar consumo de calorías registradas en el día
                     calorias_hoy_previas = 0
                     if "diario_alimentos" in st.session_state and not st.session_state.diario_alimentos.empty:
                         calorias_hoy_previas = int(st.session_state.diario_alimentos["Kcal"].sum())
 
-                    # 3. System Instruction completo y dinámico
                     system_instruction = (
                         "Eres un Coach Nutricional empático, práctico y preciso. "
                         "Tu tarea es analizar la comida registrada por el usuario, calcular sus macros y compararlos contra sus métricas diarias personales.\n\n"
@@ -2236,7 +1690,6 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                         "Mantén un tono motivacional y directo."
                     )
 
-                    # 4. Contexto específico enviado a la API
                     prompt_con_contexto = (
                         f"[PERFIL DE CONSUMO DEL USUARIO HOY]\n"
                         f"- Meta diaria de calorías: {meta_calorias} kcal\n"
@@ -2252,7 +1705,6 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                     respuesta_coach = response.text
                     st.markdown(respuesta_coach)
                     
-                    # Guardar respuesta en el historial corrigiendo el nombre de la variable
                     st.session_state.chat_asistente.append({"role": "assistant", "content": respuesta_coach})
                 except Exception as e:
                     st.error(f"Error al conectar con el asistente: {e}")
