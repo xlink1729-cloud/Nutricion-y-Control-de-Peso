@@ -175,7 +175,7 @@ if not st.session_state.user:
         
         /* ANCHO MÁXIMO CONTROLADO PARA BARRAS MÁS COMPACTAS */
         .main .block-container {
-            max-width: 340px !important; /* Ancho ajustado para que no se estire */
+            max-width: 340px !important;
             padding-top: 3rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
@@ -272,8 +272,8 @@ if not st.session_state.user:
             -webkit-text-fill-color: #4A4A4A !important;
             border: none !important;
             border-radius: 25px !important;
-            padding: 8px 18px !important; /* Reducido para que las barras sean menos altas */
-            height: 42px !important;      /* Altura fija compacta */
+            padding: 8px 18px !important;
+            height: 42px !important;
             font-size: 0.95rem !important;
             box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
         }
@@ -296,11 +296,11 @@ if not st.session_state.user:
             font-weight: 700 !important;
             font-size: 0.95rem !important;
             letter-spacing: 1px !important;
-            background: #a4d023 !important; /* Verde lima */
+            background: #a4d023 !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            height: 44px !important;        /* Altura proporcional a los campos */
+            height: 44px !important;
             padding: 0px 15px !important;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
             transition: all 0.2s ease !important;
@@ -335,6 +335,19 @@ if not st.session_state.user:
         unsafe_allow_html=True,
     )
     
+    try:
+        with open("static/vitacoach.jpg", "rb") as img_file:
+            img_b64 = base64.b64encode(img_file.read()).decode()
+        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="VITA COACH"></div></div>'
+    except Exception:
+        logo_html = ""
+
+    st.markdown(logo_html, unsafe_allow_html=True)
+
+    tab_login, tab_registro, tab_recuperar = st.tabs(
+        ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
+    )
+
     # 1. FORMULARIO LOGIN
     with tab_login:
         with st.form("login_form"):
@@ -1894,7 +1907,7 @@ elif opcion == "🤖 Asistente Virtual Nutricional":
                     system_instruction = (
                         "Eres un Coach Nutricional empático, práctico y preciso. "
                         "Tu tarea es analizar la comida registrada por el usuario, calcular sus macros y compararlos contra sus métricas diarias personales.\n\n"
-                        "Sigue strictly esta estructura de respuesta:\n"
+                        "Sigue estrictamente esta estructura de respuesta:\n"
                         "1. Confirmar brevemente el registro.\n"
                         "2. Dar un desglose estimado de macronutrientes: Calorías (kcal), Proteína (g), Carbohidratos (g) y Grasas (g).\n"
                         "3. Balance Calórico Diario:\n"
