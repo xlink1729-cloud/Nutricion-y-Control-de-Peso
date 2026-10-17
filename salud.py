@@ -156,7 +156,7 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN ESTILO TARJETA COMPACTA VITA COACH ---
+# --- CONTROL DE SESIÓN ESTILO TARJETA CENTRADA VITA COACH ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -170,25 +170,46 @@ def mostrar_login():
         }
         header {visibility: hidden;}
 
+        /* ANCHO ADECUADO PARA QUE NO SE APLASTE EN MÓVIL NI ESCRITORIO */
         .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 0rem !important;
+            padding-top: 1.5rem !important;
+            padding-bottom: 2rem !important;
             max-width: 480px !important;
+            margin: 0 auto !important;
         }
 
-        /* TARJETA FLOTANTE GLASSMORPHISM */
+        /* TARJETA DE FORMULARIO INTEGRADA */
         div[data-testid="stForm"] {
-            background: rgba(11, 59, 79, 0.82);
+            background: rgba(11, 59, 79, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 25px;
             border: 1px solid rgba(16, 185, 129, 0.35);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-            padding: 25px 30px 30px 30px;
-            max-width: 420px;
-            margin: auto;
+            padding: 25px 25px 30px 25px !important;
+            width: 100% !important;
         }
 
+        /* LOGO CENTRADO DENTRO DE LA TARJETA */
+        .login-logo-img {
+            display: block;
+            margin: 0 auto 10px auto;
+            max-width: 130px;
+            border-radius: 10px;
+        }
+
+        /* TÍTULO PRINCIPAL SIN RUPTURA DE LÍNEAS */
+        .login-title {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            white-space: nowrap !important;
+            margin-bottom: 15px;
+        }
+
+        /* ETIQUETAS Y CAMPOS */
         div[data-testid="stForm"] label,
         div[data-testid="stForm"] label p {
             color: #ffffff !important;
@@ -196,14 +217,13 @@ def mostrar_login():
             font-size: 0.9rem !important;
         }
 
-        /* BARRAS DE TEXTO COMPACTAS Y ESTILIZADAS */
         div[data-testid="stForm"] input {
             background-color: rgba(6, 47, 58, 0.9) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: 1px solid rgba(16, 185, 129, 0.4) !important;
             border-radius: 10px !important;
-            height: 40px !important;
+            height: 42px !important;
             font-size: 0.95rem !important;
         }
         
@@ -212,7 +232,7 @@ def mostrar_login():
             -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
         }
 
-        /* BOTÓN PRINCIPAL VERDE MENTA */
+        /* BOTÓN PRINCIPAL */
         div[data-testid="stForm"] button[type="submit"] {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
             color: #ffffff !important;
@@ -233,19 +253,23 @@ def mostrar_login():
             box-shadow: 0 8px 20px rgba(243, 156, 18, 0.45) !important;
         }
 
-        /* PESTAÑAS */
+        /* PESTAÑAS ADAPTABLES QUE NO SE CORTAN */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-            justify-content: center;
+            gap: 4px !important;
+            justify-content: space-between !important;
             background-color: rgba(6, 47, 58, 0.6);
-            padding: 5px;
+            padding: 4px;
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
+            width: 100% !important;
         }
         .stTabs [data-baseweb="tab"] {
             color: white !important;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem !important;
+            padding: 8px 6px !important;
+            flex: 1 1 auto !important;
+            text-align: center !important;
         }
         .stTabs [aria-selected="true"] {
             background-color: #10B981 !important;
@@ -254,97 +278,99 @@ def mostrar_login():
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # OBTENER LOGO EN BASE64
+    logo_b64 = ""
+    try:
+        with open("static/vitacoach.jpg", "rb") as img_file:
+            logo_b64 = base64.b64encode(img_file.read()).decode()
+    except Exception:
+        try:
+            with open("static/logo.png", "rb") as img_file:
+                logo_b64 = base64.b64encode(img_file.read()).decode()
+        except Exception:
+            pass
 
-    with col2:
-        # LOGO CENTRADO Y BIEN PROPORCIONADO
-        col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
-        with col_img2:
-            try: 
-                st.image("static/vitacoach.jpg", use_container_width=True)
-            except Exception: 
-                try:
-                    st.image("static/logo.png", use_container_width=True)
-                except Exception:
-                    pass
-
-        with st.form("form_auth"):
-            st.markdown("<h2 style='text-align: center; color: white; margin-bottom: 12px; font-weight: 800; letter-spacing: 1px;'>VITA COACH</h2>", unsafe_allow_html=True)
-            tab_log, tab_reg, tab_rec = st.tabs(["🔑 Iniciar Sesión", "📝 Crear Cuenta", "🔄 Recuperar"])
+    # FORMULARIO CENTRAL
+    with st.form("form_auth"):
+        if logo_b64:
+            st.markdown(f'<img src="data:image/jpeg;base64,{logo_b64}" class="login-logo-img">', unsafe_allow_html=True)
+        
+        st.markdown('<div class="login-title">VITA COACH</div>', unsafe_allow_html=True)
+        tab_log, tab_reg, tab_rec = st.tabs(["🔑 Iniciar", "📝 Registro", "🔄 Recuperar"])
+        
+        with tab_log:
+            email_input = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
+            password_input = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="login_pass")
+            submit_login = st.form_submit_button("LOGIN", use_container_width=True)
             
-            with tab_log:
-                email_input = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="login_email")
-                password_input = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="login_pass")
-                submit_login = st.form_submit_button("LOGIN", use_container_width=True)
-                
-                if submit_login:
-                    bloqueado, segs = esta_bloqueado("login")
-                    if bloqueado:
-                        st.error(f"Demasiados intentos fallidos. Reintenta en {segs}s.")
+            if submit_login:
+                bloqueado, segs = esta_bloqueado("login")
+                if bloqueado:
+                    st.error(f"Demasiados intentos fallidos. Reintenta en {segs}s.")
+                else:
+                    usuario_valido = verificar_usuario(email_input, password_input)
+                    if usuario_valido:
+                        resetear_intentos("login")
+                        st.session_state.user = usuario_valido
+                        st.rerun()
                     else:
-                        usuario_valido = verificar_usuario(email_input, password_input)
-                        if usuario_valido:
-                            resetear_intentos("login")
-                            st.session_state.user = usuario_valido
-                            st.rerun()
+                        registrar_intento_fallido("login")
+                        intentos_restantes = MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
+                        if intentos_restantes > 0:
+                            st.error(f"Credenciales incorrectas. Intentos restantes: {intentos_restantes}")
                         else:
-                            registrar_intento_fallido("login")
-                            intentos_restantes = MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
-                            if intentos_restantes > 0:
-                                st.error(f"Credenciales incorrectas. Intentos restantes: {intentos_restantes}")
-                            else:
-                                st.error(f"Límite superado. Bloqueado por {LOCKOUT_DURATION}s.")
+                            st.error(f"Límite superado. Bloqueado por {LOCKOUT_DURATION}s.")
 
-            with tab_reg:
-                nombre_nuevo = st.text_input("👤 Nombre completo", placeholder="Tu nombre", key="reg_nombre")
-                email_nuevo = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
-                password_nuevo = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="reg_pass")
-                pin_nuevo = st.text_input("🔢 PIN de seguridad (4 dígitos)", max_chars=4, type="password", placeholder="1234", key="reg_pin")
-                submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
-                
-                if submit_registro:
-                    bloqueado, segs = esta_bloqueado("registro")
-                    if bloqueado:
-                        st.error(f"Límite de solicitudes. Reintenta en {segs}s.")
-                    else:
-                        if nombre_nuevo and email_nuevo and password_nuevo and len(pin_nuevo) == 4:
-                            exito, msg = registrar_nuevo_usuario(nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo)
-                            if exito:
-                                resetear_intentos("registro")
-                                st.success("¡Cuenta creada! Ahora puedes iniciar sesión.")
-                            else:
-                                registrar_intento_fallido("registro")
-                                st.error(f"Error al registrar: {msg}")
+        with tab_reg:
+            nombre_nuevo = st.text_input("👤 Nombre completo", placeholder="Tu nombre", key="reg_nombre")
+            email_nuevo = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="reg_email")
+            password_nuevo = st.text_input("🔒 Contraseña", type="password", placeholder="••••••••", key="reg_pass")
+            pin_nuevo = st.text_input("🔢 PIN de seguridad (4 dígitos)", max_chars=4, type="password", placeholder="1234", key="reg_pin")
+            submit_registro = st.form_submit_button("REGISTRARME", use_container_width=True)
+            
+            if submit_registro:
+                bloqueado, segs = esta_bloqueado("registro")
+                if bloqueado:
+                    st.error(f"Límite de solicitudes. Reintenta en {segs}s.")
+                else:
+                    if nombre_nuevo and email_nuevo and password_nuevo and len(pin_nuevo) == 4:
+                        exito, msg = registrar_nuevo_usuario(nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo)
+                        if exito:
+                            resetear_intentos("registro")
+                            st.success("¡Cuenta creada! Ahora puedes iniciar sesión.")
                         else:
                             registrar_intento_fallido("registro")
-                            st.error("Por favor completa todos los campos correctamente.")
-
-            with tab_rec:
-                email_recuperar = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
-                pin_recuperar = st.text_input("🔢 PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
-                nueva_pw = st.text_input("🔒 Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
-                confirmar_pw = st.text_input("🔒 Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
-                submit_recuperar = st.form_submit_button("ACTUALIZAR", use_container_width=True)
-
-                if submit_recuperar:
-                    bloqueado, segs = esta_bloqueado("recuperar")
-                    if bloqueado:
-                        st.error(f"Bloqueo de seguridad activo. Reintenta en {segs}s.")
-                    elif nueva_pw != confirmar_pw:
-                        st.error("Las contraseñas no coinciden.")
+                            st.error(f"Error al registrar: {msg}")
                     else:
-                        exito, msg = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
-                        if exito:
-                            resetear_intentos("recuperar")
-                            st.success(msg)
-                        else:
-                            registrar_intento_fallido("recuperar")
-                            st.error(msg)
+                        registrar_intento_fallido("registro")
+                        st.error("Por favor completa todos los campos correctamente.")
+
+        with tab_rec:
+            email_recuperar = st.text_input("📧 Correo electrónico", placeholder="ejemplo@correo.com", key="rec_email")
+            pin_recuperar = st.text_input("🔢 PIN de seguridad", max_chars=4, type="password", placeholder="1234", key="rec_pin")
+            nueva_pw = st.text_input("🔒 Nueva contraseña", type="password", placeholder="••••••••", key="rec_pw1")
+            confirmar_pw = st.text_input("🔒 Confirmar contraseña", type="password", placeholder="••••••••", key="rec_pw2")
+            submit_recuperar = st.form_submit_button("ACTUALIZAR", use_container_width=True)
+
+            if submit_recuperar:
+                bloqueado, segs = esta_bloqueado("recuperar")
+                if bloqueado:
+                    st.error(f"Bloqueo de seguridad activo. Reintenta en {segs}s.")
+                elif nueva_pw != confirmar_pw:
+                    st.error("Las contraseñas no coinciden.")
+                else:
+                    exito, msg = cambiar_password_db(email_recuperar, pin_recuperar, nueva_pw)
+                    if exito:
+                        resetear_intentos("recuperar")
+                        st.success(msg)
+                    else:
+                        registrar_intento_fallido("recuperar")
+                        st.error(msg)
 
 if not st.session_state.user:
     mostrar_login()
     st.stop()
-
+    
 # --- A PARTIR DE AQUÍ SÍ HAY SESIÓN INICIADA ---
 user_id = st.session_state.user["id"]
 st.sidebar.markdown(f"👤 **Usuario:** {st.session_state.user['nombre']}")
