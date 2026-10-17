@@ -156,152 +156,157 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN CON CENTRADO Y LOGO OPTIMIZADO Y AGRANDADO ---
+# --- CONTROL DE SESIÓN ESTILO MINIMALISTA "MEMBER LOGIN" ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # --- CSS DE STREAMLIT ALINEADO A VITA COACH ---
+    # --- CSS MINIMALISTA Y FLOTANTE ---
     st.markdown(
         """
         <style>
         #MainMenu, footer, header {visibility: hidden;}
         
-        /* FONDO PRINCIPAL EN TONOS AZUL TEAL Y VERDE MENTA */
+        /* FONDO EN DEGRADADO RADIAL VERDE VIVO A VERDE OSCURO */
         .stApp {
-            background: radial-gradient(circle at 20% 20%, #0d5c63 0%, #0B3B4F 50%),
-                        radial-gradient(circle at 80% 80%, #062f3a 0%, #041d24 100%);
-            background-attachment: fixed;
+            background: radial-gradient(circle at 50% 35%, #76a048 0%, #3e6d30 45%, #183318 100%) !important;
+            background-attachment: fixed !important;
         }
         
         .main .block-container {
-            max-width: 480px !important;
-            padding-top: 1.5rem !important;
+            max-width: 400px !important;
+            padding-top: 2rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
         }
 
-        /* CARD Y TAMAÑO AMPLIADO DEL LOGO */
+        /* LOGO Y DIBUJO SIN CAJA BLANCA (SIN MARCO) */
         .logo-card-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
             width: 100%;
         }
         .logo-card {
-            background: rgba(255, 255, 255, 0.98);
-            padding: 10px;
-            border-radius: 20px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
-            width: 100%;
-            max-width: 360px;
+            background: transparent !important;
+            padding: 0px !important;
+            box-shadow: none !important;
+            border: none !important;
+            max-width: 200px;
             text-align: center;
-            border: 2px solid rgba(46, 204, 113, 0.4);
         }
         .logo-card img {
             width: 100%;
             height: auto;
-            max-height: 200px;
+            max-height: 140px;
             display: block;
-            border-radius: 12px;
             object-fit: contain;
+            filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
         }
 
-        /* STYLING DE PESTAÑAS (FORZADO BRUTO CON PALETA VITA COACH) */
+        /* STYLING DE PESTAÑAS MINIMALISTAS Y TRANSPARENTES */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 6px;
-            background-color: rgba(11, 59, 79, 0.6) !important;
-            padding: 6px;
-            border-radius: 14px;
-            margin-bottom: 1.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 10px;
+            background-color: transparent !important;
+            padding: 0px;
+            margin-bottom: 1.5rem;
+            border: none !important;
+            justify-content: center !important;
             width: 100%;
         }
 
         .stTabs [data-baseweb="tab"],
         .stTabs [data-baseweb="tab"] *,
         .stTabs [data-testid="stMarkdownContainer"] p {
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            opacity: 0.9 !important;
-            font-weight: 600 !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 0.95rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.5px;
         }
 
-        /* PESTAÑA ACTIVA CON VERDE MENTA (#10B981) */
+        /* PESTAÑA SELECCIONADA CON SUBRAYADO BLANCO FINO */
         .stTabs [aria-selected="true"] {
-            background-color: #10B981 !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+            background-color: transparent !important;
+            border-bottom: 2px solid #ffffff !important;
+            border-radius: 0px !important;
+            box-shadow: none !important;
         }
 
         .stTabs [aria-selected="true"] *,
         .stTabs [aria-selected="true"] [data-testid="stMarkdownContainer"] p {
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
+            font-weight: 700 !important;
             opacity: 1 !important;
-            font-weight: 800 !important;
         }
 
-        /* OCULTA LÍNEA DE SELECCIÓN POR DEFECTO */
         .stTabs [data-baseweb="tab-highlight-title"],
         .stTabs [data-baseweb="tab-border"] {
             background-color: transparent !important;
             display: none !important;
         }
 
-        /* CONTENEDOR DEL FORMULARIO GLASSMORPHISM */
+        /* ELIMINAR EL CONTENEDOR GRIS DEL FORMULARIO (TOTALMENTE FLOTANTE) */
         [data-testid="stForm"] {
-            background: rgba(255, 255, 255, 0.06) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            border-radius: 22px !important;
-            padding: 1.8rem !important;
-            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.4);
+            background: transparent !important;
+            border: none !important;
+            padding: 0px !important;
+            box-shadow: none !important;
         }
 
-        /* ETIQUETAS DE CAMPOS DE TEXTO */
+        /* OCULTAR ETIQUETAS DE TEXTO SUPERIORES PARA DEJAR SOLO PLACEHOLDERS */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
-            color: #ffffff !important;
-            font-weight: 600 !important;
+            display: none !important;
         }
 
-        /* CAJAS DE ENTRADA DE TEXTO */
+        /* CAJAS DE TEXTO ESTILO MODERNO (FONDO BLANCO, BORDES MUY REDONDEADOS) */
         .stTextInput input,
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
-            color: #0B3B4F !important;
-            -webkit-text-fill-color: #0B3B4F !important;
-            border: 1px solid #10B981 !important;
-            border-radius: 10px !important;
-            font-weight: 500 !important;
+            color: #4A4A4A !important;
+            -webkit-text-fill-color: #4A4A4A !important;
+            border: none !important;
+            border-radius: 30px !important; /* Bordes suaves estilo ovalado */
+            padding: 14px 22px !important;
+            font-size: 1rem !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+            margin-bottom: 10px !important;
         }
 
-        /* AUTOCOMPLETADO DEL NAVEGADOR */
+        .stTextInput input::placeholder {
+            color: #9E9E9E !important;
+            -webkit-text-fill-color: #9E9E9E !important;
+        }
+
+        /* AUTOCOMPLETADO DE NAVEGADOR */
         .stTextInput input:-webkit-autofill,
         .stTextInput input:-webkit-autofill:hover, 
         .stTextInput input:-webkit-autofill:focus {
-            -webkit-text-fill-color: #0B3B4F !important;
+            -webkit-text-fill-color: #4A4A4A !important;
             -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
             transition: background-color 5000s ease-in-out 0s;
+            border-radius: 30px !important;
         }
 
-        /* BOTONES PRINCIPALES (VERDE CON DEGRADADO) */
+        /* BOTÓN VERDE LIMA DESTACADO (SIGN IN) */
         div.stButton > button,
         div[data-testid="stFormSubmitButton"] > button {
             width: 100% !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            border-radius: 30px !important;
+            font-weight: 800 !important;
+            font-size: 1.05rem !important;
+            letter-spacing: 1px !important;
+            background: #a4d023 !important; /* Verde lima brillante */
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            padding: 0.75rem 1rem !important;
-            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35) !important;
+            padding: 14px 20px !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
             transition: all 0.3s ease !important;
+            margin-top: 10px !important;
             
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -309,19 +314,17 @@ if not st.session_state.user:
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* HOVER / TOUCH EN BOTÓN CON TONO NARANJA DE ACCENTO DE VITA COACH */
+        /* HOVER DEL BOTÓN */
         div.stButton > button:hover,
         div.stButton > button:focus,
         div.stButton > button:active,
         div[data-testid="stFormSubmitButton"] > button:hover,
         div[data-testid="stFormSubmitButton"] > button:focus,
         div[data-testid="stFormSubmitButton"] > button:active {
-            background: linear-gradient(135deg, #F39C12 0%, #E67E22 100%) !important;
+            background: #8cb812 !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
-            border: none !important;
-            box-shadow: 0 8px 22px rgba(243, 156, 18, 0.45) !important;
-            outline: none !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
             transform: translateY(-2px) !important;
         }
 
@@ -345,7 +348,7 @@ if not st.session_state.user:
     st.markdown(logo_html, unsafe_allow_html=True)
 
     tab_login, tab_registro, tab_recuperar = st.tabs(
-        ["INICIAR SESIÓN", "REGISTRO", "RECUPERAR"]
+        ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
     )
 
     # 1. FORMULARIO LOGIN
