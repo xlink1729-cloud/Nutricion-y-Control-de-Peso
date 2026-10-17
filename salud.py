@@ -161,7 +161,7 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # --- CSS MINIMALISTA Y FLOTANTE ---
+    # --- CSS MINIMALISTA CON BARRAS MÁS PEQUEÑAS Y CENTRADAS ---
     st.markdown(
         """
         <style>
@@ -173,19 +173,20 @@ if not st.session_state.user:
             background-attachment: fixed !important;
         }
         
+        /* ANCHO MÁXIMO CONTROLADO PARA BARRAS MÁS COMPACTAS */
         .main .block-container {
-            max-width: 400px !important;
-            padding-top: 2rem !important;
+            max-width: 340px !important; /* Ancho ajustado para que no se estire */
+            padding-top: 3rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
         }
 
-        /* LOGO Y DIBUJO SIN CAJA BLANCA (SIN MARCO) */
+        /* LOGO Y DIBUJO CENTRADO */
         .logo-card-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
             width: 100%;
         }
         .logo-card {
@@ -193,27 +194,27 @@ if not st.session_state.user:
             padding: 0px !important;
             box-shadow: none !important;
             border: none !important;
-            max-width: 200px;
+            max-width: 160px;
             text-align: center;
         }
         .logo-card img {
             width: 100%;
             height: auto;
-            max-height: 140px;
+            max-height: 120px;
             display: block;
             object-fit: contain;
             filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
         }
 
-        /* STYLING DE PESTAÑAS MINIMALISTAS Y TRANSPARENTES */
+        /* PESTAÑAS DENTRO DEL ANCHO RESTRINGIDO */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 10px;
+            gap: 8px;
             background-color: transparent !important;
             padding: 0px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
             border: none !important;
             justify-content: center !important;
-            width: 100%;
+            width: 100% !important;
         }
 
         .stTabs [data-baseweb="tab"],
@@ -221,12 +222,12 @@ if not st.session_state.user:
         .stTabs [data-testid="stMarkdownContainer"] p {
             color: rgba(255, 255, 255, 0.8) !important;
             -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
-            font-size: 0.95rem !important;
+            font-size: 0.85rem !important;
             font-weight: 500 !important;
             letter-spacing: 0.5px;
         }
 
-        /* PESTAÑA SELECCIONADA CON SUBRAYADO BLANCO FINO */
+        /* PESTAÑA SELECCIONADA */
         .stTabs [aria-selected="true"] {
             background-color: transparent !important;
             border-bottom: 2px solid #ffffff !important;
@@ -248,32 +249,33 @@ if not st.session_state.user:
             display: none !important;
         }
 
-        /* ELIMINAR EL CONTENEDOR GRIS DEL FORMULARIO (TOTALMENTE FLOTANTE) */
+        /* CONTENEDOR DEL FORMULARIO TRANSPARENTE Y RESTRINGIDO */
         [data-testid="stForm"] {
             background: transparent !important;
             border: none !important;
             padding: 0px !important;
             box-shadow: none !important;
+            width: 100% !important;
         }
 
-        /* OCULTAR ETIQUETAS DE TEXTO SUPERIORES PARA DEJAR SOLO PLACEHOLDERS */
+        /* OCULTAR ETIQUETAS */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             display: none !important;
         }
 
-        /* CAJAS DE TEXTO ESTILO MODERNO (FONDO BLANCO, BORDES MUY REDONDEADOS) */
+        /* BARRAS DE TEXTO MÁS DELGADAS Y COMPACTAS */
         .stTextInput input,
         div[data-baseweb="input"] input {
             background-color: #ffffff !important;
             color: #4A4A4A !important;
             -webkit-text-fill-color: #4A4A4A !important;
             border: none !important;
-            border-radius: 30px !important; /* Bordes suaves estilo ovalado */
-            padding: 14px 22px !important;
-            font-size: 1rem !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-            margin-bottom: 10px !important;
+            border-radius: 25px !important;
+            padding: 8px 18px !important; /* Reducido para que las barras sean menos altas */
+            height: 42px !important;      /* Altura fija compacta */
+            font-size: 0.95rem !important;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
         }
 
         .stTextInput input::placeholder {
@@ -281,32 +283,28 @@ if not st.session_state.user:
             -webkit-text-fill-color: #9E9E9E !important;
         }
 
-        /* AUTOCOMPLETADO DE NAVEGADOR */
-        .stTextInput input:-webkit-autofill,
-        .stTextInput input:-webkit-autofill:hover, 
-        .stTextInput input:-webkit-autofill:focus {
-            -webkit-text-fill-color: #4A4A4A !important;
-            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
-            transition: background-color 5000s ease-in-out 0s;
-            border-radius: 30px !important;
+        div[data-baseweb="input"] {
+            border-radius: 25px !important;
+            background-color: #ffffff !important;
         }
 
-        /* BOTÓN VERDE LIMA DESTACADO (SIGN IN) */
+        /* BOTÓN COMPACTO (INGRESAR / SIGN IN) */
         div.stButton > button,
         div[data-testid="stFormSubmitButton"] > button {
             width: 100% !important;
-            border-radius: 30px !important;
-            font-weight: 800 !important;
-            font-size: 1.05rem !important;
+            border-radius: 25px !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
             letter-spacing: 1px !important;
-            background: #a4d023 !important; /* Verde lima brillante */
+            background: #a4d023 !important; /* Verde lima */
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            padding: 14px 20px !important;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
-            transition: all 0.3s ease !important;
-            margin-top: 10px !important;
+            height: 44px !important;        /* Altura proporcional a los campos */
+            padding: 0px 15px !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.2s ease !important;
+            margin-top: 8px !important;
             
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -314,7 +312,6 @@ if not st.session_state.user:
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* HOVER DEL BOTÓN */
         div.stButton > button:hover,
         div.stButton > button:focus,
         div.stButton > button:active,
@@ -324,8 +321,8 @@ if not st.session_state.user:
             background: #8cb812 !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35) !important;
-            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3) !important;
+            transform: translateY(-1px) !important;
         }
 
         div.stButton > button *,
@@ -338,19 +335,6 @@ if not st.session_state.user:
         unsafe_allow_html=True,
     )
     
-    try:
-        with open("static/vitacoach.jpg", "rb") as img_file:
-            img_b64 = base64.b64encode(img_file.read()).decode()
-        logo_html = f'<div class="logo-card-container"><div class="logo-card"><img src="data:image/jpeg;base64,{img_b64}" alt="VITA COACH"></div></div>'
-    except Exception:
-        logo_html = ""
-
-    st.markdown(logo_html, unsafe_allow_html=True)
-
-    tab_login, tab_registro, tab_recuperar = st.tabs(
-        ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
-    )
-
     # 1. FORMULARIO LOGIN
     with tab_login:
         with st.form("login_form"):
