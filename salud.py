@@ -156,84 +156,92 @@ def guardar_receta_db(categoria, tiempo, cuerpo_receta):
     except Exception as e:
         st.error(f"Error al guardar la receta: {e}")
 
-# --- CONTROL DE SESIÓN ESTILO MINIMALISTA CENTRADO "MEMBER LOGIN" ---
+# --- CONTROL DE SESIÓN ESTILO TARJETA FLOTANTE Y PALETA VITA COACH ---
 if "user" not in st.session_state:
     st.session_state.user = None
 
 if not st.session_state.user:
-    # --- CSS MINIMALISTA CON ANCHO RESTRINGIDO Y CENTRADO COMPLETO ---
+    # --- CSS DE ESTILO TARJETA BLANCA FLOTANTE CON COLORES VITA COACH ---
     st.markdown(
         """
         <style>
         #MainMenu, footer, header {visibility: hidden;}
         
-        /* FONDO EN DEGRADADO RADIAL VERDE VIVO A VERDE OSCURO */
+        /* FONDO GENERAL EN DEGRADADO TEAL / AZUL PROFUNDO */
         .stApp {
-            background: radial-gradient(circle at 50% 35%, #76a048 0%, #3e6d30 45%, #183318 100%) !important;
+            background: radial-gradient(circle at 50% 30%, #0d5c63 0%, #0B3B4F 60%, #041d24 100%) !important;
             background-attachment: fixed !important;
         }
         
-        /* RESTRICCIÓN DE ANCHO CENTRAL TOTAL (320px) PARA TODO EL CONTENIDO */
+        /* ANCHO MÁXIMO ESTRECHO PARA LA TARJETA CENTRAL */
         .main .block-container {
-            max-width: 320px !important;
-            padding-top: 3.5rem !important;
+            max-width: 410px !important;
+            padding-top: 3rem !important;
             padding-bottom: 2rem !important;
             margin: 0 auto !important;
         }
 
-        /* CONTENEDOR DEL LOGO PROPORCIONAL Y CENTRADO */
+        /* LOGO / AVATAR SUPERIOR CIRCULAR */
         .logo-card-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1.2rem;
+            margin-bottom: -35px; /* Solapa ligeramente el logo sobre la tarjeta blanca */
+            position: relative;
+            z-index: 10;
             width: 100%;
         }
         .logo-card {
-            background: transparent !important;
-            padding: 0px !important;
-            box-shadow: none !important;
-            border: none !important;
-            width: 100%;
-            max-width: 180px;
-            text-align: center;
+            background: #ffffff;
+            padding: 8px;
+            border-radius: 50%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            width: 85px;
+            height: 85px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #10B981; /* Verde menta Vita Coach */
         }
         .logo-card img {
             width: 100%;
-            height: auto;
-            max-height: 120px;
-            display: block;
+            height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
+            border-radius: 50%;
         }
 
-        /* PESTAÑAS (INICIAR SESIÓN / REGISTRARSE / RECUPERAR) CENTRADAS */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 12px !important;
-            background-color: transparent !important;
-            padding: 0px !important;
-            margin-bottom: 1.5rem !important;
+        /* TARJETA BLANCA CONTENEDORA DE LOS FORMULARIOS */
+        [data-testid="stForm"] {
+            background: #ffffff !important;
+            border-radius: 30px !important;
+            padding: 3.5rem 2.2rem 2.2rem 2.2rem !important; /* Espacio superior extra para el logo */
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4) !important;
             border: none !important;
+        }
+
+        /* PESTAÑAS SUPERIORES ESTILIZADAS */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px !important;
+            background-color: #f1f5f9 !important;
+            padding: 5px !important;
+            border-radius: 16px !important;
+            margin-bottom: 1.2rem !important;
             justify-content: center !important;
-            width: 100% !important;
         }
 
         .stTabs [data-baseweb="tab"],
         .stTabs [data-baseweb="tab"] *,
         .stTabs [data-testid="stMarkdownContainer"] p {
-            color: rgba(255, 255, 255, 0.8) !important;
-            -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
-            font-size: 0.85rem !important;
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+            font-size: 0.8rem !important;
             font-weight: 600 !important;
-            letter-spacing: 0.5px;
         }
 
-        /* PESTAÑA ACTIVA CON LÍNEA INFERIOR BLANCA */
         .stTabs [aria-selected="true"] {
-            background-color: transparent !important;
-            border-bottom: 2px solid #ffffff !important;
-            border-radius: 0px !important;
-            box-shadow: none !important;
+            background-color: #10B981 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
         }
 
         .stTabs [aria-selected="true"] *,
@@ -241,57 +249,45 @@ if not st.session_state.user:
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             font-weight: 700 !important;
-            opacity: 1 !important;
         }
 
         .stTabs [data-baseweb="tab-highlight-title"],
         .stTabs [data-baseweb="tab-border"] {
-            background-color: transparent !important;
             display: none !important;
         }
 
-        /* CONTENEDOR DEL FORMULARIO SIN BORDES Y AJUSTADO A 320px */
-        [data-testid="stForm"] {
-            background: transparent !important;
-            border: none !important;
-            padding: 0px !important;
-            box-shadow: none !important;
-            width: 100% !important;
-        }
-
-        /* OCULTAR LAS ETIQUETAS SUPERIORES DE LOS INPUTS */
+        /* OCULTAR ETIQUETAS NATIVAS */
         [data-testid="stWidgetLabel"] label, 
         .stTextInput label {
             display: none !important;
         }
 
-        /* BARRAS DE TEXTO (INPUTS) COMPACTAS Y CENTRADAS DE 320px */
+        /* CAMPOS DE TEXTO GRIS CLARO OVALADOS (ESTILO REFERENCIA) */
         .stTextInput input,
         div[data-baseweb="input"] input {
-            background-color: #ffffff !important;
-            color: #4A4A4A !important;
-            -webkit-text-fill-color: #4A4A4A !important;
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            -webkit-text-fill-color: #1e293b !important;
             border: none !important;
             border-radius: 25px !important;
-            padding: 8px 18px !important;
-            height: 42px !important;
+            padding: 10px 20px !important;
+            height: 45px !important;
             font-size: 0.95rem !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.18) !important;
-            width: 100% !important;
+            box-shadow: none !important;
         }
 
         .stTextInput input::placeholder {
-            color: #9E9E9E !important;
-            -webkit-text-fill-color: #9E9E9E !important;
+            color: #94a3b8 !important;
+            -webkit-text-fill-color: #94a3b8 !important;
         }
 
         div[data-baseweb="input"] {
             border-radius: 25px !important;
-            background-color: #ffffff !important;
-            width: 100% !important;
+            background-color: #e2e8f0 !important;
+            border: none !important;
         }
 
-        /* BOTÓN INICIAR SESIÓN EN VERDE LIMA DESTACADO */
+        /* BOTÓN PRINCIPAL VERDE MENTA VIBRANTE */
         div.stButton > button,
         div[data-testid="stFormSubmitButton"] > button {
             width: 100% !important;
@@ -299,13 +295,13 @@ if not st.session_state.user:
             font-weight: 700 !important;
             font-size: 0.95rem !important;
             letter-spacing: 1px !important;
-            background: #a4d023 !important;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
             border: none !important;
-            height: 44px !important;
+            height: 46px !important;
             padding: 0px 15px !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4) !important;
             transition: all 0.2s ease !important;
             margin-top: 10px !important;
             
@@ -321,10 +317,10 @@ if not st.session_state.user:
         div[data-testid="stFormSubmitButton"] > button:hover,
         div[data-testid="stFormSubmitButton"] > button:focus,
         div[data-testid="stFormSubmitButton"] > button:active {
-            background: #8cb812 !important;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+            box-shadow: 0 8px 22px rgba(16, 185, 129, 0.6) !important;
             transform: translateY(-1px) !important;
         }
 
@@ -351,6 +347,165 @@ if not st.session_state.user:
         ["INICIAR SESIÓN", "REGISTRARSE", "RECUPERAR"]
     )
 
+    # 1. FORMULARIO LOGIN
+    with tab_login:
+        with st.form("login_form"):
+            email_input = st.text_input(
+                "Correo electrónico",
+                placeholder="Username",
+                key="login_email",
+            )
+            password_input = st.text_input(
+                "Contraseña",
+                type="password",
+                placeholder="********",
+                key="login_pass",
+            )
+            submit_login = st.form_submit_button(
+                "LOGIN", use_container_width=True
+            )
+
+            if submit_login:
+                bloqueado, segs = esta_bloqueado("login")
+                if bloqueado:
+                    st.error(
+                        f"Demasiados intentos fallidos. Reintenta en {segs}s."
+                    )
+                else:
+                    usuario_valido = verificar_usuario(
+                        email_input, password_input
+                    )
+                    if usuario_valido:
+                        resetear_intentos("login")
+                        st.session_state.user = usuario_valido
+                        st.rerun()
+                    else:
+                        registrar_intento_fallido("login")
+                        intentos_restantes = (
+                            MAX_ATTEMPTS - st.session_state.get("login_attempts", 0)
+                        )
+                        if intentos_restantes > 0:
+                            st.error(
+                                "Credenciales incorrectas. Intentos restantes:"
+                                f" {intentos_restantes}"
+                            )
+                        else:
+                            st.error(
+                                "Límite superado. Bloqueado por"
+                                f" {LOCKOUT_DURATION}s."
+                            )
+
+    # 2. FORMULARIO REGISTRO
+    with tab_registro:
+        with st.form("registro_form"):
+            nombre_nuevo = st.text_input(
+                "Nombre completo", placeholder="Nombre completo"
+            )
+            email_nuevo = st.text_input(
+                "Correo electrónico",
+                placeholder="Email",
+                key="reg_email",
+            )
+            password_nuevo = st.text_input(
+                "Contraseña",
+                type="password",
+                placeholder="Contraseña",
+                key="reg_pass",
+            )
+            pin_nuevo = st.text_input(
+                "PIN de seguridad (4 dígitos)",
+                max_chars=4,
+                type="password",
+                placeholder="PIN (4 dígitos)",
+                key="reg_pin",
+            )
+            submit_registro = st.form_submit_button(
+                "REGISTRARME", use_container_width=True
+            )
+
+            if submit_registro:
+                bloqueado, segs = esta_bloqueado("registro")
+                if bloqueado:
+                    st.error(
+                        f"Límite de solicitudes de registro. Reintenta en"
+                        f" {segs}s."
+                    )
+                else:
+                    if (
+                        nombre_nuevo
+                        and email_nuevo
+                        and password_nuevo
+                        and len(pin_nuevo) == 4
+                    ):
+                        exito, msg = registrar_nuevo_usuario(
+                            nombre_nuevo, email_nuevo, password_nuevo, pin_nuevo
+                        )
+                        if exito:
+                            resetear_intentos("registro")
+                            st.success(
+                                "¡Cuenta creada! Ahora puedes iniciar sesión."
+                            )
+                        else:
+                            registrar_intento_fallido("registro")
+                            st.error(f"Error al registrar: {msg}")
+                    else:
+                        registrar_intento_fallido("registro")
+                        st.error(
+                            "Por favor completa todos los campos correctamente."
+                        )
+
+    # 3. FORMULARIO RECUPERAR
+    with tab_recuperar:
+        with st.form("recuperar_form"):
+            email_recuperar = st.text_input(
+                "Correo electrónico",
+                placeholder="Email registrado",
+                key="rec_email",
+            )
+            pin_recuperar = st.text_input(
+                "PIN de seguridad",
+                max_chars=4,
+                type="password",
+                placeholder="PIN",
+                key="rec_pin",
+            )
+            nueva_pw = st.text_input(
+                "Nueva contraseña",
+                type="password",
+                placeholder="Nueva contraseña",
+                key="rec_pw1",
+            )
+            confirmar_pw = st.text_input(
+                "Confirmar contraseña",
+                type="password",
+                placeholder="Confirmar contraseña",
+                key="rec_pw2",
+            )
+            submit_recuperar = st.form_submit_button(
+                "ACTUALIZAR", use_container_width=True
+            )
+
+            if submit_recuperar:
+                bloqueado, segs = esta_bloqueado("recuperar")
+                if bloqueado:
+                    st.error(
+                        f"Bloqueo de seguridad activo. Reintenta en {segs}s."
+                    )
+                elif nueva_pw != confirmar_pw:
+                    st.error("Las contraseñas no coinciden.")
+                else:
+                    exito, msg = cambiar_password_db(
+                        email_recuperar, pin_recuperar, nueva_pw
+                    )
+                    if exito:
+                        resetear_intentos("recuperar")
+                        st.success(msg)
+                    else:
+                        registrar_intento_fallido("recuperar")
+                        st.error(msg)
+
+    st.stop()
+    
     # 1. FORMULARIO LOGIN
     with tab_login:
         with st.form("login_form"):
